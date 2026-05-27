@@ -1,0 +1,303 @@
+@import "tailwindcss";
+
+/* -------------------------------------------------------------
+   PROMPTFORGE GLOBAL STYLES & PREMIUM DESIGN SYSTEM
+   ------------------------------------------------------------- */
+
+:root {
+  /* Default: Obsidian Dark / Cosmic Violet Theme */
+  --bg-color: #030303;
+  --bg-gradient-1: #0a0518;
+  --bg-gradient-2: #020b14;
+  --fg-color: #f3f4f6;
+  --fg-muted: #9ca3af;
+  
+  --primary: 263 80% 55%;       /* Electric Violet */
+  --primary-glow: hsla(263, 80%, 55%, 0.15);
+  --secondary: 180 80% 50%;     /* Cyber Teal */
+  --secondary-glow: hsla(180, 80%, 50%, 0.15);
+  --accent: 320 80% 60%;        /* Electric Pink */
+  
+  --card-bg: rgba(10, 10, 12, 0.45);
+  --card-border: rgba(255, 255, 255, 0.05);
+  --card-border-hover: rgba(168, 85, 247, 0.25);
+  --input-bg: rgba(255, 255, 255, 0.03);
+  --input-border: rgba(255, 255, 255, 0.08);
+  --input-focus-border: rgba(168, 85, 247, 0.4);
+  
+  --radius: 12px;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* WES ANDERSON THEME OVERRIDE */
+.theme-wes-anderson {
+  --bg-color: #f7ede2;
+  --bg-gradient-1: #f7ede2;
+  --bg-gradient-2: #f6dbcc;
+  --fg-color: #2b2d42;
+  --fg-muted: #5c677d;
+  --primary: 20 80% 45%;        /* Mustard Coral */
+  --primary-glow: hsla(20, 80%, 45%, 0.15);
+  --secondary: 200 40% 40%;     /* Slate Blue */
+  --secondary-glow: hsla(200, 40% , 40%, 0.15);
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --card-border: rgba(43, 45, 66, 0.12);
+  --card-border-hover: rgba(43, 45, 66, 0.3);
+  --input-bg: rgba(255, 255, 255, 0.9);
+  --input-border: rgba(43, 45, 66, 0.2);
+  --input-focus-border: rgba(40, 116, 166, 0.6);
+}
+
+/* CYBERPUNK neon THEME OVERRIDE */
+.theme-cyberpunk {
+  --bg-color: #0c0014;
+  --bg-gradient-1: #1a002c;
+  --bg-gradient-2: #02000a;
+  --fg-color: #00ffff;
+  --fg-muted: #b800ff;
+  --primary: 290 100% 50%;      /* Neon Magenta */
+  --primary-glow: hsla(290, 100%, 50%, 0.3);
+  --secondary: 180 100% 50%;    /* Neon Cyan */
+  --secondary-glow: hsla(180, 100%, 50%, 0.3);
+  --card-bg: rgba(12, 0, 20, 0.6);
+  --card-border: rgba(0, 255, 255, 0.2);
+  --card-border-hover: rgba(240, 0, 255, 0.6);
+  --input-bg: rgba(0, 0, 0, 0.5);
+  --input-border: rgba(0, 255, 255, 0.3);
+  --input-focus-border: rgba(240, 0, 255, 0.8);
+}
+
+/* BRUTALIST THEME OVERRIDE */
+.theme-brutalist {
+  --bg-color: #ffffff;
+  --bg-gradient-1: #ffffff;
+  --bg-gradient-2: #f3f3f3;
+  --fg-color: #000000;
+  --fg-muted: #333333;
+  --primary: 0 0% 0%;           /* Deep Black */
+  --primary-glow: rgba(0,0,0,0.08);
+  --secondary: 0 0% 50%;        /* Gray */
+  --secondary-glow: rgba(0,0,0,0.08);
+  --card-bg: #ffffff;
+  --card-border: #000000;
+  --card-border-hover: #000000;
+  --input-bg: #ffffff;
+  --input-border: #000000;
+  --input-focus-border: #000000;
+  --radius: 0px;
+}
+
+/* MINIMAL TYPOGRAPHY THEME OVERRIDE */
+.theme-minimal {
+  --bg-color: #fafafa;
+  --bg-gradient-1: #ffffff;
+  --bg-gradient-2: #f5f5f5;
+  --fg-color: #171717;
+  --fg-muted: #737373;
+  --primary: 0 0% 9%;          /* Neutral Dark */
+  --primary-glow: rgba(0, 0, 0, 0.05);
+  --secondary: 0 0% 40%;
+  --secondary-glow: rgba(0, 0, 0, 0.05);
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --card-border: rgba(0, 0, 0, 0.06);
+  --card-border-hover: rgba(0, 0, 0, 0.15);
+  --input-bg: #ffffff;
+  --input-border: rgba(0, 0, 0, 0.1);
+  --input-focus-border: rgba(0, 0, 0, 0.4);
+}
+
+/* BASE STYLING */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-color);
+  background-image: radial-gradient(at 0% 0%, var(--bg-gradient-1) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, var(--bg-gradient-2) 0px, transparent 50%);
+  background-attachment: fixed;
+  color: var(--fg-color);
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  transition: background-color 0.4s ease, background-image 0.4s ease, color 0.4s ease;
+}
+
+/* CUSTOM SCROLLBAR */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* GLASSMORPHIC CLASSES */
+.glass-panel {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  transition: var(--transition);
+}
+
+.glass-panel-hover:hover {
+  border-color: var(--card-border-hover);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 
+              0 0 15px var(--primary-glow);
+  transform: translateY(-2px);
+}
+
+.glass-input {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  color: var(--fg-color);
+  padding: 0.75rem 1rem;
+  outline: none;
+  font-family: inherit;
+  transition: var(--transition);
+}
+
+.glass-input:focus {
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+/* PREMIUM BUTTONS */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
+  color: #ffffff !important;
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  font-family: inherit;
+}
+
+.btn-primary:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.35);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--fg-color);
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--card-border-hover);
+}
+
+/* ANIMATIONS & KEYFRAMES */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.floating {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* SHINE / SWEEP EFFECT */
+.shine-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-effect::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 45%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 55%
+  );
+  transform: rotate(45deg);
+  transition: transform 0.5s ease-in-out;
+}
+
+.shine-effect:hover::after {
+  transform: translate(50%, 50%) rotate(45deg);
+}
+
+/* BRUTALIST EXTRAS */
+.theme-brutalist .glass-panel {
+  border: 3px solid #000000 !important;
+  box-shadow: 5px 5px 0px #000000 !important;
+  border-radius: 0px !important;
+  backdrop-filter: none !important;
+}
+
+.theme-brutalist .glass-panel-hover:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0px #000000 !important;
+}
+
+.theme-brutalist .btn-primary {
+  background: #000000 !important;
+  border: 2px solid #000000 !important;
+  border-radius: 0px !important;
+  box-shadow: 3px 3px 0px #333333 !important;
+}
+
+.theme-brutalist .btn-primary:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #333333 !important;
+}
+
+/* CYBERPUNK GLOW EXTRAS */
+.theme-cyberpunk .glass-panel {
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
+}
+
+.theme-cyberpunk .glass-panel-hover:hover {
+  box-shadow: 0 0 15px rgba(240, 0, 255, 0.5), 0 0 5px rgba(0, 255, 255, 0.5);
+  border-color: #f000ff !important;
+}
