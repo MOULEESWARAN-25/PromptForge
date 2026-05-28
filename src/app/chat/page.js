@@ -8,11 +8,6 @@ import {
   Send, Copy, Check, Layers, ArrowLeft, RefreshCw 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import dynamic from 'next/dynamic';
-
-const RagInspector = dynamic(() => import('@/components/RagInspector'), {
-  ssr: false,
-});
 
 // ─── Animation Variants ────────────────────────────────────────
 const messageStagger = {
@@ -117,8 +112,114 @@ function ChatContent() {
   const handleCopy = () => {
     navigator.clipboard.writeText(currentPrompt);
     setCopied(true);
-    toast.success('Enhanced prompt blueprint copied');
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const parseBoldText = (text) => {
+    if (!text) return "";
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return (
+          <strong key={index} style={{ color: 'var(--foreground)', fontWeight: '700' }}>
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      return part;
+    });
+  };
+
+  const formatMessageText = (text) => {
+    if (!text) return "";
+    const lines = text.split('\n');
+    return lines.map((line, idx) => {
+      let cleanLine = line.trim();
+      if (!cleanLine) {
+        return <div key={idx} style={{ height: '0.6rem' }} />;
+      }
+      
+      // Headers
+      if (cleanLine.startsWith('###')) {
+        return (
+          <h4 key={idx} style={{ 
+            fontSize: '0.88rem', 
+            fontWeight: '700', 
+            color: 'var(--foreground)', 
+            marginTop: '0.85rem', 
+            marginBottom: '0.4rem',
+            fontFamily: 'var(--font-display)',
+            letterSpacing: '-0.01em'
+          }}>
+            {parseBoldText(cleanLine.replace(/^###\s*/, ''))}
+          </h4>
+        );
+      }
+      
+      if (cleanLine.startsWith('##')) {
+        return (
+          <h3 key={idx} style={{ 
+            fontSize: '0.94rem', 
+            fontWeight: '700', 
+            color: 'var(--foreground)', 
+            marginTop: '1.1rem', 
+            marginBottom: '0.5rem',
+            fontFamily: 'var(--font-display)',
+            letterSpacing: '-0.01em'
+          }}>
+            {parseBoldText(cleanLine.replace(/^##\s*/, ''))}
+          </h3>
+        );
+      }
+      
+      // Bullets
+      if (cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
+        return (
+          <li key={idx} style={{ 
+            marginLeft: '1rem', 
+            marginBottom: '0.3rem', 
+            listStyleType: 'disc', 
+            color: 'rgba(255,255,255,0.85)',
+            fontSize: '0.84rem',
+            lineHeight: '1.55'
+          }}>
+            {parseBoldText(cleanLine.replace(/^[-*]\s*/, ''))}
+          </li>
+        );
+      }
+      
+      // Numbered lists
+      if (/^\d+\.\s/.test(cleanLine)) {
+        const numberText = cleanLine.replace(/^\d+\.\s*/, '');
+        const number = cleanLine.match(/^\d+/)[0];
+        return (
+          <div key={idx} style={{ 
+            display: 'flex', 
+            gap: '0.4rem', 
+            marginLeft: '0.25rem', 
+            marginBottom: '0.35rem',
+            fontSize: '0.84rem',
+            lineHeight: '1.55',
+            color: 'rgba(255,255,255,0.85)'
+          }}>
+            <span style={{ fontWeight: '700', color: 'var(--accent)' }}>{number}.</span>
+            <span>{parseBoldText(numberText)}</span>
+          </div>
+        );
+      }
+      
+      // Plain text paragraphs
+      return (
+        <p key={idx} style={{ 
+          marginBottom: '0.45rem', 
+          fontSize: '0.84rem', 
+          lineHeight: '1.55',
+          color: 'rgba(255,255,255,0.82)'
+        }}>
+          {parseBoldText(line)}
+        </p>
+      );
+    });
   };
 
   if (!promptRecord) {
@@ -187,15 +288,15 @@ function ChatContent() {
                       boxShadow: isModel ? '0 2px 8px rgba(0,0,0,0.1)' : '0 4px 12px rgba(124,58,237,0.15)'
                     }}
                   >
-                    <span style={{ fontSize: '0.72rem', fontWeight: '700', display: 'block', marginBottom: '4px', opacity: 0.8, letterSpacing: '0.04em' }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: '700', display: 'block', marginBottom: '6px', opacity: 0.8, letterSpacing: '0.04em' }}>
                       {isModel ? "PROMPT ARCHITECT" : "YOU"}
                     </span>
-                    <p style={bubbleText}>
+                    <div style={bubbleText}>
                       {isModel 
-                        ? msg.content.split('```prompt')[0].trim() || "Enhanced prompt compiled successfully. View updated blueprint output in the right panel."
-                        : msg.content
+                        ? formatMessageText(msg.content.split('```prompt')[0].trim() || "Enhanced prompt compiled successfully. View updated blueprint output in the right panel.")
+                        : formatMessageText(msg.content)
                       }
-                    </p>
+                    </div>
                   </div>
                 </motion.div>
               );
@@ -264,9 +365,6 @@ function ChatContent() {
             </pre>
           </div>
         </div>
-
-        {/* Dynamic local RAG inspector visualizer */}
-        <RagInspector ragDetails={promptRecord.ragDetails} />
       </div>
     </div>
   );
@@ -300,18 +398,19 @@ const loadingContainer = {
 
 const chatLayout = {
   display: 'flex',
-  gap: '1rem',
-  height: 'calc(100vh - 130px)',
-  minHeight: '560px',
-  maxHeight: '840px',
-  paddingTop: '0.5rem',
+  gap: '1.25rem',
+  height: 'calc(100vh - 140px)',
+  minHeight: '600px',
+  maxHeight: '900px',
+  paddingTop: '0.25rem',
+  paddingBottom: '0.75rem',
   width: '100%',
   position: 'relative',
   zIndex: 2,
 };
 
 const chatColumn = {
-  flex: 1.3,
+  flex: 1.15,
   height: '100%',
   background: 'rgba(255, 255, 255, 0.01)',
   border: '1px solid rgba(255, 255, 255, 0.04)',
@@ -383,15 +482,15 @@ const msgBubbleRow = {
 };
 
 const msgBubble = {
-  maxWidth: '82%',
-  padding: '0.75rem 1rem',
-  lineHeight: '1.5',
+  maxWidth: '85%',
+  padding: '0.85rem 1.1rem',
+  lineHeight: '1.6',
   borderRadius: '12px',
 };
 
 const bubbleText = {
   fontSize: '0.875rem',
-  whiteSpace: 'pre-wrap',
+  whiteSpace: 'normal',
 };
 
 const chatInputRow = (focused) => ({
@@ -414,10 +513,13 @@ const sendBtn = {
   borderRadius: '9px',
   padding: 0,
   flexShrink: 0,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
 };
 
 const promptColumn = {
-  flex: 0.75,
+  flex: 1,
   height: '100%',
   display: 'flex',
   flexDirection: 'column',
@@ -462,6 +564,10 @@ const copyBtn = {
   fontSize: '0.75rem',
   height: '28px',
   borderRadius: '6px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '0.35rem',
 };
 
 const promptBody = {
@@ -474,7 +580,7 @@ const promptBody = {
 const codeBlockStyle = {
   fontFamily: 'var(--font-mono)',
   fontSize: '0.82rem',
-  color: 'var(--foreground)',
+  color: 'rgba(255,255,255,0.92)',
   whiteSpace: 'pre-wrap',
   lineHeight: '1.65',
 };
