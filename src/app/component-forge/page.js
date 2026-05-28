@@ -4,10 +4,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 import { generateEnhancedPrompt } from '@/services/gemini';
-import { designVocabulary } from '@/data/designVocabulary';
+import { designVocabulary, themeStyles } from '@/data/designVocabulary';
 import { 
   Sparkles, Search, Send, Copy, Check, Info, 
-  RefreshCw, Layers, ArrowLeft 
+  RefreshCw, Layers, ArrowLeft, Sliders, CheckCircle2, ChevronRight
 } from 'lucide-react';
 
 export default function ComponentForgePage() {
@@ -21,9 +21,10 @@ export default function ComponentForgePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedComp, setSelectedComp] = useState(allComponents[0]);
   const [selectedTheme, setSelectedTheme] = useState('Sleek Dark Glassmorphic');
+  const [promptGenerated, setPromptGenerated] = useState(false);
 
   // Generation / Chat states
-  const [activeSession, setActiveSession] = useState(null); // The saved Prompt record inside history context
+  const [activeSession, setActiveSession] = useState(null); // Saved record in context
   const [chatMessages, setChatMessages] = useState([]);
   const [currentPrompt, setCurrentPrompt] = useState('');
   
@@ -40,10 +41,10 @@ export default function ComponentForgePage() {
     }
   }, [user, router]);
 
-  // Load component default prompt on component selection
+  // Sync state on component selection
   useEffect(() => {
     if (selectedComp) {
-      // Check if we already have a history record for this component + theme in context!
+      // Check if we already have a history record for component + theme
       const existing = history.find(h => 
         h.mode === 'component' && 
         h.componentName === selectedComp.name && 
@@ -54,15 +55,16 @@ export default function ComponentForgePage() {
         setActiveSession(existing);
         setChatMessages(existing.chatMessages);
         setCurrentPrompt(existing.resolvedPrompt);
+        setPromptGenerated(true);
       } else {
-        // Clear active session and generate a fresh blueprint
+        // Clear active session and force theme/config panel first
         setActiveSession(null);
         setChatMessages([]);
         setCurrentPrompt('');
-        handleInitialGeneration();
+        setPromptGenerated(false);
       }
     }
-  }, [selectedComp, selectedTheme]);
+  }, [selectedComp, selectedTheme, history]);
 
   // Scroll to bottom of chat
   useEffect(() => {
@@ -97,8 +99,10 @@ export default function ComponentForgePage() {
       setActiveSession(savedRecord);
       setChatMessages(savedRecord.chatMessages);
       setCurrentPrompt(savedRecord.resolvedPrompt);
+      setPromptGenerated(true);
     } catch (e) {
       console.error(e);
+      alert("Error generating initial prompt. Please check your network/credentials.");
     } finally {
       setIsGenerating(false);
     }
@@ -117,7 +121,6 @@ export default function ComponentForgePage() {
     setChatMessages(updatedMessages);
 
     try {
-      // Build full conversation payload for Gemini API
       const apiHistory = updatedMessages.slice(0, -1);
 
       const response = await generateEnhancedPrompt({
@@ -132,7 +135,7 @@ export default function ComponentForgePage() {
       const finalMessages = [...updatedMessages, { role: 'model', content: response.prompt }];
       setChatMessages(finalMessages);
       
-      // Attempt to extract the raw prompt block
+      // Extract prompt block or default to full content
       let promptMatch = response.prompt.match(/```prompt\n([\s\S]*?)\n```/);
       if (promptMatch) {
         setCurrentPrompt(promptMatch[1]);
@@ -140,7 +143,6 @@ export default function ComponentForgePage() {
         setCurrentPrompt(response.prompt);
       }
 
-      // Save / Update session in AppContext history
       if (activeSession) {
         updatePromptChat(activeSession.id, finalMessages, response.prompt, response.ragDetails);
       }
@@ -163,6 +165,10 @@ export default function ComponentForgePage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleResetConfig = () => {
+    setPromptGenerated(false);
+  };
+
   if (!user) return null;
 
   // Filter component catalog based on search
@@ -176,9 +182,9 @@ export default function ComponentForgePage() {
       {/* 1. LEFT SIDEBAR PANEL (Component Index Catalog) */}
       <div style={sidebarStyle} className="glass-panel">
         <div style={sidebarHeader}>
-          <button style={backBtn} onClick={() => router.push('/forge')}>
-            <ArrowLeft size={14} />
-            Wizard Home
+          <button style={backBtn} onClick={() => router.push('/')}>
+            <ArrowLeft size={13} />
+            Back to Dashboard
           </button>
           <h2 style={sidebarTitle}>Component Catalog</h2>
           
@@ -196,45 +202,24 @@ export default function ComponentForgePage() {
           </div>
         </div>
 
-        {/* Theme Settings Selector */}
-        <div style={themeSelectorCard}>
-          <label style={themeLabel}>Target Style Theme</label>
-          <select
-            value={selectedTheme}
-            onChange={(e) => setSelectedTheme(e.target.value)}
-            style={selectStyle}
-            className="glass-input"
-          >
-            <option value="Sleek Dark Glassmorphic">Sleek Dark Glassmorphic</option>
-            <option value="Wes Anderson">Wes Anderson Retro</option>
-            <option value="Cyberpunk Neon">Cyberpunk Neon</option>
-            <option value="Brutalist Bold">Brutalist Bold</option>
-            <option value="Minimalist Typography">Minimalist Typography</option>
-          </select>
-        </div>
-
-        {/* Scrollable list */}
+        {/* Scrollable List */}
         <div style={componentsList}>
           {filteredComponents.length === 0 ? (
-            <p style={noResults}>No matching components found.</p>
+            <p style={noResults}>No matching components.</p>
           ) : (
             filteredComponents.map((comp) => {
               const active = selectedComp?.id === comp.id;
               return (
                 <div
                   key={comp.id}
-                  style={{
-                    ...componentCard,
-                    backgroundColor: active ? 'rgba(168, 85, 247, 0.08)' : 'transparent',
-                    borderColor: active ? 'hsl(var(--primary))' : 'rgba(255, 255, 255, 0.04)'
-                  }}
+                  style={componentCard(active)}
                   onClick={() => setSelectedComp(comp)}
                 >
                   <div style={cardHeaderRow}>
-                    <span style={compNameText}>{comp.name}</span>
-                    {active && <Sparkles size={12} style={{ color: 'hsl(var(--primary))' }} />}
+                    <span style={compNameText(active)}>{comp.name}</span>
+                    {active && <Sparkles size={12} style={{ color: '#fbbf24' }} />}
                   </div>
-                  <p style={compDescText}>{comp.description.slice(0, 50)}...</p>
+                  <p style={compDescText}>{comp.description.slice(0, 58)}...</p>
                 </div>
               );
             })
@@ -242,37 +227,109 @@ export default function ComponentForgePage() {
         </div>
       </div>
 
-      {/* 2. RIGHT WORKSPACE PANEL (Twin Workspace Layout) */}
+      {/* 2. RIGHT WORKSPACE PANEL */}
       <div style={workspaceStyle}>
-        <div 
-          style={twinLayoutContainer}
-          className={
-            selectedTheme === 'Wes Anderson' ? 'theme-wes-anderson' : 
-            selectedTheme === 'Cyberpunk Neon' ? 'theme-cyberpunk' : 
-            selectedTheme === 'Brutalist Bold' ? 'theme-brutalist' : 
-            selectedTheme === 'Minimalist Typography' ? 'theme-minimal' : ''
-          }
-        >
-          {/* Chat Workspace (Left side of split) */}
-          <div style={chatColumn} className="glass-panel">
-            <div style={chatHeader}>
-              <div>
-                <h3 style={chatTitle}>{selectedComp ? selectedComp.name : "Select a Component"}</h3>
-                <span style={themeStatusBadge}>{selectedTheme}</span>
-              </div>
+        {/* Loading Spinner Overlaid on Workspace */}
+        {isGenerating && !promptGenerated ? (
+          <div style={loadingWrapperPanel} className="glass-panel">
+            <div style={loadingContentInner}>
+              <div style={loadingSpinner} />
+              <h3 style={loadingHeaderTitle}>Compiling Design Token Prompt</h3>
+              <p style={loadingHeaderSub}>Applying theme styles and structural grid systems...</p>
+            </div>
+          </div>
+        ) : !promptGenerated ? (
+          /* A. Configuration & Details Welcome Screen */
+          <div style={configWorkspacePanel} className="glass-panel animate-fade-up">
+            <div style={configSplitLeft}>
+              <div style={configBadge}>Component Details</div>
+              <h2 style={configCompName}>{selectedComp?.name}</h2>
+              <p style={configCompDesc}>{selectedComp?.description}</p>
+              
+              {selectedComp?.keywords && (
+                <div style={keywordTagsContainer}>
+                  <span style={keywordsLabel}>RAG Keywords:</span>
+                  <div style={tagRow}>
+                    {selectedComp.keywords.map((kw, i) => (
+                      <span key={i} style={keywordTag}>{kw}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedComp?.examplePrompt && (
+                <div style={examplePromptBox}>
+                  <div style={exampleLabelRow}>
+                    <Info size={14} style={{ color: '#fbbf24' }} />
+                    <span>Target Directive Example</span>
+                  </div>
+                  <p style={exampleText}>{selectedComp.examplePrompt}</p>
+                </div>
+              )}
             </div>
 
-            {/* Chat Thread */}
-            <div style={chatBody}>
-              {(chatMessages || []).length === 0 && isGenerating ? (
-                <div style={chatLoading}>
-                  <RefreshCw size={24} className="animate-spin" style={{ color: 'hsl(var(--primary))' }} />
-                  <p>Assembling design blueprint...</p>
+            <div style={configSplitRight}>
+              <div style={themeHeaderBox}>
+                <span style={themeSelectionLabel}>Select Visual Theme</span>
+                <p style={themeSelectionSub}>Choose a design language to map components.</p>
+              </div>
+
+              <div style={themeCardList}>
+                {Object.keys(themeStyles).map((themeName) => {
+                  const isSelected = selectedTheme === themeName;
+                  return (
+                    <div
+                      key={themeName}
+                      style={themeSelectCard(isSelected)}
+                      onClick={() => setSelectedTheme(themeName)}
+                    >
+                      <div style={themeCardHeader}>
+                        <span style={themeCardTitleStyle(isSelected)}>{themeName}</span>
+                        {isSelected && <CheckCircle2 size={15} style={{ color: '#fbbf24' }} />}
+                      </div>
+                      <p style={themeCardDescription}>{themeStyles[themeName].description}</p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={handleInitialGeneration}
+                style={generatePromptBtn}
+                className="btn-accent shine-effect"
+              >
+                <Sparkles size={16} />
+                Generate Component Prompt
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* B. Interactive Twin Chat & Code Workspace */
+          <div style={twinLayoutContainer}>
+            {/* Chat Column */}
+            <div style={chatColumn} className="glass-panel">
+              <div style={chatHeader}>
+                <div>
+                  <h3 style={chatTitle}>{selectedComp ? selectedComp.name : "Select a Component"}</h3>
+                  <div style={headerBadgeRow}>
+                    <span style={themeStatusBadge}>{selectedTheme}</span>
+                    <button style={changeConfigLink} onClick={handleResetConfig}>
+                      Change Style
+                    </button>
+                  </div>
                 </div>
-              ) : (
+              </div>
+
+              {/* Messages viewport */}
+              <div style={chatBody}>
                 <div style={messagesList}>
                   {(chatMessages || []).map((msg, idx) => {
                     const isModel = msg.role === 'model';
+                    // Strip prompt tags for chat messages display
+                    let displayContent = msg.content;
+                    if (isModel) {
+                      displayContent = msg.content.split('```prompt')[0].trim() || "Generated Prompt compiled successfully. Copied blueprint output in the right-side editor.";
+                    }
                     return (
                       <div
                         key={idx}
@@ -281,76 +338,60 @@ export default function ComponentForgePage() {
                           justifyContent: isModel ? 'flex-start' : 'flex-end'
                         }}
                       >
-                        <div
-                          style={{
-                            ...msgBubble,
-                            backgroundColor: isModel ? 'rgba(255,255,255,0.02)' : 'hsl(var(--primary))',
-                            border: isModel ? '1px solid rgba(255, 255, 255, 0.04)' : 'none',
-                            color: isModel ? 'var(--fg-color)' : '#ffffff',
-                            borderRadius: isModel ? '12px 12px 12px 2px' : '12px 12px 2px 12px'
-                          }}
-                        >
-                          <span style={{ fontSize: '0.75rem', fontWeight: '600', display: 'block', marginBottom: '4px', opacity: 0.8 }}>
+                        <div style={msgBubble(isModel)}>
+                          <span style={msgBubbleSender(isModel)}>
                             {isModel ? "PROMPT ARCHITECT" : "YOU"}
                           </span>
-                          
-                          <p style={bubbleText}>
-                            {isModel 
-                              ? msg.content.split('```prompt')[0].trim() || "Generated Prompt compiled successfully. Copied blueprint output in the right-side editor."
-                              : msg.content
-                            }
-                          </p>
+                          <p style={bubbleText}>{displayContent}</p>
                         </div>
                       </div>
                     );
                   })}
                   {isGenerating && (
                     <div style={msgBubbleRow}>
-                      <div style={{ ...msgBubble, backgroundColor: 'rgba(255,255,255,0.02)' }}>
-                        <RefreshCw size={14} className="animate-spin" />
+                      <div style={msgBubble(true)}>
+                        <RefreshCw size={14} className="animate-spin" style={{ color: '#fbbf24' }} />
                       </div>
                     </div>
                   )}
                   <div ref={messagesEndRef} />
                 </div>
-              )}
+              </div>
+
+              {/* Chat Input form */}
+              <form onSubmit={handleSendMessage} style={chatInputRow}>
+                <input
+                  type="text"
+                  placeholder={`Ask Architect to refine the ${selectedComp?.name || 'component'}...`}
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  style={chatField}
+                  className="glass-input"
+                  disabled={isGenerating || !selectedComp}
+                />
+                <button
+                  type="submit"
+                  style={sendBtn}
+                  className="btn-primary shine-effect"
+                  disabled={isGenerating || !selectedComp || !chatInput.trim()}
+                >
+                  <Send size={15} />
+                </button>
+              </form>
             </div>
 
-            {/* Chat Form */}
-            <form onSubmit={handleSendMessage} style={chatInputRow}>
-              <input
-                type="text"
-                placeholder={`Ask Architect to refine the ${selectedComp?.name || 'component'} prompt...`}
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                style={chatField}
-                className="glass-input"
-                disabled={isGenerating || !selectedComp}
-              />
-              <button
-                type="submit"
-                style={sendBtn}
-                className="btn-primary shine-effect"
-                disabled={isGenerating || !selectedComp || !chatInput.trim()}
-              >
-                <Send size={16} />
-              </button>
-            </form>
-          </div>
-
-          {/* Code Prompt Output (Right side of split) */}
-          <div style={promptColumn}>
-            <div style={promptPanel} className="glass-panel">
+            {/* Prompt Output Column */}
+            <div style={promptColumn} className="glass-panel">
               <div style={promptHeader}>
                 <div style={promptTitleWrap}>
-                  <Layers size={14} style={{ color: 'hsl(var(--primary))' }} />
-                  <span style={promptTitle}>Refined Component Prompt Blueprint</span>
+                  <Layers size={14} style={{ color: '#fbbf24' }} />
+                  <span style={promptTitle}>Refined Component Prompt</span>
                 </div>
                 {currentPrompt && (
                   <button
                     onClick={handleCopy}
                     style={copyBtnStyle}
-                    className="btn-primary"
+                    className="btn-primary btn-sm"
                   >
                     {copied ? <Check size={14} /> : <Copy size={14} />}
                     {copied ? "Copied!" : "Copy Prompt"}
@@ -359,51 +400,41 @@ export default function ComponentForgePage() {
               </div>
 
               <div style={promptBody}>
-                {isGenerating && !currentPrompt ? (
-                  <div style={promptLoading}>
-                    <RefreshCw size={24} className="animate-spin" />
-                    <span>Compiling code structure...</span>
-                  </div>
-                ) : currentPrompt ? (
-                  <pre style={codeBlockStyle}>
-                    <code>
-                      {currentPrompt.includes('```prompt')
-                        ? currentPrompt.match(/```prompt\n([\s\S]*?)\n```/)?.[1] || currentPrompt
-                        : currentPrompt
-                      }
-                    </code>
-                  </pre>
-                ) : (
-                  <div style={emptyPromptState}>
-                    <Info size={24} style={{ color: 'var(--fg-muted)' }} />
-                    <p>Generated technical prompt directives will appear here in high-fidelity markdown blocks.</p>
-                  </div>
-                )}
+                <pre style={codeBlockStyle}>
+                  <code>
+                    {(currentPrompt || '').includes('```prompt')
+                      ? currentPrompt.match(/```prompt\n([\s\S]*?)\n```/)?.[1] || currentPrompt
+                      : currentPrompt || ''
+                    }
+                  </code>
+                </pre>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
 }
 
-// Layout inline CSS styles
+// ─── Component Forge Style Tokens ─────────────────────────────
+
 const containerStyle = {
   flex: 1,
   display: 'flex',
   gap: '1.5rem',
-  height: 'calc(100vh - 140px)',
-  minHeight: '550px',
-  maxHeight: '800px',
-  paddingTop: '0.5rem',
+  height: 'calc(100vh - 170px)',
+  overflow: 'hidden',
+  position: 'relative',
+  zIndex: 2,
 };
 
 const sidebarStyle = {
-  width: '320px',
+  width: '300px',
   height: '100%',
-  backgroundColor: 'rgba(5, 5, 8, 0.55)',
-  border: '1px solid rgba(255, 255, 255, 0.05)',
+  backgroundColor: 'rgba(5, 5, 8, 0.45)',
+  border: '1px solid var(--border)',
+  borderRadius: '16px',
   display: 'flex',
   flexDirection: 'column',
   flexShrink: 0,
@@ -411,7 +442,7 @@ const sidebarStyle = {
 
 const sidebarHeader = {
   padding: '1.25rem',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+  borderBottom: '1px solid var(--border)',
   display: 'flex',
   flexDirection: 'column',
   gap: '0.75rem',
@@ -420,21 +451,24 @@ const sidebarHeader = {
 const backBtn = {
   background: 'transparent',
   border: 'none',
-  color: 'var(--fg-muted)',
+  color: 'var(--muted-foreground)',
   fontSize: '0.75rem',
+  fontWeight: '600',
   cursor: 'pointer',
   display: 'inline-flex',
   alignItems: 'center',
   gap: '0.35rem',
   alignSelf: 'flex-start',
-  padding: '2px 0',
+  padding: 0,
+  fontFamily: 'var(--font-sans)',
 };
 
 const sidebarTitle = {
-  fontSize: '1.15rem',
-  fontWeight: '700',
-  fontFamily: 'Outfit, sans-serif',
-  color: '#ffffff',
+  fontSize: '1.1rem',
+  fontWeight: '800',
+  fontFamily: 'var(--font-display)',
+  color: 'var(--foreground)',
+  letterSpacing: '-0.02em',
 };
 
 const searchContainer = {
@@ -447,38 +481,15 @@ const searchIcon = {
   left: '12px',
   top: '50%',
   transform: 'translateY(-50%)',
-  color: 'var(--fg-muted)',
+  color: 'var(--muted-foreground)',
 };
 
 const searchInputStyle = {
   width: '100%',
-  paddingLeft: '2.5rem',
-  paddingTop: '0.5rem',
-  paddingBottom: '0.5rem',
-  fontSize: '0.85rem',
-};
-
-const themeSelectorCard = {
-  padding: '0.75rem 1.25rem',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-  backgroundColor: 'rgba(0, 0, 0, 0.15)',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.35rem',
-};
-
-const themeLabel = {
-  fontSize: '0.72rem',
-  fontWeight: '600',
-  color: 'hsl(var(--primary))',
-  textTransform: 'uppercase',
-};
-
-const selectStyle = {
-  width: '100%',
-  fontSize: '0.8rem',
-  padding: '6px 12px',
-  cursor: 'pointer',
+  paddingLeft: '2.4rem',
+  paddingTop: '0.45rem',
+  paddingBottom: '0.45rem',
+  fontSize: '0.82rem',
 };
 
 const componentsList = {
@@ -491,22 +502,24 @@ const componentsList = {
 };
 
 const noResults = {
-  fontSize: '0.8rem',
-  color: 'var(--fg-muted)',
+  fontSize: '0.78rem',
+  color: 'var(--muted-foreground)',
   textAlign: 'center',
   marginTop: '2rem',
 };
 
-const componentCard = {
-  border: '1px solid',
-  borderRadius: '8px',
-  padding: '0.75rem 1rem',
+const componentCard = (active) => ({
+  border: `1.5px solid ${active ? '#fbbf24' : 'var(--border)'}`,
+  borderRadius: '10px',
+  padding: '0.9rem 1.1rem',
   cursor: 'pointer',
-  transition: 'all 0.2s',
+  transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
   display: 'flex',
   flexDirection: 'column',
-  gap: '0.25rem',
-};
+  gap: '0.3rem',
+  background: active ? 'rgba(251, 191, 36, 0.05)' : 'rgba(255,255,255,0.01)',
+  boxShadow: active ? '0 4px 12px rgba(251, 191, 36, 0.04)' : 'none',
+});
 
 const cardHeaderRow = {
   display: 'flex',
@@ -514,15 +527,15 @@ const cardHeaderRow = {
   alignItems: 'center',
 };
 
-const compNameText = {
+const compNameText = (active) => ({
   fontSize: '0.85rem',
-  fontWeight: '600',
-  color: '#ffffff',
-};
+  fontWeight: '700',
+  color: active ? '#ffffff' : 'rgba(255,255,255,0.85)',
+});
 
 const compDescText = {
-  fontSize: '0.75rem',
-  color: 'var(--fg-muted)',
+  fontSize: '0.74rem',
+  color: 'var(--muted-foreground)',
   lineHeight: '1.4',
 };
 
@@ -531,63 +544,251 @@ const workspaceStyle = {
   height: '100%',
 };
 
+// Config panel layout
+const configWorkspacePanel = {
+  height: '100%',
+  display: 'flex',
+  borderRadius: '16px',
+  border: '1px solid var(--border)',
+  background: 'rgba(5, 5, 8, 0.35)',
+  overflow: 'hidden',
+};
+
+const configSplitLeft = {
+  flex: 1.1,
+  padding: '2.5rem',
+  borderRight: '1px solid var(--border)',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  gap: '1.5rem',
+  overflowY: 'auto',
+};
+
+const configBadge = {
+  fontSize: '0.68rem',
+  fontWeight: '700',
+  textTransform: 'uppercase',
+  letterSpacing: '0.08em',
+  color: '#fbbf24',
+  background: 'rgba(251, 191, 36, 0.08)',
+  border: '1px solid rgba(251, 191, 36, 0.15)',
+  borderRadius: '6px',
+  padding: '3px 8px',
+  alignSelf: 'flex-start',
+};
+
+const configCompName = {
+  fontSize: '1.8rem',
+  fontWeight: '800',
+  fontFamily: 'var(--font-display)',
+  color: 'var(--foreground)',
+  letterSpacing: '-0.03em',
+};
+
+const configCompDesc = {
+  fontSize: '0.92rem',
+  color: 'var(--muted-foreground)',
+  lineHeight: '1.6',
+};
+
+const keywordTagsContainer = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.5rem',
+};
+
+const keywordsLabel = {
+  fontSize: '0.75rem',
+  fontWeight: '700',
+  color: 'var(--foreground)',
+};
+
+const tagRow = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '0.4rem',
+};
+
+const keywordTag = {
+  fontSize: '0.72rem',
+  background: 'rgba(255,255,255,0.03)',
+  border: '1px solid var(--border)',
+  color: 'var(--muted-foreground)',
+  borderRadius: '6px',
+  padding: '2px 8px',
+};
+
+const examplePromptBox = {
+  background: 'rgba(251, 191, 36, 0.02)',
+  border: '1px solid rgba(251,191,36,0.1)',
+  borderRadius: '12px',
+  padding: '1.25rem',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.5rem',
+};
+
+const exampleLabelRow = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.4rem',
+  fontSize: '0.78rem',
+  fontWeight: '700',
+  color: '#fbbf24',
+};
+
+const exampleText = {
+  fontSize: '0.8rem',
+  color: 'var(--muted-foreground)',
+  lineHeight: '1.5',
+  fontStyle: 'italic',
+};
+
+const configSplitRight = {
+  flex: 0.9,
+  padding: '2.5rem',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1.5rem',
+  overflowY: 'auto',
+  background: 'rgba(0,0,0,0.12)',
+};
+
+const themeHeaderBox = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.25rem',
+};
+
+const themeSelectionLabel = {
+  fontSize: '0.9rem',
+  fontWeight: '700',
+  color: 'var(--foreground)',
+  fontFamily: 'var(--font-display)',
+};
+
+const themeSelectionSub = {
+  fontSize: '0.75rem',
+  color: 'var(--muted-foreground)',
+};
+
+const themeCardList = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.75rem',
+};
+
+const themeSelectCard = (isSelected) => ({
+  border: `1.5px solid ${isSelected ? '#fbbf24' : 'var(--border)'}`,
+  borderRadius: '10px',
+  padding: '1rem',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+  background: isSelected ? 'rgba(251, 191, 36, 0.02)' : 'rgba(255,255,255,0.01)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.35rem',
+});
+
+const themeCardHeader = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+};
+
+const themeCardTitleStyle = (isSelected) => ({
+  fontSize: '0.82rem',
+  fontWeight: '700',
+  color: isSelected ? '#fbbf24' : 'var(--foreground)',
+});
+
+const themeCardDescription = {
+  fontSize: '0.72rem',
+  color: 'var(--muted-foreground)',
+  lineHeight: '1.4',
+};
+
+const generatePromptBtn = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '0.5rem',
+  padding: '0.78rem 1.5rem',
+  fontSize: '0.85rem',
+  fontWeight: '700',
+  borderRadius: '8px',
+  border: 'none',
+  cursor: 'pointer',
+  marginTop: 'auto',
+  fontFamily: 'var(--font-sans)',
+};
+
+// Twin Split Workspace styles
 const twinLayoutContainer = {
   display: 'flex',
   gap: '1.25rem',
   height: '100%',
   width: '100%',
-  transition: 'all 0.3s ease',
 };
 
 const chatColumn = {
-  flex: 1,
+  flex: 1.1,
   height: '100%',
-  backgroundColor: 'rgba(6, 6, 9, 0.5)',
-  border: '1px solid rgba(255, 255, 255, 0.05)',
-  borderRadius: '12px',
+  backgroundColor: 'rgba(5, 5, 8, 0.35)',
+  border: '1px solid var(--border)',
+  borderRadius: '16px',
   display: 'flex',
   flexDirection: 'column',
+  overflow: 'hidden',
 };
 
 const chatHeader = {
-  padding: '1rem 1.25rem',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+  padding: '1.25rem',
+  borderBottom: '1px solid var(--border)',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
 };
 
 const chatTitle = {
-  fontSize: '1.1rem',
-  fontWeight: '600',
-  fontFamily: 'Outfit, sans-serif',
-  color: '#ffffff',
+  fontSize: '1.05rem',
+  fontWeight: '800',
+  fontFamily: 'var(--font-display)',
+  color: 'var(--foreground)',
+};
+
+const headerBadgeRow = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.75rem',
+  marginTop: '0.3rem',
 };
 
 const themeStatusBadge = {
-  fontSize: '0.7rem',
-  color: 'var(--fg-muted)',
-  backgroundColor: 'rgba(255, 255, 255, 0.02)',
-  border: '1px solid rgba(255, 255, 255, 0.06)',
-  borderRadius: '4px',
-  padding: '1px 5px',
+  fontSize: '0.68rem',
+  color: '#fbbf24',
+  backgroundColor: 'rgba(251, 191, 36, 0.06)',
+  border: '1px solid rgba(251, 191, 36, 0.15)',
+  borderRadius: '6px',
+  padding: '2px 8px',
+  fontWeight: '600',
+};
+
+const changeConfigLink = {
+  background: 'transparent',
+  border: 'none',
+  color: 'var(--muted-foreground)',
+  fontSize: '0.68rem',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  padding: 0,
 };
 
 const chatBody = {
   flex: 1,
   overflowY: 'auto',
-  padding: '1.25rem',
-};
-
-const chatLoading = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: '1rem',
-  height: '100%',
-  fontSize: '0.85rem',
-  color: 'var(--fg-muted)',
+  padding: '1.5rem',
 };
 
 const messagesList = {
@@ -601,49 +802,57 @@ const msgBubbleRow = {
   width: '100%',
 };
 
-const msgBubble = {
+const msgBubble = (isModel) => ({
   maxWidth: '85%',
-  padding: '0.85rem 1.1rem',
+  padding: '1rem 1.25rem',
   lineHeight: '1.5',
-};
+  backgroundColor: isModel ? 'rgba(255,255,255,0.02)' : 'rgba(251,191,36,0.07)',
+  border: isModel ? '1px solid var(--border)' : '1px solid rgba(251,191,36,0.15)',
+  borderRadius: isModel ? '14px 14px 14px 2px' : '14px 14px 2px 14px',
+});
+
+const msgBubbleSender = (isModel) => ({
+  fontSize: '0.68rem',
+  fontWeight: '700',
+  display: 'block',
+  marginBottom: '6px',
+  letterSpacing: '0.05em',
+  color: isModel ? 'var(--muted-foreground)' : '#fbbf24',
+});
 
 const bubbleText = {
-  fontSize: '0.85rem',
+  fontSize: '0.83rem',
   whiteSpace: 'pre-wrap',
+  color: 'var(--foreground)',
 };
 
 const chatInputRow = {
   padding: '1.25rem',
-  borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+  borderTop: '1px solid var(--border)',
   display: 'flex',
   gap: '0.75rem',
 };
 
 const chatField = {
   flex: 1,
+  fontSize: '0.85rem',
+  padding: '0.55rem 1rem',
 };
 
 const sendBtn = {
-  height: '42px',
-  width: '42px',
+  height: '38px',
+  width: '38px',
   borderRadius: '8px',
   padding: 0,
+  flexShrink: 0,
 };
 
 const promptColumn = {
-  flex: 1,
+  flex: 0.9,
   height: '100%',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '1rem',
-  position: 'relative',
-};
-
-const promptPanel = {
-  flex: 1,
-  backgroundColor: 'rgba(5, 5, 8, 0.6)',
-  border: '1px solid rgba(255, 255, 255, 0.05)',
-  borderRadius: '12px',
+  backgroundColor: 'rgba(5, 5, 8, 0.45)',
+  border: '1px solid var(--border)',
+  borderRadius: '16px',
   display: 'flex',
   flexDirection: 'column',
   overflow: 'hidden',
@@ -651,11 +860,11 @@ const promptPanel = {
 
 const promptHeader = {
   padding: '1rem 1.25rem',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+  borderBottom: '1px solid var(--border)',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  backgroundColor: 'rgba(0, 0, 0, 0.15)',
+  backgroundColor: 'rgba(0, 0, 0, 0.1)',
 };
 
 const promptTitleWrap = {
@@ -665,10 +874,10 @@ const promptTitleWrap = {
 };
 
 const promptTitle = {
-  fontSize: '0.85rem',
-  fontWeight: '600',
+  fontSize: '0.8rem',
+  fontWeight: '700',
   color: '#ffffff',
-  fontFamily: 'Outfit, sans-serif',
+  fontFamily: 'var(--font-display)',
 };
 
 const copyBtnStyle = {
@@ -685,33 +894,49 @@ const promptBody = {
 };
 
 const codeBlockStyle = {
-  fontFamily: 'monospace',
-  fontSize: '0.85rem',
+  fontFamily: 'var(--font-mono)',
+  fontSize: '0.8rem',
   color: '#c084fc',
   whiteSpace: 'pre-wrap',
-  lineHeight: '1.5',
+  lineHeight: '1.6',
 };
 
-const promptLoading = {
+// Loading panels
+const loadingWrapperPanel = {
+  height: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: 'rgba(5, 5, 8, 0.35)',
+  border: '1px solid var(--border)',
+  borderRadius: '16px',
+};
+
+const loadingContentInner = {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  justifyContent: 'center',
   gap: '1rem',
-  height: '100%',
-  color: 'var(--fg-muted)',
-  fontSize: '0.85rem',
 };
 
-const emptyPromptState = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: '0.75rem',
-  height: '100%',
-  textAlign: 'center',
-  color: 'var(--fg-muted)',
-  fontSize: '0.85rem',
-  padding: '0 2rem',
+const loadingSpinner = {
+  width: '36px',
+  height: '36px',
+  borderRadius: '50%',
+  border: '2.5px solid var(--border)',
+  borderTopColor: '#fbbf24',
+  animation: 'spin-slow 1s linear infinite',
+};
+
+const loadingHeaderTitle = {
+  fontSize: '1.15rem',
+  fontWeight: '700',
+  color: '#ffffff',
+  fontFamily: 'var(--font-display)',
+  marginTop: '0.5rem',
+};
+
+const loadingHeaderSub = {
+  fontSize: '0.8rem',
+  color: 'var(--muted-foreground)',
 };
