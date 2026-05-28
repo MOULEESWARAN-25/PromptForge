@@ -405,16 +405,16 @@ const consoleForm = (focused) => ({
   height: '60px',
   display: 'flex',
   alignItems: 'center',
-  gap: '0.75rem',
+  gap: 'var(--space-sm)',
   padding: '0 0.5rem 0 1.25rem',
   background: 'var(--card)',
   border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border)'}`,
   borderRadius: '14px',
   boxShadow: focused
-    ? '0 0 0 3px var(--accent-glow), var(--shadow-md)'
-    : 'var(--shadow-md)',
-  transition: 'all 0.25s ease',
-  marginBottom: '1rem',
+    ? '0 1px 0 0 rgba(255,255,255,0.08) inset, 0 0 0 4px var(--accent-glow), var(--shadow-lg)'
+    : '0 1px 0 0 rgba(255,255,255,0.05) inset, var(--shadow-md)',
+  transition: 'all var(--duration-fast) var(--ease-spring)',
+  marginBottom: 'var(--space-md)',
 });
 
 const consoleInput = {
@@ -495,19 +495,19 @@ const bentoGrid = {
 const bentoCard = (hovered, accent) => ({
   display: 'flex',
   flexDirection: 'column',
-  gap: '0.75rem',
-  padding: '1.5rem',
+  gap: 'var(--space-sm)',
+  padding: 'var(--space-lg)',
   borderRadius: '16px',
   textDecoration: 'none',
   position: 'relative',
   overflow: 'hidden',
   background: 'var(--card)',
-  border: `1px solid ${hovered ? `${accent}30` : 'var(--border)'}`,
-  transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
-  transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
+  border: `1px solid ${hovered ? `${accent}40` : 'var(--border)'}`,
+  transition: 'all var(--duration-base) var(--ease-spring)',
+  transform: hovered ? 'translateY(-4px) scale(1.01)' : 'translateY(0) scale(1)',
   boxShadow: hovered
-    ? `0 12px 32px ${accent}15, var(--shadow-md)`
-    : 'var(--shadow-sm)',
+    ? `0 1px 0 0 rgba(255,255,255,0.08) inset, 0 20px 40px ${accent}18, var(--shadow-lg)`
+    : '0 1px 0 0 rgba(255,255,255,0.05) inset, var(--shadow-sm)',
 });
 
 const bentoGlow = (accent, hovered) => ({

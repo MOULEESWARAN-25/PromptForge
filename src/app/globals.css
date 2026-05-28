@@ -65,6 +65,15 @@
   --space-12: 48px;
   --space-16: 64px;
 
+  /* Golden Ratio Spacing Scale (Base unit 16px / 1rem) */
+  --space-xs: 0.375rem; /* ~6px */
+  --space-sm: 0.625rem; /* ~10px */
+  --space-md: 1.000rem; /* 16px (Base) */
+  --space-lg: 1.625rem; /* ~26px (1.618x) */
+  --space-xl: 2.625rem; /* ~42px (1.618x^2) */
+  --space-2xl: 4.250rem; /* ~68px (1.618x^3) */
+  --space-3xl: 6.875rem; /* ~110px (1.618x^4) */
+
   /* Radius */
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -303,29 +312,39 @@ body {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255,255,255,0.5);
   border-radius: var(--radius-lg);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,0.8) inset, var(--shadow-sm);
 }
 
 .dark .card-glass {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,0.08) inset, 0 12px 40px -10px rgba(0,0,0,0.5);
 }
 
-/* Legacy aliases */
+/* Legacy aliases & Premium Glass panel upgrades */
 .glass-panel {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   transition: var(--transition);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,0.05) inset, var(--shadow-sm);
+}
+
+.dark .glass-panel {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,0.08) inset, var(--shadow-sm);
 }
 
 .glass-panel-hover:hover {
   border-color: var(--accent);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,0.05) inset, var(--shadow-lg);
 }
 
 .dark .glass-panel-hover:hover {
-  box-shadow: 0 8px 32px rgba(251,191,36,0.1), var(--shadow-lg);
+  border-color: rgba(251,191,36,0.3);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,0.08) inset, 0 8px 32px rgba(251,191,36,0.1), var(--shadow-lg);
 }
 
 /* ─── INPUTS ────────────────────────────────────────────────── */
@@ -368,7 +387,7 @@ body {
   padding: 0.65rem 1.25rem;
   border: none;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all var(--duration-fast) var(--ease-spring);
   white-space: nowrap;
   text-decoration: none;
   position: relative;

@@ -92,9 +92,9 @@ export default function LandingPage() {
         .hero-split-grid {
           display: grid;
           grid-template-columns: 1.1fr 0.9fr;
-          gap: 3rem;
+          gap: var(--space-xl);
           align-items: center;
-          padding: 3rem 0;
+          padding: var(--space-2xl) 0;
           position: relative;
         }
         .showcase-pane {
@@ -103,42 +103,50 @@ export default function LandingPage() {
           align-items: center;
           justify-content: center;
           height: 520px;
+          cursor: pointer;
         }
         .main-showcase-img {
           width: 82%;
-          border-radius: 14px;
+          border-radius: var(--radius-lg);
           border: 1px solid rgba(255,255,255,0.08);
-          box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+          box-shadow: 0 1px 0 0 rgba(255,255,255,0.08) inset, 0 32px 80px rgba(0,0,0,0.7);
           position: relative;
           z-index: 10;
+          transition: transform var(--duration-slow) var(--ease-spring), box-shadow var(--duration-slow) ease;
         }
         .overlapping-img-left {
           position: absolute;
           left: -40px;
           bottom: 40px;
           width: 200px;
-          border-radius: 10px;
+          border-radius: var(--radius-md);
           border: 1px solid rgba(255,255,255,0.06);
-          box-shadow: 0 16px 32px rgba(0,0,0,0.5);
+          box-shadow: 0 1px 0 0 rgba(255,255,255,0.08) inset, 0 16px 32px rgba(0,0,0,0.5);
           z-index: 20;
-          transition: transform 0.3s ease;
+          transition: transform var(--duration-slow) var(--ease-spring), box-shadow var(--duration-slow) ease;
         }
         .overlapping-img-right {
           position: absolute;
           right: -20px;
           top: 30px;
           width: 220px;
-          border-radius: 10px;
+          border-radius: var(--radius-md);
           border: 1px solid rgba(255,255,255,0.06);
-          box-shadow: 0 16px 32px rgba(0,0,0,0.5);
+          box-shadow: 0 1px 0 0 rgba(255,255,255,0.08) inset, 0 16px 32px rgba(0,0,0,0.5);
           z-index: 5;
-          transition: transform 0.3s ease;
+          transition: transform var(--duration-slow) var(--ease-spring), box-shadow var(--duration-slow) ease;
+        }
+        .showcase-pane:hover .main-showcase-img {
+          transform: scale(1.02) translateY(-4px);
+          box-shadow: 0 1px 0 0 rgba(255,255,255,0.12) inset, 0 40px 100px rgba(0,0,0,0.85);
         }
         .showcase-pane:hover .overlapping-img-left {
-          transform: translate(-10px, 5px) scale(1.02);
+          transform: translate(-18px, 12px) scale(1.04) rotate(-2deg);
+          box-shadow: 0 1px 0 0 rgba(255,255,255,0.12) inset, 0 24px 48px rgba(0,0,0,0.6);
         }
         .showcase-pane:hover .overlapping-img-right {
-          transform: translate(10px, -5px) scale(1.02);
+          transform: translate(18px, -12px) scale(1.04) rotate(2deg);
+          box-shadow: 0 1px 0 0 rgba(255,255,255,0.12) inset, 0 24px 48px rgba(0,0,0,0.6);
         }
         .floating-badge {
           position: absolute;
@@ -483,8 +491,8 @@ const containerStyle = {
   width: '100%',
   display: 'flex',
   flexDirection: 'column',
-  gap: '4.5rem',
-  paddingTop: '1rem',
+  gap: 'var(--space-3xl)',
+  paddingTop: 'var(--space-md)',
   overflow: 'hidden',
 };
 
@@ -525,7 +533,7 @@ const heroHeadline = {
   lineHeight: '1.08',
   letterSpacing: '-0.04em',
   color: 'var(--foreground)',
-  marginBottom: '1.25rem',
+  marginBottom: 'var(--space-md)',
 };
 
 const heroParagraph = {
@@ -533,7 +541,7 @@ const heroParagraph = {
   color: 'var(--muted-foreground)',
   lineHeight: '1.75',
   maxWidth: '520px',
-  marginBottom: '2rem',
+  marginBottom: 'var(--space-lg)',
 };
 
 const consoleForm = {
@@ -542,13 +550,13 @@ const consoleForm = {
   height: '56px',
   display: 'flex',
   alignItems: 'center',
-  gap: '0.75rem',
+  gap: 'var(--space-sm)',
   padding: '0 0.5rem 0 1.15rem',
   background: 'rgba(255, 255, 255, 0.03)',
   border: '1.5px solid var(--border)',
   borderRadius: '12px',
   boxShadow: 'var(--shadow-md)',
-  marginBottom: '1.5rem',
+  marginBottom: 'var(--space-lg)',
 };
 
 const consoleInput = {
@@ -652,15 +660,15 @@ const browserImage = {
 const sectionContainer = {
   display: 'flex',
   flexDirection: 'column',
-  gap: '1.25rem',
-  padding: '1.5rem 0',
+  gap: 'var(--space-md)',
+  padding: 'var(--space-2xl) 0',
   position: 'relative',
 };
 
 const sectionHeader = {
   display: 'flex',
   flexDirection: 'column',
-  gap: '0.3rem',
+  gap: 'var(--space-xs)',
 };
 
 const sectionTitle = {
@@ -786,12 +794,12 @@ const previewCode = {
 
 // ─── Pricing Card styling ───
 const pricingCard = {
-  padding: '2.25rem 2rem',
+  padding: 'var(--space-xl) var(--space-lg)',
   background: 'var(--card)',
   borderRadius: '20px',
   display: 'flex',
   flexDirection: 'column',
-  gap: '1rem',
+  gap: 'var(--space-md)',
   position: 'relative',
   overflow: 'hidden',
   boxShadow: 'var(--shadow-md)',
