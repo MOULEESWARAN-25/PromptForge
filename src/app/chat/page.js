@@ -115,100 +115,120 @@ function ChatContent() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const parseBoldText = (text) => {
+  const parseMarkdownInline = (text) => {
     if (!text) return "";
-    const parts = text.split(/(\*\*.*?\*\*)/g);
-    return parts.map((part, index) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
+    
+    // Split by inline code (backticks)
+    const codeParts = text.split(/(`[^`]+`)/g);
+    
+    return codeParts.map((codePart, cIdx) => {
+      if (codePart.startsWith('`') && codePart.endsWith('`')) {
         return (
-          <strong key={index} style={{ color: 'var(--foreground)', fontWeight: '700' }}>
-            {part.slice(2, -2)}
-          </strong>
+          <code key={`code-${cIdx}`} style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.78rem',
+            background: 'rgba(255,255,255,0.08)',
+            padding: '2px 6px',
+            borderRadius: '4px',
+            border: '1px solid rgba(255,255,255,0.1)',
+            color: 'var(--accent)',
+            margin: '0 2px'
+          }}>
+            {codePart.slice(1, -1)}
+          </code>
         );
       }
-      return part;
+      
+      // Split by bold (**text**)
+      const boldParts = codePart.split(/(\*\*.*?\*\*)/g);
+      return boldParts.map((part, bIdx) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return (
+            <strong key={`bold-${cIdx}-${bIdx}`} style={{ color: 'var(--foreground)', fontWeight: '700' }}>
+              {part.slice(2, -2)}
+            </strong>
+          );
+        }
+        return part;
+      });
     });
   };
 
   const formatMessageText = (text) => {
     if (!text) return "";
     const lines = text.split('\n');
+    
     return lines.map((line, idx) => {
       let cleanLine = line.trim();
       if (!cleanLine) {
-        return <div key={idx} style={{ height: '0.6rem' }} />;
+        return <div key={idx} style={{ height: '0.65rem' }} />;
       }
       
-      // Headers
-      if (cleanLine.startsWith('###')) {
-        return (
-          <h4 key={idx} style={{ 
-            fontSize: '0.88rem', 
-            fontWeight: '700', 
-            color: 'var(--foreground)', 
-            marginTop: '0.85rem', 
-            marginBottom: '0.4rem',
-            fontFamily: 'var(--font-display)',
-            letterSpacing: '-0.01em'
-          }}>
-            {parseBoldText(cleanLine.replace(/^###\s*/, ''))}
-          </h4>
+      // 1. Headers: matches lines starting with one or more #
+      const headerMatch = cleanLine.match(/^(#{1,6})\s*(.*)$/);
+      if (headerMatch) {
+        const level = headerMatch[1].length;
+        const headerText = headerMatch[2];
+        const fontSize = level === 1 ? '1.25rem' : level === 2 ? '1.05rem' : '0.88rem';
+        const marginTop = level === 1 ? '1.5rem' : level === 2 ? '1.1rem' : '0.85rem';
+        
+        return React.createElement(
+          `h${level}`,
+          {
+            key: idx,
+            style: {
+              fontSize,
+              fontWeight: '700',
+              color: 'var(--foreground)',
+              marginTop,
+              marginBottom: '0.45rem',
+              fontFamily: 'var(--font-display)',
+              letterSpacing: '-0.01em',
+              lineHeight: '1.4'
+            }
+          },
+          parseMarkdownInline(headerText)
         );
       }
       
-      if (cleanLine.startsWith('##')) {
-        return (
-          <h3 key={idx} style={{ 
-            fontSize: '0.94rem', 
-            fontWeight: '700', 
-            color: 'var(--foreground)', 
-            marginTop: '1.1rem', 
-            marginBottom: '0.5rem',
-            fontFamily: 'var(--font-display)',
-            letterSpacing: '-0.01em'
-          }}>
-            {parseBoldText(cleanLine.replace(/^##\s*/, ''))}
-          </h3>
-        );
-      }
-      
-      // Bullets
-      if (cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
+      // 2. Bullet Lists: starts with -, *, or +
+      if (/^[-*+]\s/.test(cleanLine)) {
+        const bulletText = cleanLine.replace(/^[-*+]\s*/, '');
         return (
           <li key={idx} style={{ 
             marginLeft: '1rem', 
-            marginBottom: '0.3rem', 
+            marginBottom: '0.35rem', 
             listStyleType: 'disc', 
             color: 'rgba(255,255,255,0.85)',
             fontSize: '0.84rem',
             lineHeight: '1.55'
           }}>
-            {parseBoldText(cleanLine.replace(/^[-*]\s*/, ''))}
+            {parseMarkdownInline(bulletText)}
           </li>
         );
       }
       
-      // Numbered lists
+      // 3. Numbered Lists: starts with 1., 2., etc.
       if (/^\d+\.\s/.test(cleanLine)) {
         const numberText = cleanLine.replace(/^\d+\.\s*/, '');
         const number = cleanLine.match(/^\d+/)[0];
         return (
           <div key={idx} style={{ 
             display: 'flex', 
-            gap: '0.4rem', 
+            gap: '0.45rem', 
             marginLeft: '0.25rem', 
-            marginBottom: '0.35rem',
+            marginBottom: '0.4rem',
             fontSize: '0.84rem',
             lineHeight: '1.55',
             color: 'rgba(255,255,255,0.85)'
           }}>
             <span style={{ fontWeight: '700', color: 'var(--accent)' }}>{number}.</span>
-            <span>{parseBoldText(numberText)}</span>
+            <span>{parseMarkdownInline(numberText)}</span>
           </div>
         );
       }
       
-      // Plain text paragraphs
+      // 4. Default normal paragraph text
       return (
         <p key={idx} style={{ 
           marginBottom: '0.45rem', 
@@ -216,7 +236,7 @@ function ChatContent() {
           lineHeight: '1.55',
           color: 'rgba(255,255,255,0.82)'
         }}>
-          {parseBoldText(line)}
+          {parseMarkdownInline(line)}
         </p>
       );
     });
