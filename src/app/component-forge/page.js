@@ -83,7 +83,7 @@ export default function ComponentForgePage() {
       });
 
       // Save a new prompt record in global history
-      const savedRecord = savePromptRecord({
+      const savedRecord = await savePromptRecord({
         mode: "component",
         title: `Component: ${selectedComp.name}`,
         query: `Initial blueprint for ${selectedComp.name}`,

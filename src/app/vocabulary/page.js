@@ -41,6 +41,8 @@ export default function VocabularyPage() {
   const [copiedId, setCopiedId] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [expandedId, setExpandedId] = useState(null);
+  const [searchFocused, setSearchFocused] = useState(false);
+  
   const heroRef = useRef(null);
   const gridRef = useRef(null);
   const heroInView = useInView(heroRef, { once: true });
@@ -52,6 +54,7 @@ export default function VocabularyPage() {
     e.stopPropagation();
     navigator.clipboard.writeText(text);
     setCopiedId(id);
+    toast.success('Prompt token copied');
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -83,8 +86,8 @@ export default function VocabularyPage() {
         style={heroStyle}
       >
         <motion.div variants={fadeUp}>
-          <div className="premium-badge" style={{ marginBottom: '1.25rem' }}>
-            <BookOpen size={11} />
+          <div className="premium-badge animate-pulse-slow" style={{ marginBottom: '1.25rem' }}>
+            <BookOpen size={11} className="text-purple-400" />
             <span>Design Vocabulary</span>
           </div>
         </motion.div>
@@ -100,13 +103,19 @@ export default function VocabularyPage() {
         </motion.p>
 
         {/* ── Search Console ──────────────────────────────────── */}
-        <motion.div variants={fadeUp} style={searchConsole}>
+        <motion.div 
+          variants={fadeUp} 
+          style={searchConsole(searchFocused)}
+          className="glass-panel"
+        >
           <Search size={18} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
           <input
             type="text"
             placeholder="Search glassmorphism, bento grid, micro-interactions..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
             style={searchInputStyle}
             autoComplete="off"
           />
@@ -171,7 +180,7 @@ export default function VocabularyPage() {
       >
         {filtered.length === 0 ? (
           <motion.div variants={fadeUp} style={emptyWrap}>
-            <div style={emptyIconWrap}><Search size={28} /></div>
+            <div style={emptyIconWrap} className="glass-panel"><Search size={28} style={{ color: 'var(--accent)' }} /></div>
             <p style={emptyTitle}>No matching terms</p>
             <p style={emptyDesc}>Try a different search or clear your filters.</p>
           </motion.div>
@@ -204,7 +213,7 @@ export default function VocabularyPage() {
                         layout
                         onClick={() => setExpandedId(isExpanded ? null : item.id)}
                         style={cardStyle(meta)}
-                        className="card card-hover"
+                        className="glass-panel card-hover"
                         whileHover={{ y: -4 }}
                       >
                         {/* Ambient glow */}
@@ -259,7 +268,7 @@ export default function VocabularyPage() {
                                 {item.snippet && (
                                   <div style={codeBlock(meta)}>
                                     <div style={codeLabel}>
-                                      <Code size={11} />
+                                      <Code size={11} style={{ color: meta.color }} />
                                       <span>Design Token / CSS</span>
                                     </div>
                                     <pre style={codePre(meta)}>{item.snippet}</pre>
@@ -304,24 +313,29 @@ export default function VocabularyPage() {
 
 const heroStyle = {
   display: 'flex', flexDirection: 'column', alignItems: 'center',
-  textAlign: 'center', paddingTop: '2.5rem', paddingBottom: '3rem',
+  textAlign: 'center', paddingTop: '4rem', paddingBottom: '5rem',
   maxWidth: '860px', margin: '0 auto',
 };
 
 const heroSub = {
   fontSize: '1.05rem', color: 'var(--muted-foreground)',
-  lineHeight: '1.7', maxWidth: '560px', marginBottom: '2rem',
+  lineHeight: '1.7', maxWidth: '560px', marginBottom: '2.5rem',
 };
 
-const searchConsole = {
+const searchConsole = (focused) => ({
   width: '100%', maxWidth: '580px', height: '52px',
   display: 'flex', alignItems: 'center', gap: '0.75rem',
   padding: '0 1rem',
-  background: 'var(--card)', border: '1.5px solid var(--border)',
-  borderRadius: '14px', boxShadow: 'var(--shadow-md)',
+  background: 'rgba(10, 10, 12, 0.4)',
+  border: `1.5px solid ${focused ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`,
+  borderRadius: '14px',
+  backdropFilter: 'blur(20px)',
+  boxShadow: focused
+    ? '0 0 0 1px var(--accent), 0 8px 32px rgba(124,58,237,0.15), inset 0 1px 0 0 rgba(255,255,255,0.1)'
+    : '0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 0 rgba(255,255,255,0.05)',
   marginBottom: '1.25rem',
   transition: 'all 0.25s ease',
-};
+});
 
 const searchInputStyle = {
   flex: 1, background: 'transparent', border: 'none', outline: 'none',
@@ -330,14 +344,14 @@ const searchInputStyle = {
 
 const clearSearchBtn = {
   width: '28px', height: '28px', borderRadius: '8px',
-  background: 'var(--muted)', border: '1px solid var(--border)',
+  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   cursor: 'pointer', color: 'var(--muted-foreground)',
 };
 
 const pillRow = {
   display: 'flex', flexWrap: 'wrap', gap: '0.4rem',
-  justifyContent: 'center', marginBottom: '1rem',
+  justifyContent: 'center', marginBottom: '1.25rem',
 };
 
 const pillStyle = (active, color) => ({
@@ -345,8 +359,8 @@ const pillStyle = (active, color) => ({
   padding: '0.4rem 0.9rem', fontSize: '0.76rem', fontWeight: '600',
   borderRadius: '999px', cursor: 'pointer',
   fontFamily: 'var(--font-sans)',
-  background: active ? `${color}18` : 'var(--muted)',
-  border: `1px solid ${active ? `${color}40` : 'var(--border)'}`,
+  background: active ? `${color}15` : 'rgba(255,255,255,0.02)',
+  border: `1px solid ${active ? `${color}40` : 'rgba(255,255,255,0.06)'}`,
   color: active ? color : 'var(--muted-foreground)',
   transition: 'all 0.2s ease',
 });
@@ -369,7 +383,7 @@ const clearAllBtn = {
 const sectionHead = {
   display: 'flex', alignItems: 'center', gap: '0.875rem',
   marginBottom: '1.25rem', paddingBottom: '1rem',
-  borderBottom: '1px solid var(--border)',
+  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
 };
 const sectionIconWrap = (meta) => ({
   width: '36px', height: '36px', borderRadius: '10px',
@@ -388,14 +402,19 @@ const sectionCount = {
 const gridStyle = {
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-  gap: '1rem',
+  gap: '1.25rem',
 };
 
 // ── Card ────────────────────────────────────────────────────
 const cardStyle = (meta) => ({
   position: 'relative', overflow: 'hidden', cursor: 'pointer',
   padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem',
-  borderLeft: `3px solid ${meta.color}40`,
+  borderRadius: '16px',
+  background: 'rgba(255,255,255,0.01)',
+  border: '1px solid rgba(255,255,255,0.04)',
+  borderLeft: `3px solid ${meta.color}bf`,
+  boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
 });
 
 const ambientGlow = (color) => ({
@@ -420,7 +439,7 @@ const cardActions = { display: 'flex', alignItems: 'center', gap: '0.35rem' };
 
 const copyBtnStyle = (copied) => ({
   width: '28px', height: '28px', borderRadius: '7px',
-  background: 'transparent', border: '1px solid var(--border)',
+  background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   cursor: 'pointer', color: copied ? '#10b981' : 'var(--muted-foreground)',
   transition: 'all 0.2s ease',
@@ -445,8 +464,8 @@ const cardDesc = {
 const keywordRow = { display: 'flex', flexWrap: 'wrap', gap: '0.3rem' };
 const keywordChip = (meta) => ({
   fontSize: '0.66rem', fontWeight: '600', padding: '2px 7px',
-  borderRadius: '4px', background: 'var(--muted)',
-  border: '1px solid var(--border)', color: 'var(--muted-foreground)',
+  borderRadius: '4px', background: 'rgba(255,255,255,0.02)',
+  border: '1px solid rgba(255,255,255,0.06)', color: 'var(--muted-foreground)',
   fontFamily: 'var(--font-mono)',
 });
 
@@ -454,11 +473,11 @@ const keywordChip = (meta) => ({
 const expandedContent = {
   display: 'flex', flexDirection: 'column', gap: '1rem',
   paddingTop: '1rem', marginTop: '0.75rem',
-  borderTop: '1px solid var(--border)',
+  borderTop: '1px solid rgba(255, 255, 255, 0.06)',
 };
 
 const codeBlock = (meta) => ({
-  background: 'var(--muted)', border: '1px solid var(--border)',
+  background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)',
   borderRadius: '10px', padding: '1rem',
   display: 'flex', flexDirection: 'column', gap: '0.5rem',
 });
@@ -473,7 +492,7 @@ const codePre = (meta) => ({
 });
 
 const promptSection = (meta) => ({
-  background: `${meta.color}08`, border: `1px solid ${meta.border}`,
+  background: `${meta.color}0c`, border: `1px solid ${meta.color}25`,
   borderRadius: '10px', padding: '1rem',
   display: 'flex', flexDirection: 'column', gap: '0.6rem',
 });
@@ -505,7 +524,7 @@ const emptyWrap = {
 };
 const emptyIconWrap = {
   width: '56px', height: '56px', borderRadius: '14px',
-  background: 'var(--muted)', display: 'flex',
+  background: 'rgba(255,255,255,0.02)', display: 'flex',
   alignItems: 'center', justifyContent: 'center',
   color: 'var(--muted-foreground)',
 };

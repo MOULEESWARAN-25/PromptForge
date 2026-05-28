@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Database, TrendingUp, Layers, Cpu, Code, Info } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function RagInspector({ ragDetails }) {
   const [activeTab, setActiveTab] = useState('scores'); // "scores" | "augmentation" | "tokens"
@@ -45,6 +46,13 @@ export default function RagInspector({ ragDetails }) {
         >
           <TrendingUp size={14} />
           Similarity Match
+          {activeTab === 'scores' && (
+            <motion.div
+              layoutId="rag-tab-indicator"
+              style={activeIndicatorStyle}
+              transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+            />
+          )}
         </button>
         <button
           style={{ ...tabBtn, ...(activeTab === 'augmentation' ? tabBtnActive : {}) }}
@@ -52,6 +60,13 @@ export default function RagInspector({ ragDetails }) {
         >
           <Layers size={14} />
           System Prompt
+          {activeTab === 'augmentation' && (
+            <motion.div
+              layoutId="rag-tab-indicator"
+              style={activeIndicatorStyle}
+              transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+            />
+          )}
         </button>
         <button
           style={{ ...tabBtn, ...(activeTab === 'tokens' ? tabBtnActive : {}) }}
@@ -59,6 +74,13 @@ export default function RagInspector({ ragDetails }) {
         >
           <Code size={14} />
           Search Anchor
+          {activeTab === 'tokens' && (
+            <motion.div
+              layoutId="rag-tab-indicator"
+              style={activeIndicatorStyle}
+              transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+            />
+          )}
         </button>
       </div>
 
@@ -217,13 +239,21 @@ const tabBtn = {
   justifyContent: 'center',
   gap: '0.35rem',
   transition: 'all 0.2s',
-  borderBottom: '2px solid transparent',
+  position: 'relative',
 };
 
 const tabBtnActive = {
   color: 'var(--foreground)',
-  borderBottom: '2px solid var(--primary)',
   backgroundColor: 'rgba(255, 255, 255, 0.02)',
+};
+
+const activeIndicatorStyle = {
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  right: 0,
+  height: '2px',
+  background: 'var(--primary)',
 };
 
 const panelBody = {

@@ -1,14 +1,12 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
-import { Sparkles, ArrowRight, Monitor, Layout, Code2, Wand2, Shield, Zap, Database, Check, Cpu } from 'lucide-react';
-
-export const metadata = {
-  title: "PromptForge | AI Prompt Architect",
-  description: "Transform vague ideas into precision-engineered AI prompts for Cursor, Lovable, and v0. Built for developers who demand quality.",
-  alternates: {
-    canonical: "https://promptforge.ai",
-  },
-};
+import { motion } from 'framer-motion';
+import { 
+  Sparkles, ArrowRight, Monitor, Code2, 
+  Wand2, Shield, Zap, Database, Check, Cpu 
+} from 'lucide-react';
 
 const FEATURES_LIST = [
   {
@@ -17,7 +15,8 @@ const FEATURES_LIST = [
     icon: Monitor,
     desc: 'Map out entire multi-page application structures complete with database schemas and state managers.',
     img: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=500&h=300&fit=crop&q=80',
-    tag: 'Full-Stack Specs'
+    tag: 'Full-Stack Specs',
+    gridClass: 'col-span-2'
   },
   {
     slug: 'design-vocabulary',
@@ -25,7 +24,8 @@ const FEATURES_LIST = [
     icon: Database,
     desc: 'Semantically retrieve CSS layout grid structures, glassmorphism, and spring transition tokens.',
     img: 'https://images.unsplash.com/photo-1600132806370-bf17e65e942f?w=500&h=300&fit=crop&q=80',
-    tag: 'RAG Retrieval'
+    tag: 'RAG Retrieval',
+    gridClass: 'col-span-1'
   },
   {
     slug: 'ai-refiner',
@@ -33,7 +33,8 @@ const FEATURES_LIST = [
     icon: Code2,
     desc: 'Refine single components, buttons, fields, and accordions into prompt blocks optimized for v0.',
     img: 'https://images.unsplash.com/photo-1607799279861-4dd421887fb3?w=500&h=300&fit=crop&q=80',
-    tag: 'Code Optimization'
+    tag: 'Code Optimization',
+    gridClass: 'col-span-3'
   }
 ];
 
@@ -70,6 +71,19 @@ const PRICING_TIERS = [
   }
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.05 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 35 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 120, damping: 15 } }
+};
+
 export default function LandingPage() {
   const jsonLd = {
     "@context": "https://schema.org",
@@ -87,12 +101,12 @@ export default function LandingPage() {
 
   return (
     <div style={containerStyle}>
-      {/* CSS Stylesheet Injector for responsive layouts and animations without overlapping */}
+      {/* Dynamic CSS styles for Bento Grids & overlaps */}
       <style dangerouslySetInnerHTML={{ __html: `
         .hero-split-grid {
           display: grid;
-          grid-template-columns: 1.1fr 0.9fr;
-          gap: var(--space-xl);
+          grid-template-columns: 1.15fr 0.85fr;
+          gap: var(--space-2xl);
           align-items: center;
           padding: var(--space-2xl) 0;
           position: relative;
@@ -103,7 +117,6 @@ export default function LandingPage() {
           align-items: center;
           justify-content: center;
           height: 520px;
-          cursor: pointer;
         }
         .main-showcase-img {
           width: 82%;
@@ -112,40 +125,40 @@ export default function LandingPage() {
           box-shadow: 0 1px 0 0 rgba(255,255,255,0.08) inset, 0 32px 80px rgba(0,0,0,0.7);
           position: relative;
           z-index: 10;
-          transition: transform var(--duration-slow) var(--ease-spring), box-shadow var(--duration-slow) ease;
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
         }
         .overlapping-img-left {
           position: absolute;
-          left: -40px;
-          bottom: 40px;
-          width: 200px;
+          left: -30px;
+          bottom: 50px;
+          width: 190px;
           border-radius: var(--radius-md);
           border: 1px solid rgba(255,255,255,0.06);
           box-shadow: 0 1px 0 0 rgba(255,255,255,0.08) inset, 0 16px 32px rgba(0,0,0,0.5);
           z-index: 20;
-          transition: transform var(--duration-slow) var(--ease-spring), box-shadow var(--duration-slow) ease;
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
         }
         .overlapping-img-right {
           position: absolute;
-          right: -20px;
-          top: 30px;
-          width: 220px;
+          right: -10px;
+          top: 40px;
+          width: 200px;
           border-radius: var(--radius-md);
           border: 1px solid rgba(255,255,255,0.06);
           box-shadow: 0 1px 0 0 rgba(255,255,255,0.08) inset, 0 16px 32px rgba(0,0,0,0.5);
           z-index: 5;
-          transition: transform var(--duration-slow) var(--ease-spring), box-shadow var(--duration-slow) ease;
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
         }
         .showcase-pane:hover .main-showcase-img {
-          transform: scale(1.02) translateY(-4px);
+          transform: scale(1.03) translateY(-6px);
           box-shadow: 0 1px 0 0 rgba(255,255,255,0.12) inset, 0 40px 100px rgba(0,0,0,0.85);
         }
         .showcase-pane:hover .overlapping-img-left {
-          transform: translate(-18px, 12px) scale(1.04) rotate(-2deg);
+          transform: translate(-15px, 10px) scale(1.05) rotate(-3deg);
           box-shadow: 0 1px 0 0 rgba(255,255,255,0.12) inset, 0 24px 48px rgba(0,0,0,0.6);
         }
         .showcase-pane:hover .overlapping-img-right {
-          transform: translate(18px, -12px) scale(1.04) rotate(2deg);
+          transform: translate(15px, -10px) scale(1.05) rotate(3deg);
           box-shadow: 0 1px 0 0 rgba(255,255,255,0.12) inset, 0 24px 48px rgba(0,0,0,0.6);
         }
         .floating-badge {
@@ -163,30 +176,86 @@ export default function LandingPage() {
           z-index: 30;
         }
         .fb-1 {
-          top: 80px;
-          left: 10px;
+          top: 90px;
+          left: 20px;
           color: #fbbf24;
           background: rgba(251,191,36,0.08);
           borderColor: rgba(251,191,36,0.2);
         }
         .fb-2 {
-          bottom: 80px;
-          right: 20px;
-          color: #db2777;
-          background: rgba(219,39,119,0.08);
-          borderColor: rgba(219,39,119,0.2);
+          bottom: 90px;
+          right: 30px;
+          color: #7c3aed;
+          background: rgba(124,58,237,0.08);
+          borderColor: rgba(124,58,237,0.2);
         }
-        .feature-grid-cards {
+        .feature-bento-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 1.5rem;
-          margin-top: 1rem;
+          margin-top: 1.5rem;
+        }
+        .bento-card-wrapper {
+          border-radius: 20px;
+          overflow: hidden;
+          background: rgba(255, 255, 255, 0.01);
+          border: 1px solid var(--border);
+          box-shadow: var(--shadow-sm), inset 0 1px 1px rgba(255, 255, 255, 0.03);
+          transition: border-color 0.3s ease, box-shadow 0.3s ease;
+          display: flex;
+          flex-direction: column;
+        }
+        .dark .bento-card-wrapper {
+          background: rgba(10, 10, 15, 0.4);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+        }
+        .col-span-2 {
+          grid-column: span 2 / span 2;
+        }
+        .col-span-1 {
+          grid-column: span 1 / span 1;
+        }
+        .col-span-3 {
+          grid-column: span 3 / span 3;
+          flex-direction: row !important;
+          align-items: center;
+        }
+        .col-span-3 .bento-img-container {
+          width: 45%;
+          height: 100% !important;
+          min-height: 240px;
+          border-bottom: none !important;
+          border-right: 1px solid var(--border);
+        }
+        .col-span-3 .bento-body {
+          flex: 1;
+          padding: 2rem !important;
+        }
+        .bento-card-wrapper:hover {
+          border-color: var(--accent);
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 24px var(--accent-glow);
+        }
+        .bento-img-container {
+          width: 100%;
+          height: 180px;
+          overflow: hidden;
+          border-bottom: 1px solid var(--border);
+          position: relative;
+        }
+        .bento-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .bento-card-wrapper:hover .bento-img {
+          transform: scale(1.05);
         }
         .pricing-grid-cards {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 1.5rem;
-          margin-top: 1rem;
+          margin-top: 1.5rem;
         }
         .ide-comparison-grid {
           display: grid;
@@ -194,8 +263,6 @@ export default function LandingPage() {
           gap: 1.5rem;
           align-items: center;
         }
-        
-        /* Responsive Mobile Breaks to prevent overlaps properly */
         @media (max-width: 1024px) {
           .hero-split-grid {
             grid-template-columns: 1fr;
@@ -217,7 +284,20 @@ export default function LandingPage() {
             width: 150px;
             right: 10px;
           }
-          .feature-grid-cards, .pricing-grid-cards {
+          .feature-bento-grid {
+            grid-template-columns: 1fr;
+          }
+          .col-span-2, .col-span-1, .col-span-3 {
+            grid-column: span 3 / span 3;
+            flex-direction: column !important;
+          }
+          .col-span-3 .bento-img-container {
+            width: 100%;
+            height: 180px !important;
+            border-right: none;
+            border-bottom: 1px solid var(--border) !important;
+          }
+          .pricing-grid-cards {
             grid-template-columns: 1fr;
           }
           .ide-comparison-grid {
@@ -237,33 +317,41 @@ export default function LandingPage() {
 
       {/* ── IMMERSIVE DUAL-PANE HERO SECTION ── */}
       <section className="hero-split-grid">
-        {/* Decorative Floating Arc vector */}
         <svg style={arcSvg} viewBox="0 0 520 700" fill="none" preserveAspectRatio="none">
-          <path d="M500 80 Q 60 350 500 620" stroke="rgba(255,255,255,0.035)" strokeWidth="1.5" strokeDasharray="10 8" />
+          <path d="M500 80 Q 60 350 500 620" stroke="rgba(255,255,255,0.03)" strokeWidth="1.5" strokeDasharray="10 8" />
         </svg>
 
-        {/* Ambient Glowing Orb Background */}
         <div style={panelOrb} />
 
-        {/* LEFT COLUMN: Premium copy and dynamic CTA */}
-        <div style={heroContentCol}>
-          <div className="premium-badge animate-fade-in" style={{ marginBottom: '1.25rem', width: 'fit-content' }}>
+        {/* LEFT COLUMN */}
+        <motion.div 
+          style={heroContentCol}
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ type: 'spring', stiffness: 100, damping: 18 }}
+        >
+          <motion.div 
+            className="premium-badge animate-fade-in" 
+            style={{ marginBottom: '1.25rem', width: 'fit-content' }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+          >
             <Sparkles size={11} />
             <span>PROMPT ARCHITECT v2.0</span>
-          </div>
+          </motion.div>
 
-          <h1 className="hero-headline animate-fade-up" style={heroHeadline}>
+          <h1 className="hero-headline" style={heroHeadline}>
             Turn vague ideas <br />
             <span className="hero-gradient">into surgical</span> <br />
             AI prompts.
           </h1>
 
-          <p style={heroParagraph} className="animate-fade-up delay-100">
+          <p style={heroParagraph}>
             Stop writing weak descriptions. PromptForge translates developer requirements into rich Tailwind configurations, layout wireframes, and Framer Motion spring physics that AI coders digest perfectly.
           </p>
 
           {/* Prompt Console Form */}
-          <form style={consoleForm} className="animate-fade-up delay-200" action="/auth">
+          <form style={consoleForm} action="/auth" className="active-scale-95">
             <Sparkles size={18} style={{ color: 'var(--accent)', flexShrink: 0, opacity: 0.8 }} />
             <input
               type="text"
@@ -272,27 +360,31 @@ export default function LandingPage() {
               style={consoleInput}
               autoComplete="off"
             />
-            <button type="submit" style={forgeBtn}>
+            <button type="submit" style={forgeBtn} className="btn-accent shine-effect">
               Forge
               <ArrowRight size={13} />
             </button>
           </form>
 
           {/* Interactive Stable CTAs */}
-          <div style={ctaRow} className="animate-fade-up delay-300">
-            <Link href="/auth" style={primaryCta} className="btn-accent shine-effect">
+          <div style={ctaRow}>
+            <Link href="/auth" style={primaryCta} className="btn-accent shine-effect active-scale-95">
               Get Started for Free
               <ArrowRight size={15} />
             </Link>
-            <a href="#pricing" style={secondaryCta} className="btn-secondary">
+            <a href="#pricing" style={secondaryCta} className="btn-secondary active-scale-95">
               View Premium Plans
             </a>
           </div>
-        </div>
+        </motion.div>
 
-        {/* RIGHT COLUMN: Multi-layered overlapping images (Auth carousel aesthetic) */}
-        <div className="showcase-pane animate-scale-in">
-          {/* Main Code Editor Showcase Mockup */}
+        {/* RIGHT COLUMN: Overlapping elements */}
+        <motion.div 
+          className="showcase-pane"
+          initial={{ opacity: 0, scale: 0.94 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 80, damping: 15, delay: 0.1 }}
+        >
           <div className="main-showcase-img" style={browserMockupFrame}>
             <div style={browserHeader}>
               <div style={{ display: 'flex', gap: 6 }}>
@@ -309,7 +401,6 @@ export default function LandingPage() {
             />
           </div>
 
-          {/* Overlapping Image 2 (RAG Pipeline Visualizer Overlay) */}
           <div className="overlapping-img-left" style={browserMockupFrame}>
             <div style={browserHeaderSmall}>
               <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>Local RAG pipeline</span>
@@ -321,7 +412,6 @@ export default function LandingPage() {
             />
           </div>
 
-          {/* Overlapping Image 3 (Sketching UI Architect Overlay) */}
           <div className="overlapping-img-right" style={browserMockupFrame}>
             <div style={browserHeaderSmall}>
               <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>Wireframe Catalog</span>
@@ -333,38 +423,58 @@ export default function LandingPage() {
             />
           </div>
 
-          {/* Floating Badges */}
-          <div className="floating-badge fb-1">
+          <motion.div 
+            className="floating-badge fb-1"
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          >
             <Cpu size={12} />
             <span>Cosine Retrieval</span>
-          </div>
-          <div className="floating-badge fb-2">
+          </motion.div>
+          <motion.div 
+            className="floating-badge fb-2"
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+          >
             <Sparkles size={12} />
             <span>Framer Motion Physics</span>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
-      {/* ── KEY CAPABILITIES FEATURE SECTION ── */}
-      <section id="features" style={sectionContainer}>
-        <div style={sectionHeader}>
+      {/* ── BENTO GRID CAPABILITIES FEATURE SECTION ── */}
+      <motion.section 
+        id="features" 
+        style={sectionContainer}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={containerVariants}
+      >
+        <motion.div style={sectionHeader} variants={itemVariants}>
           <p className="section-label">PRODUCT CAPABILITIES</p>
-          <h2 style={sectionTitle}>Tailored Feature Layouts</h2>
-        </div>
-        <div className="feature-grid-cards">
+          <h2 style={sectionTitle}>Tailored Bento Blueprints</h2>
+        </motion.div>
+
+        <div className="feature-bento-grid">
           {FEATURES_LIST.map((feat) => {
             const Icon = feat.icon;
             return (
-              <div key={feat.slug} style={featureCard} className="glass-panel">
-                {/* Feature mockup browser frame */}
-                <div style={featureImageFrame}>
+              <motion.div 
+                key={feat.slug} 
+                className={`bento-card-wrapper ${feat.gridClass} glow-card-spotlight`}
+                variants={itemVariants}
+                whileHover={{ y: -6 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+              >
+                <div className="bento-img-container">
                   <div style={browserHeaderSmall}>
                     <span style={{ fontSize: '0.6rem', color: 'var(--muted-foreground)' }}>{feat.tag}</span>
                   </div>
-                  <img src={feat.img} alt={feat.title} style={featureCardImage} />
+                  <img src={feat.img} alt={feat.title} className="bento-img" />
                 </div>
                 
-                <div style={{ padding: '1rem' }}>
+                <div className="bento-body" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <div style={featureCardHead}>
                     <div style={iconWrap}>
                       <Icon size={18} style={{ color: 'var(--accent)' }} />
@@ -372,29 +482,40 @@ export default function LandingPage() {
                     <h3 style={featureTitle}>{feat.title}</h3>
                   </div>
                   <p style={featureDesc}>{feat.desc}</p>
-                  <Link href={`/features/${feat.slug}`} style={featureLink}>
+                  <Link href={`/features/${feat.slug}`} style={featureLink} className="active-scale-95">
                     Explore technical docs <ArrowRight size={13} />
                   </Link>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
-      </section>
+      </motion.section>
 
       {/* ── BEFORE & AFTER TRANSLATION BLUEPRINT ── */}
-      <section style={sectionContainer}>
-        <div style={sectionHeader}>
+      <motion.section 
+        style={sectionContainer}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={containerVariants}
+      >
+        <motion.div style={sectionHeader} variants={itemVariants}>
           <p className="section-label">HOW IT WORKS</p>
           <h2 style={sectionTitle}>Vague Intent → Rich Spec translation</h2>
-        </div>
-        <div className="ide-comparison-grid glass-panel" style={previewSection}>
+        </motion.div>
+
+        <motion.div 
+          className="ide-comparison-grid glass-panel" 
+          style={previewSection}
+          variants={itemVariants}
+        >
           {/* Left panel: Draft User Query */}
           <div style={previewBox}>
             <div style={previewBoxHeader}>
               <span style={{ color: 'var(--muted-foreground)' }}>user_prompt.txt</span>
             </div>
-            <div style={{ padding: '1.25rem' }}>
+            <div style={{ padding: '1.5rem' }}>
               <p style={previewBoxText}>
                 "Build a premium dark-mode SaaS dashboard with glassmorphism cards and smooth entrance motions."
               </p>
@@ -403,7 +524,12 @@ export default function LandingPage() {
 
           {/* Center Connection Icon */}
           <div className="comparison-arrow" style={previewArrowWrap}>
-            <Zap size={22} style={{ color: 'var(--accent)' }} />
+            <motion.div
+              animate={{ scale: [1, 1.15, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <Zap size={22} style={{ color: 'var(--accent)' }} />
+            </motion.div>
           </div>
 
           {/* Right panel: Enhanced Prompt Output */}
@@ -411,7 +537,7 @@ export default function LandingPage() {
             <div style={previewBoxHeader}>
               <span style={{ color: 'var(--accent)' }}>promptforge_enhanced_spec.xml</span>
             </div>
-            <div style={{ padding: '1.25rem' }}>
+            <div style={{ padding: '1.5rem' }}>
               <pre style={previewCode}>
 {`<design_system>
   <theme>Sleek Dark Glassmorphism</theme>
@@ -430,23 +556,33 @@ export default function LandingPage() {
               </pre>
             </div>
           </div>
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
 
-      {/* ── DESIGN PRESETS / PRICING TIERS ── */}
-      <section id="pricing" style={sectionContainer}>
-        <div style={sectionHeader}>
+      {/* ── PRICING MATRIX ── */}
+      <motion.section 
+        id="pricing" 
+        style={sectionContainer}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={containerVariants}
+      >
+        <motion.div style={sectionHeader} variants={itemVariants}>
           <p className="section-label">PAYMENT MATRIX</p>
           <h2 style={sectionTitle}>Flexible SaaS Subscriptions</h2>
-        </div>
+        </motion.div>
+
         <div className="pricing-grid-cards">
           {PRICING_TIERS.map((tier) => (
-            <div 
+            <motion.div 
               key={tier.tier} 
               style={{ ...pricingCard, border: `1px solid ${tier.tier === 'pro' ? 'rgba(124,58,237,0.3)' : 'var(--border)'}` }} 
               className="glass-panel"
+              variants={itemVariants}
+              whileHover={{ y: -6 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
             >
-              {/* Central high-fidelity glow blob for the pro plan */}
               {tier.tier === 'pro' && <div style={pricingProGlow} />}
 
               <div style={pricingCardTop}>
@@ -472,18 +608,22 @@ export default function LandingPage() {
                 ))}
               </div>
 
-              <Link href={`/pricing/${tier.tier}`} style={pricingCtaBtn(tier.tier === 'pro', tier.accent)}>
+              <Link 
+                href={`/pricing/${tier.tier}`} 
+                style={pricingCtaBtn(tier.tier === 'pro', tier.accent)}
+                className="active-scale-95"
+              >
                 Get Plan Details
               </Link>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 }
 
-// ─── Inline Styling Tokens (Neo-Noir & Premium Glassmorphism) ───
+// ─── Inline Styling Tokens ──────────────────────────────────────
 
 const containerStyle = {
   position: 'relative',
@@ -708,7 +848,7 @@ const featureCardHead = {
   display: 'flex',
   alignItems: 'center',
   gap: '0.65rem',
-  marginBottom: '0.5rem',
+  marginBottom: '0.25rem',
 };
 
 const iconWrap = {
@@ -733,7 +873,7 @@ const featureDesc = {
   fontSize: '0.8rem',
   color: 'var(--muted-foreground)',
   lineHeight: '1.5',
-  marginBottom: '1rem',
+  marginBottom: '0.75rem',
 };
 
 const featureLink = {
@@ -744,6 +884,7 @@ const featureLink = {
   fontWeight: '700',
   color: 'var(--accent)',
   textDecoration: 'none',
+  marginTop: 'auto',
 };
 
 // ─── Comparison Terminal styling ───

@@ -205,7 +205,7 @@ function ForgeWizardContent() {
 
       const response = await generateEnhancedPrompt(generationParams);
 
-      const savedRecord = savePromptRecord({
+      const savedRecord = await savePromptRecord({
         mode: activeMode,
         title,
         query: finalQuery,
@@ -764,8 +764,8 @@ const containerStyle = {
 };
 
 const backBtn = {
-  background: 'transparent',
-  border: '1px solid var(--border)',
+  background: 'rgba(255,255,255,0.02)',
+  border: '1px solid rgba(255,255,255,0.06)',
   borderRadius: '8px',
   color: 'var(--muted-foreground)',
   fontSize: '0.82rem',
@@ -777,13 +777,13 @@ const backBtn = {
   alignSelf: 'flex-start',
   padding: '0.45rem 1rem',
   fontFamily: 'var(--font-sans)',
-  transition: 'all 0.2s ease',
+  transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
   marginBottom: '1.5rem',
 };
 
 const wizardHeader = {
   marginBottom: '2.5rem',
-  borderBottom: '1px solid var(--border)',
+  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
   paddingBottom: '1.5rem',
 };
 
@@ -797,8 +797,8 @@ const wizardIconWrap = {
   width: '44px',
   height: '44px',
   borderRadius: '12px',
-  background: 'rgba(255, 255, 255, 0.03)',
-  border: '1px solid var(--border)',
+  background: 'rgba(255, 255, 255, 0.02)',
+  border: '1px solid rgba(255, 255, 255, 0.06)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -835,14 +835,14 @@ const flowContainer = {
 };
 
 const stepSection = {
-  background: 'var(--card)',
-  border: '1px solid var(--border)',
+  background: 'rgba(255, 255, 255, 0.01)',
+  border: '1px solid rgba(255, 255, 255, 0.04)',
   borderRadius: '16px',
-  padding: '2rem',
+  padding: '2.25rem',
   display: 'flex',
   flexDirection: 'column',
   gap: '1.5rem',
-  boxShadow: 'var(--shadow-sm)',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
 };
 
 const stepHeader = {
@@ -857,9 +857,9 @@ const stepNum = {
   fontFamily: 'var(--font-display)',
   fontSize: '1.25rem',
   fontWeight: '800',
-  color: '#fbbf24',
-  background: 'rgba(251,191,36,0.08)',
-  border: '1px solid rgba(251,191,36,0.15)',
+  color: 'var(--accent)',
+  background: 'rgba(124,58,237,0.08)',
+  border: '1px solid rgba(124,58,237,0.15)',
   borderRadius: '8px',
   width: '32px',
   height: '32px',
@@ -892,12 +892,13 @@ const categoryCard = (isSelected) => ({
   position: 'relative',
   height: '140px',
   borderRadius: '12px',
-  border: `1.5px solid ${isSelected ? '#fbbf24' : 'var(--border)'}`,
+  border: `1.5px solid ${isSelected ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`,
   overflow: 'hidden',
   cursor: 'pointer',
   transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
   transform: isSelected ? 'scale(1.01)' : 'scale(1)',
-  boxShadow: isSelected ? '0 8px 24px rgba(251, 191, 36, 0.08)' : 'var(--shadow-sm)',
+  background: 'rgba(255,255,255,0.01)',
+  boxShadow: isSelected ? '0 8px 32px rgba(124,58,237,0.12)' : '0 4px 12px rgba(0,0,0,0.1)',
 });
 
 const cardImg = {
@@ -995,16 +996,16 @@ const themeCardGrid = {
 };
 
 const themeSelectCard = (isSelected) => ({
-  border: `1.5px solid ${isSelected ? '#fbbf24' : 'var(--border)'}`,
+  border: `1.5px solid ${isSelected ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`,
   borderRadius: '12px',
   padding: '1.25rem',
   cursor: 'pointer',
-  transition: 'all 0.25s ease',
+  transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
   display: 'flex',
   flexDirection: 'column',
   gap: '0.5rem',
-  background: 'var(--card)',
-  boxShadow: isSelected ? '0 8px 24px rgba(251, 191, 36, 0.06)' : 'var(--shadow-sm)',
+  background: 'rgba(255,255,255,0.01)',
+  boxShadow: isSelected ? '0 8px 32px rgba(124,58,237,0.08)' : '0 4px 12px rgba(0,0,0,0.1)',
 });
 
 const themeHeaderRow = {
@@ -1032,7 +1033,7 @@ const checkboxGrid = {
 };
 
 const checkboxCard = (isChecked) => ({
-  border: `1px solid ${isChecked ? 'rgba(251, 191, 36, 0.2)' : 'var(--border)'}`,
+  border: `1px solid ${isChecked ? 'rgba(124,58,237,0.3)' : 'rgba(255,255,255,0.06)'}`,
   borderRadius: '8px',
   padding: '0.75rem 1rem',
   display: 'flex',
@@ -1040,7 +1041,7 @@ const checkboxCard = (isChecked) => ({
   gap: '0.75rem',
   cursor: 'pointer',
   transition: 'all 0.2s ease',
-  background: isChecked ? 'rgba(251, 191, 36, 0.03)' : 'var(--card)',
+  background: isChecked ? 'rgba(124,58,237,0.04)' : 'rgba(255,255,255,0.01)',
 });
 
 const checkboxText = {
@@ -1091,9 +1092,9 @@ const badgeSelectorBtn = (isSelected) => ({
   fontSize: '0.75rem',
   fontWeight: '600',
   borderRadius: '999px',
-  background: isSelected ? 'rgba(251, 191, 36, 0.08)' : 'var(--muted)',
-  border: `1px solid ${isSelected ? '#fbbf24' : 'var(--border)'}`,
-  color: isSelected ? '#fbbf24' : 'var(--muted-foreground)',
+  background: isSelected ? 'rgba(124,58,237,0.08)' : 'rgba(255,255,255,0.02)',
+  border: `1px solid ${isSelected ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`,
+  color: isSelected ? 'var(--accent)' : 'var(--muted-foreground)',
   cursor: 'pointer',
   transition: 'all 0.2s ease',
   fontFamily: 'var(--font-sans)',
@@ -1103,7 +1104,7 @@ const submitContainer = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  borderTop: '1px solid var(--border)',
+  borderTop: '1px solid rgba(255,255,255,0.06)',
   paddingTop: '1.5rem',
   flexWrap: 'wrap',
   gap: '1rem',
@@ -1150,8 +1151,8 @@ const loadingSpinner = {
   width: '32px',
   height: '32px',
   borderRadius: '50%',
-  border: '2.5px solid var(--border)',
-  borderTopColor: '#fbbf24',
+  border: '2.5px solid rgba(255,255,255,0.06)',
+  borderTopColor: 'var(--accent)',
   animation: 'spin-slow 1s linear infinite',
 };
 

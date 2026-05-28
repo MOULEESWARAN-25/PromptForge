@@ -72,11 +72,11 @@ export default function Navigation() {
           </div>
           <span style={brandText(isDark)}>PromptForge</span>
         </Link>
-
+ 
         {/* Center Navigation Links (Hidden on Mobile) */}
         {!isMobile && (
           <div style={linksContainer}>
-            {(user ? PRIVATE_LINKS : PUBLIC_LINKS).map(({ href, label, icon: Icon }) => {
+            {((user && pathname !== '/' && !pathname.startsWith('/features') && !pathname.startsWith('/pricing')) ? PRIVATE_LINKS : PUBLIC_LINKS).map(({ href, label, icon: Icon }) => {
               const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
               return (
                 <Link key={href} href={href} style={navLink(isActive, isDark)}>
@@ -94,7 +94,7 @@ export default function Navigation() {
             })}
           </div>
         )}
-
+ 
         {/* Right Side Actions */}
         <div style={actionsContainer}>
           {/* Theme Toggle (Desktop Only) */}
@@ -122,41 +122,51 @@ export default function Navigation() {
               </AnimatePresence>
             </motion.button>
           )}
-
+ 
           {user ? (
-            <>
-              {/* Settings Toggle Trigger (Desktop Only) */}
-              {!isMobile && (
-                <motion.button
-                  style={iconBtn(isDark)}
-                  onClick={() => setSettingsOpen(true)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  title="Workspace Settings"
-                >
-                  <Settings size={16} />
-                </motion.button>
-              )}
-
-              {/* User Avatar */}
-              <div style={userPill(isDark)}>
-                <div style={avatarCircle(isDark)}>{initials}</div>
-                {!isMobile && <span style={usernameText(isDark)}>{user.username}</span>}
-              </div>
-
-              {/* Logout (Desktop Only) */}
-              {!isMobile && (
-                <motion.button
-                  style={{ ...iconBtn(isDark), color: '#ef4444' }}
-                  onClick={handleLogout}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  title="Sign out"
-                >
-                  <LogOut size={15} />
-                </motion.button>
-              )}
-            </>
+            (pathname === '/' || pathname.startsWith('/features') || pathname.startsWith('/pricing')) ? (
+              // If logged in and on a public page, show "Go to Dashboard"
+              !isMobile && (
+                <Link href="/dashboard" style={loginBtnStyle(isDark)} className="active-scale-95">
+                  Go to Dashboard
+                </Link>
+              )
+            ) : (
+              // If logged in and on an internal dashboard page, show full controls
+              <>
+                {/* Settings Toggle Trigger (Desktop Only) */}
+                {!isMobile && (
+                  <motion.button
+                    style={iconBtn(isDark)}
+                    onClick={() => setSettingsOpen(true)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    title="Workspace Settings"
+                  >
+                    <Settings size={16} />
+                  </motion.button>
+                )}
+ 
+                {/* User Avatar */}
+                <div style={userPill(isDark)}>
+                  <div style={avatarCircle(isDark)}>{initials}</div>
+                  {!isMobile && <span style={usernameText(isDark)}>{user.username}</span>}
+                </div>
+ 
+                {/* Logout (Desktop Only) */}
+                {!isMobile && (
+                  <motion.button
+                    style={{ ...iconBtn(isDark), color: '#ef4444' }}
+                    onClick={handleLogout}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    title="Sign out"
+                  >
+                    <LogOut size={15} />
+                  </motion.button>
+                )}
+              </>
+            )
           ) : (
             // Sign in CTA (Desktop Only)
             !isMobile && (
@@ -165,7 +175,7 @@ export default function Navigation() {
               </Link>
             )
           )}
-
+ 
           {/* Mobile Menu Toggle Button */}
           {isMobile && (
             <motion.button
@@ -179,7 +189,7 @@ export default function Navigation() {
           )}
         </div>
       </motion.nav>
-
+ 
       {/* Mobile Menu Overlay Drawer */}
       <AnimatePresence>
         {isMobile && mobileMenuOpen && (
@@ -191,7 +201,7 @@ export default function Navigation() {
             style={mobileMenuDrawer(isDark)}
           >
             <div style={mobileLinksList}>
-              {(user ? PRIVATE_LINKS : PUBLIC_LINKS).map(({ href, label, icon: Icon }) => {
+              {((user && pathname !== '/' && !pathname.startsWith('/features') && !pathname.startsWith('/pricing')) ? PRIVATE_LINKS : PUBLIC_LINKS).map(({ href, label, icon: Icon }) => {
                 const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
                 return (
                   <Link key={href} href={href} style={mobileLinkStyle(isActive, isDark)}>
@@ -200,26 +210,32 @@ export default function Navigation() {
                   </Link>
                 );
               })}
-
+ 
               <div style={{ height: '1px', background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)', margin: '0.5rem 0' }} />
-
+ 
               {/* Theme Selector inside mobile menu */}
               <button onClick={toggleTheme} style={mobileActionBtn(isDark)}>
                 {isDark ? <Sun size={16} style={{ color: '#fbbf24' }} /> : <Moon size={16} />}
                 <span>{isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}</span>
               </button>
-
+ 
               {user ? (
-                <>
-                  <button onClick={() => { setSettingsOpen(true); setMobileMenuOpen(false); }} style={mobileActionBtn(isDark)}>
-                    <Settings size={16} />
-                    <span>Workspace Settings</span>
-                  </button>
-                  <button onClick={handleLogout} style={{ ...mobileActionBtn(isDark), color: '#ef4444' }}>
-                    <LogOut size={16} />
-                    <span>Sign Out</span>
-                  </button>
-                </>
+                (pathname === '/' || pathname.startsWith('/features') || pathname.startsWith('/pricing')) ? (
+                  <Link href="/dashboard" style={mobileLoginBtn(isDark)}>
+                    Go to Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <button onClick={() => { setSettingsOpen(true); setMobileMenuOpen(false); }} style={mobileActionBtn(isDark)}>
+                      <Settings size={16} />
+                      <span>Workspace Settings</span>
+                    </button>
+                    <button onClick={handleLogout} style={{ ...mobileActionBtn(isDark), color: '#ef4444' }}>
+                      <LogOut size={16} />
+                      <span>Sign Out</span>
+                    </button>
+                  </>
+                )
               ) : (
                 <Link href="/auth" style={mobileLoginBtn(isDark)}>
                   Sign In / Register
@@ -229,7 +245,7 @@ export default function Navigation() {
           </motion.div>
         )}
       </AnimatePresence>
-
+ 
       {/* Render Dynamic SettingsDrawer for Authenticated Users */}
       {user && (
         <SettingsDrawer isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />

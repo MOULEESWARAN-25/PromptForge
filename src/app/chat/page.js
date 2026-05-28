@@ -13,6 +13,17 @@ const RagInspector = dynamic(() => import('@/components/RagInspector'), {
   ssr: false,
 });
 
+// ─── Animation Variants ────────────────────────────────────────
+const messageStagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.06 } }
+};
+
+const messageVariants = {
+  hidden: { opacity: 0, y: 16, scale: 0.98 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 350, damping: 26 } }
+};
+
 function ChatContent() {
   const { user, history, updatePromptChat, apiKey } = useApp();
   const searchParams = useSearchParams();
@@ -26,6 +37,7 @@ function ChatContent() {
   const [chatInput, setChatInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [inputFocused, setInputFocused] = useState(false);
 
   const messagesEndRef = useRef(null);
 
@@ -104,13 +116,14 @@ function ChatContent() {
   const handleCopy = () => {
     navigator.clipboard.writeText(currentPrompt);
     setCopied(true);
+    toast.success('Enhanced prompt blueprint copied');
     setTimeout(() => setCopied(false), 2000);
   };
 
   if (!promptRecord) {
     return (
       <div style={loadingContainer}>
-        <RefreshCw size={24} className="animate-spin" />
+        <RefreshCw size={24} className="animate-spin text-purple-400" />
         <span>Loading Workspace Configuration...</span>
       </div>
     );
@@ -130,23 +143,34 @@ function ChatContent() {
       <div style={chatColumn} className="glass-panel">
         <div style={chatHeader}>
           <div>
-            <button style={backBtn} onClick={() => router.push('/')}>
+            <motion.button 
+              style={backBtn} 
+              onClick={() => router.push('/')}
+              whileHover={{ x: -3, borderColor: 'rgba(255,255,255,0.15)', color: 'var(--foreground)' }}
+              whileTap={{ scale: 0.96 }}
+            >
               <ArrowLeft size={12} />
               Workspace Dashboard
-            </button>
-            <h2 style={chatTitle}>{promptRecord.title}</h2>
-            <span style={themeBadge}>{promptRecord.theme}</span>
+            </motion.button>
+            <h2 style={chatTitle} className="mt-2">{promptRecord.title}</h2>
+            <span style={themeBadge} className="mt-1 inline-block">{promptRecord.theme}</span>
           </div>
         </div>
 
         {/* Scrollable messages container */}
         <div style={chatBody}>
-          <div style={messagesList}>
+          <motion.div 
+            variants={messageStagger} 
+            initial="hidden" 
+            animate="show" 
+            style={messagesList}
+          >
             {chatMessages.map((msg, idx) => {
               const isModel = msg.role === 'model';
               return (
-                <div
+                <motion.div
                   key={idx}
+                  variants={messageVariants}
                   style={{
                     ...msgBubbleRow,
                     justifyContent: isModel ? 'flex-start' : 'flex-end'
@@ -155,13 +179,14 @@ function ChatContent() {
                   <div
                     style={{
                       ...msgBubble,
-                      backgroundColor: isModel ? 'rgba(255,255,255,0.02)' : 'hsl(var(--primary))',
+                      backgroundColor: isModel ? 'rgba(255,255,255,0.02)' : 'var(--accent)',
                       border: isModel ? '1px solid rgba(255, 255, 255, 0.04)' : 'none',
-                      color: isModel ? 'var(--fg-color)' : '#ffffff',
-                      borderRadius: isModel ? '12px 12px 12px 2px' : '12px 12px 2px 12px'
+                      color: isModel ? 'var(--fg-color)' : 'var(--accent-foreground)',
+                      borderRadius: isModel ? '14px 14px 14px 2px' : '14px 14px 2px 14px',
+                      boxShadow: isModel ? '0 2px 8px rgba(0,0,0,0.1)' : '0 4px 12px rgba(124,58,237,0.15)'
                     }}
                   >
-                    <span style={{ fontSize: '0.72rem', fontWeight: '600', display: 'block', marginBottom: '4px', opacity: 0.8 }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: '700', display: 'block', marginBottom: '4px', opacity: 0.8, letterSpacing: '0.04em' }}>
                       {isModel ? "PROMPT ARCHITECT" : "YOU"}
                     </span>
                     <p style={bubbleText}>
@@ -171,39 +196,43 @@ function ChatContent() {
                       }
                     </p>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
             {isGenerating && (
-              <div style={msgBubbleRow}>
-                <div style={{ ...msgBubble, backgroundColor: 'rgba(255,255,255,0.02)' }}>
-                  <RefreshCw size={14} className="animate-spin" />
+              <motion.div variants={messageVariants} style={msgBubbleRow}>
+                <div style={{ ...msgBubble, backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '14px 14px 14px 2px' }}>
+                  <RefreshCw size={14} className="animate-spin text-purple-400" />
                 </div>
-              </div>
+              </motion.div>
             )}
             <div ref={messagesEndRef} />
-          </div>
+          </motion.div>
         </div>
 
         {/* Input box */}
-        <form onSubmit={handleSendMessage} style={chatInputRow}>
+        <form onSubmit={handleSendMessage} style={chatInputRow(inputFocused)}>
           <input
             type="text"
             placeholder="Type refinements (e.g. 'Add e-mail validation errors' or 'Style with HSL lime green accents')..."
             value={chatInput}
             onChange={(e) => setChatInput(e.target.value)}
+            onFocus={() => setInputFocused(true)}
+            onBlur={() => setInputFocused(false)}
             style={chatField}
             className="glass-input"
             disabled={isGenerating}
           />
-          <button
+          <motion.button
             type="submit"
             style={sendBtn}
-            className="btn-primary shine-effect"
+            className="btn-accent shine-effect"
             disabled={isGenerating || !chatInput.trim()}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             <Send size={16} />
-          </button>
+          </motion.button>
         </form>
       </div>
 
@@ -212,18 +241,20 @@ function ChatContent() {
         <div style={promptPanel} className="glass-panel">
           <div style={promptHeader}>
             <div style={promptTitleWrap}>
-              <Layers size={14} style={{ color: 'hsl(var(--primary))' }} />
+              <Layers size={14} style={{ color: 'var(--accent)' }} />
               <span style={promptTitleText}>Generated Enhanced Prompt</span>
             </div>
             
-            <button
+            <motion.button
               onClick={handleCopy}
               style={copyBtn}
-              className="btn-primary"
+              className="btn-accent shine-effect"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
             >
               {copied ? <Check size={14} /> : <Copy size={14} />}
               {copied ? "Copied!" : "Copy Prompt"}
-            </button>
+            </motion.button>
           </div>
 
           <div style={promptBody}>
@@ -244,7 +275,7 @@ export default function ChatPage() {
   return (
     <Suspense fallback={
       <div style={loadingContainer}>
-        <RefreshCw size={24} className="animate-spin" />
+        <RefreshCw size={24} className="animate-spin text-purple-400" />
         <span>Loading Workspace...</span>
       </div>
     }>
@@ -281,18 +312,18 @@ const chatLayout = {
 const chatColumn = {
   flex: 1.3,
   height: '100%',
-  background: 'var(--card)',
-  border: '1px solid var(--border)',
+  background: 'rgba(255, 255, 255, 0.01)',
+  border: '1px solid rgba(255, 255, 255, 0.04)',
   borderRadius: 'var(--radius-lg)',
   display: 'flex',
   flexDirection: 'column',
-  boxShadow: 'var(--shadow-md)',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
   overflow: 'hidden',
 };
 
 const chatHeader = {
   padding: '0.875rem 1.25rem',
-  borderBottom: '1px solid var(--border)',
+  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
@@ -300,8 +331,8 @@ const chatHeader = {
 };
 
 const backBtn = {
-  background: 'transparent',
-  border: '1px solid var(--border)',
+  background: 'rgba(255,255,255,0.02)',
+  border: '1px solid rgba(255,255,255,0.06)',
   borderRadius: '7px',
   color: 'var(--muted-foreground)',
   fontSize: '0.75rem',
@@ -312,6 +343,7 @@ const backBtn = {
   gap: '0.35rem',
   padding: '0.3rem 0.65rem',
   fontFamily: 'var(--font-sans)',
+  transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
 };
 
 const chatTitle = {
@@ -326,8 +358,8 @@ const themeBadge = {
   fontSize: '0.68rem',
   fontWeight: '600',
   color: 'var(--muted-foreground)',
-  background: 'var(--muted)',
-  border: '1px solid var(--border)',
+  background: 'rgba(255,255,255,0.03)',
+  border: '1px solid rgba(255,255,255,0.06)',
   borderRadius: '999px',
   padding: '2px 8px',
 };
@@ -361,13 +393,15 @@ const bubbleText = {
   whiteSpace: 'pre-wrap',
 };
 
-const chatInputRow = {
+const chatInputRow = (focused) => ({
   padding: '1rem 1.25rem',
-  borderTop: '1px solid var(--border)',
+  borderTop: `1px solid ${focused ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`,
+  boxShadow: focused ? '0 -4px 24px rgba(124,58,237,0.06)' : 'none',
   display: 'flex',
   gap: '0.625rem',
   flexShrink: 0,
-};
+  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+});
 
 const chatField = {
   flex: 1,
@@ -391,18 +425,18 @@ const promptColumn = {
 
 const promptPanel = {
   flex: 1,
-  background: 'var(--card)',
-  border: '1px solid var(--border)',
+  background: 'rgba(255, 255, 255, 0.01)',
+  border: '1px solid rgba(255, 255, 255, 0.04)',
   borderRadius: 'var(--radius-lg)',
   display: 'flex',
   flexDirection: 'column',
   overflow: 'hidden',
-  boxShadow: 'var(--shadow-md)',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
 };
 
 const promptHeader = {
   padding: '0.875rem 1.25rem',
-  borderBottom: '1px solid var(--border)',
+  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
@@ -433,7 +467,7 @@ const promptBody = {
   flex: 1,
   overflowY: 'auto',
   padding: '1.25rem',
-  background: 'var(--muted)',
+  background: 'rgba(0, 0, 0, 0.25)',
 };
 
 const codeBlockStyle = {

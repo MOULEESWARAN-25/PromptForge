@@ -166,8 +166,8 @@ export default function DashboardPage() {
         animate="show"
       >
         <motion.div variants={fadeUp}>
-          <div className="premium-badge" style={{ marginBottom: '1.5rem' }}>
-            <Sparkles size={11} />
+          <div className="premium-badge animate-pulse-slow" style={{ marginBottom: '1.5rem' }}>
+            <Sparkles size={11} className="text-purple-400" />
             <span>Prompt Architect v2.0</span>
           </div>
         </motion.div>
@@ -187,6 +187,7 @@ export default function DashboardPage() {
           variants={fadeUp}
           onSubmit={handleQuickForge}
           style={consoleForm(inputFocused)}
+          className="glass-panel"
         >
           <Sparkles size={18} style={{ color: 'var(--accent)', flexShrink: 0, opacity: 0.8 }} />
           <input
@@ -201,9 +202,10 @@ export default function DashboardPage() {
           />
           <motion.button
             type="submit"
+            className="btn-accent shine-effect"
             style={forgeBtn}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
           >
             Forge
             <CornerDownLeft size={13} />
@@ -218,8 +220,8 @@ export default function DashboardPage() {
               key={i}
               style={suggestChip}
               onClick={() => setQuickInput(`A premium ${s} with modern dark glassmorphic aesthetics and responsive layout.`)}
-              whileHover={{ scale: 1.03, y: -1 }}
-              whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.04, y: -1, borderColor: 'rgba(255,255,255,0.15)', color: 'var(--foreground)' }}
+              whileTap={{ scale: 0.96 }}
             >
               {s}
             </motion.button>
@@ -231,8 +233,9 @@ export default function DashboardPage() {
       <motion.section
         variants={stagger}
         initial="hidden"
-        animate="show"
-        style={{ marginBottom: '3.5rem' }}
+        whileInView="show"
+        viewport={{ once: true, margin: '-100px' }}
+        style={{ marginBottom: '4rem' }}
       >
         <motion.div variants={fadeUp} style={sectionHeader}>
           <div>
@@ -252,7 +255,9 @@ export default function DashboardPage() {
       <motion.section
         variants={stagger}
         initial="hidden"
-        animate="show"
+        whileInView="show"
+        viewport={{ once: true, margin: '-60px' }}
+        style={{ marginBottom: '3rem' }}
       >
         <motion.div variants={fadeUp} style={sectionHeader}>
           <div>
@@ -260,73 +265,83 @@ export default function DashboardPage() {
             <h2 style={sectionTitle}>Your workspaces</h2>
           </div>
           {optimisticHistory.length > 0 && (
-            <button
+            <motion.button
               style={clearBtn}
               onClick={handleClearAll}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.96 }}
             >
               <Trash size={13} />
               Clear all
-            </button>
+            </motion.button>
           )}
         </motion.div>
 
         {optimisticHistory.length === 0 ? (
-          <motion.div variants={fadeUp} style={emptyState}>
-            <div style={emptyIcon}><Sparkles size={24} /></div>
+          <motion.div variants={fadeUp} style={emptyState} className="glass-panel">
+            <div style={emptyIcon} className="glass-panel"><Sparkles size={24} style={{ color: 'var(--accent)' }} /></div>
             <p style={emptyTitle}>No workspaces yet</p>
             <p style={emptyDesc}>Describe your idea above to generate your first precision prompt.</p>
           </motion.div>
         ) : (
           <motion.div variants={stagger} style={historyGrid}>
-            {optimisticHistory.slice(0, 6).map((log) => {
-              const ModeIcon = MODE_ICONS[log.mode] || Sparkles;
-              const modeColor = MODE_COLORS[log.mode] || '#19398d';
-              const isCopied = copiedId === log.id;
-              return (
-                <motion.div
-                  key={log.id}
-                  variants={cardVariant}
-                  style={historyCard}
-                  className="card card-hover"
-                  onClick={() => router.push(`/chat?id=${log.id}`)}
-                  whileHover={{ y: -3 }}
-                >
-                  <div style={historyCardTop}>
-                    <div style={{ ...historyModeBadge, background: `${modeColor}12`, color: modeColor, borderColor: `${modeColor}25` }}>
-                      <ModeIcon size={12} />
-                      <span>{log.mode}</span>
+            <AnimatePresence mode="popLayout">
+              {optimisticHistory.slice(0, 6).map((log) => {
+                const ModeIcon = MODE_ICONS[log.mode] || Sparkles;
+                const modeColor = MODE_COLORS[log.mode] || '#19398d';
+                const isCopied = copiedId === log.id;
+                return (
+                  <motion.div
+                    key={log.id}
+                    variants={cardVariant}
+                    layout
+                    style={historyCard}
+                    className="glass-panel card-hover"
+                    onClick={() => router.push(`/chat?id=${log.id}`)}
+                    whileHover={{ y: -4 }}
+                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                  >
+                    <div style={historyCardTop}>
+                      <div style={{ ...historyModeBadge, background: `${modeColor}12`, color: modeColor, borderColor: `${modeColor}25` }}>
+                        <ModeIcon size={12} />
+                        <span>{log.mode}</span>
+                      </div>
+                      <span style={historyDate}>
+                        <Clock size={11} />
+                        {new Date(log.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      </span>
                     </div>
-                    <span style={historyDate}>
-                      <Clock size={11} />
-                      {new Date(log.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                    </span>
-                  </div>
 
-                  <h3 style={historyTitle}>{log.title}</h3>
-                  <p style={historyQuery} className="truncate-2">{log.query || 'No query recorded.'}</p>
+                    <h3 style={historyTitle}>{log.title}</h3>
+                    <p style={historyQuery} className="truncate-2">{log.query || 'No query recorded.'}</p>
 
-                  <div style={historyActions}>
-                    <button
-                      style={{ ...historyActionBtn, color: isCopied ? '#16a34a' : 'var(--muted-foreground)' }}
-                      onClick={e => handleCopy(log.id, e, log.resolvedPrompt)}
-                    >
-                      {isCopied ? <Check size={13} /> : <Copy size={13} />}
-                      {isCopied ? 'Copied' : 'Copy'}
-                    </button>
-                    <button
-                      style={{ ...historyActionBtn, color: '#ef4444' }}
-                      onClick={e => handleDelete(log.id, e)}
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                    <div style={{ flex: 1 }} />
-                    <span style={historyOpen}>
-                      Open <ExternalLink size={11} />
-                    </span>
-                  </div>
-                </motion.div>
-              );
-            })}
+                    <div style={historyActions}>
+                      <motion.button
+                        style={{ ...historyActionBtn, color: isCopied ? '#16a34a' : 'var(--muted-foreground)' }}
+                        onClick={e => handleCopy(log.id, e, log.resolvedPrompt)}
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.96 }}
+                      >
+                        {isCopied ? <Check size={13} /> : <Copy size={13} />}
+                        {isCopied ? 'Copied' : 'Copy'}
+                      </motion.button>
+                      <motion.button
+                        style={{ ...historyActionBtn, color: '#ef4444' }}
+                        onClick={e => handleDelete(log.id, e)}
+                        whileHover={{ scale: 1.04, background: 'rgba(239,68,68,0.06)', borderColor: 'rgba(239,68,68,0.15)' }}
+                        whileTap={{ scale: 0.96 }}
+                      >
+                        <Trash2 size={13} />
+                      </motion.button>
+                      <div style={{ flex: 1 }} />
+                      <span style={historyOpen}>
+                        Open <ExternalLink size={11} />
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </motion.div>
         )}
       </motion.section>
@@ -349,7 +364,7 @@ function BentoCard({ workflow }) {
         href={href}
         onClick={handleClick}
         style={bentoCard(hovered, accent)}
-        className="card"
+        className="glass-panel"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
@@ -385,8 +400,8 @@ const heroSection = {
   flexDirection: 'column',
   alignItems: 'center',
   textAlign: 'center',
-  paddingTop: '3rem',
-  paddingBottom: '4rem',
+  paddingTop: '4rem',
+  paddingBottom: '5rem',
   maxWidth: '900px',
   margin: '0 auto',
 };
@@ -396,7 +411,7 @@ const heroParagraph = {
   color: 'var(--muted-foreground)',
   lineHeight: '1.7',
   maxWidth: '580px',
-  marginBottom: '2rem',
+  marginBottom: '2.5rem',
 };
 
 const consoleForm = (focused) => ({
@@ -407,12 +422,13 @@ const consoleForm = (focused) => ({
   alignItems: 'center',
   gap: 'var(--space-sm)',
   padding: '0 0.5rem 0 1.25rem',
-  background: 'var(--card)',
-  border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border)'}`,
+  background: 'rgba(10, 10, 12, 0.4)',
+  border: `1px solid ${focused ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`,
   borderRadius: '14px',
+  backdropFilter: 'blur(20px)',
   boxShadow: focused
-    ? '0 1px 0 0 rgba(255,255,255,0.08) inset, 0 0 0 4px var(--accent-glow), var(--shadow-lg)'
-    : '0 1px 0 0 rgba(255,255,255,0.05) inset, var(--shadow-md)',
+    ? '0 0 0 1px var(--accent), 0 8px 32px rgba(124,58,237,0.15), inset 0 1px 0 0 rgba(255,255,255,0.1)'
+    : '0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 0 rgba(255,255,255,0.05)',
   transition: 'all var(--duration-fast) var(--ease-spring)',
   marginBottom: 'var(--space-md)',
 });
@@ -432,7 +448,6 @@ const forgeBtn = {
   alignItems: 'center',
   gap: '0.4rem',
   padding: '0.55rem 1.1rem',
-  background: 'var(--accent)',
   color: 'var(--accent-foreground)',
   border: 'none',
   borderRadius: '10px',
@@ -459,15 +474,15 @@ const suggestLabel = {
 
 const suggestChip = {
   padding: '0.35rem 0.85rem',
-  background: 'var(--muted)',
-  border: '1px solid var(--border)',
+  background: 'rgba(255,255,255,0.02)',
+  border: '1px solid rgba(255,255,255,0.06)',
   borderRadius: '999px',
   fontSize: '0.78rem',
   color: 'var(--muted-foreground)',
   cursor: 'pointer',
   fontFamily: 'var(--font-sans)',
   fontWeight: '500',
-  transition: 'all 0.2s ease',
+  transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
 };
 
 const sectionHeader = {
@@ -489,7 +504,7 @@ const sectionTitle = {
 const bentoGrid = {
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-  gap: '1rem',
+  gap: '1.25rem',
 };
 
 const bentoCard = (hovered, accent) => ({
@@ -501,13 +516,13 @@ const bentoCard = (hovered, accent) => ({
   textDecoration: 'none',
   position: 'relative',
   overflow: 'hidden',
-  background: 'var(--card)',
-  border: `1px solid ${hovered ? `${accent}40` : 'var(--border)'}`,
+  background: 'rgba(255, 255, 255, 0.01)',
+  border: `1px solid ${hovered ? `${accent}40` : 'rgba(255,255,255,0.04)'}`,
   transition: 'all var(--duration-base) var(--ease-spring)',
-  transform: hovered ? 'translateY(-4px) scale(1.01)' : 'translateY(0) scale(1)',
+  transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
   boxShadow: hovered
-    ? `0 1px 0 0 rgba(255,255,255,0.08) inset, 0 20px 40px ${accent}18, var(--shadow-lg)`
-    : '0 1px 0 0 rgba(255,255,255,0.05) inset, var(--shadow-sm)',
+    ? `0 1px 0 0 rgba(255,255,255,0.08) inset, 0 20px 40px ${accent}12, 0 8px 16px rgba(0,0,0,0.3)`
+    : '0 1px 0 0 rgba(255,255,255,0.02) inset, 0 4px 12px rgba(0,0,0,0.15)',
 });
 
 const bentoGlow = (accent, hovered) => ({
@@ -517,7 +532,7 @@ const bentoGlow = (accent, hovered) => ({
   width: '200px',
   height: '200px',
   borderRadius: '50%',
-  background: `radial-gradient(circle, ${accent}12 0%, transparent 70%)`,
+  background: `radial-gradient(circle, ${accent}15 0%, transparent 70%)`,
   opacity: hovered ? 1 : 0,
   transition: 'opacity 0.4s ease',
   pointerEvents: 'none',
@@ -533,8 +548,8 @@ const bentoIconWrap = (accent, accentBg, hovered) => ({
   width: '38px',
   height: '38px',
   borderRadius: '10px',
-  background: hovered ? `${accent}15` : accentBg,
-  border: `1px solid ${accent}20`,
+  background: hovered ? `${accent}18` : accentBg,
+  border: `1px solid ${accent}25`,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -576,7 +591,7 @@ const bentoFooter = (accent, hovered) => ({
   fontWeight: '700',
   color: hovered ? accent : 'var(--muted-foreground)',
   paddingTop: '0.75rem',
-  borderTop: '1px solid var(--border)',
+  borderTop: '1px solid rgba(255,255,255,0.06)',
   transition: 'color 0.2s ease',
 });
 
@@ -586,7 +601,7 @@ const clearBtn = {
   gap: '0.4rem',
   padding: '0.4rem 0.85rem',
   background: 'transparent',
-  border: '1px solid var(--border)',
+  border: '1px solid rgba(255,255,255,0.06)',
   borderRadius: '8px',
   fontSize: '0.78rem',
   fontWeight: '600',
@@ -602,8 +617,8 @@ const emptyState = {
   alignItems: 'center',
   gap: '0.75rem',
   padding: '3rem 2rem',
-  background: 'var(--card)',
-  border: '1px solid var(--border)',
+  background: 'rgba(255,255,255,0.01)',
+  border: '1px solid rgba(255,255,255,0.04)',
   borderRadius: '16px',
   textAlign: 'center',
 };
@@ -612,7 +627,8 @@ const emptyIcon = {
   width: '48px',
   height: '48px',
   borderRadius: '12px',
-  background: 'var(--muted)',
+  background: 'rgba(255,255,255,0.02)',
+  border: '1px solid rgba(255,255,255,0.04)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -634,15 +650,20 @@ const emptyDesc = {
 const historyGrid = {
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-  gap: '1rem',
+  gap: '1.25rem',
 };
 
 const historyCard = {
   display: 'flex',
   flexDirection: 'column',
-  gap: '0.6rem',
+  gap: '0.65rem',
   padding: '1.25rem',
+  background: 'rgba(255,255,255,0.01)',
+  border: '1px solid rgba(255,255,255,0.04)',
+  borderRadius: '14px',
+  boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
   cursor: 'pointer',
+  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
 };
 
 const historyCardTop = {
@@ -692,8 +713,8 @@ const historyActions = {
   alignItems: 'center',
   gap: '0.25rem',
   paddingTop: '0.6rem',
-  borderTop: '1px solid var(--border)',
-  marginTop: 'auto',
+  borderTop: '1px solid rgba(255,255,255,0.06)',
+  marginTop: '0.4rem',
 };
 
 const historyActionBtn = {
@@ -701,14 +722,14 @@ const historyActionBtn = {
   alignItems: 'center',
   gap: '0.3rem',
   padding: '0.3rem 0.65rem',
-  background: 'transparent',
-  border: '1px solid var(--border)',
+  background: 'rgba(255,255,255,0.01)',
+  border: '1px solid rgba(255,255,255,0.06)',
   borderRadius: '6px',
   fontSize: '0.75rem',
   fontWeight: '600',
   cursor: 'pointer',
   fontFamily: 'var(--font-sans)',
-  transition: 'all 0.2s ease',
+  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
 };
 
 const historyOpen = {
@@ -740,7 +761,7 @@ const loadingSpinner = {
   width: '32px',
   height: '32px',
   borderRadius: '50%',
-  border: '2.5px solid var(--border)',
+  border: '2.5px solid rgba(255,255,255,0.06)',
   borderTopColor: 'var(--accent)',
 };
 
