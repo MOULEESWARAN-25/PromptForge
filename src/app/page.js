@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence, useInView } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
   Sparkles, History, Trash2, Monitor,
@@ -85,12 +85,7 @@ export default function DashboardPage() {
   const [copiedId, setCopiedId] = useState(null);
   const [quickInput, setQuickInput] = useState('');
   const [inputFocused, setInputFocused] = useState(false);
-  const heroRef = useRef(null);
-  const bentoRef = useRef(null);
-  const historyRef = useRef(null);
-  const heroInView = useInView(heroRef, { once: true });
-  const bentoInView = useInView(bentoRef, { once: true, margin: '-80px' });
-  const historyInView = useInView(historyRef, { once: true, margin: '-80px' });
+
 
   useEffect(() => {
     if (!loading && !user) router.push('/auth');
@@ -133,11 +128,10 @@ export default function DashboardPage() {
     <div style={{ position: 'relative', zIndex: 2, width: '100%' }}>
       {/* ── Hero ──────────────────────────────────────────────── */}
       <motion.section
-        ref={heroRef}
         style={heroSection}
         variants={stagger}
         initial="hidden"
-        animate={heroInView ? "show" : "hidden"}
+        animate="show"
       >
         <motion.div variants={fadeUp}>
           <div className="premium-badge" style={{ marginBottom: '1.5rem' }}>
@@ -203,10 +197,9 @@ export default function DashboardPage() {
 
       {/* ── Bento Grid ────────────────────────────────────────── */}
       <motion.section
-        ref={bentoRef}
         variants={stagger}
         initial="hidden"
-        animate={bentoInView ? "show" : "hidden"}
+        animate="show"
         style={{ marginBottom: '3.5rem' }}
       >
         <motion.div variants={fadeUp} style={sectionHeader}>
@@ -225,10 +218,9 @@ export default function DashboardPage() {
 
       {/* ── History ───────────────────────────────────────────── */}
       <motion.section
-        ref={historyRef}
         variants={stagger}
         initial="hidden"
-        animate={historyInView ? "show" : "hidden"}
+        animate="show"
       >
         <motion.div variants={fadeUp} style={sectionHeader}>
           <div>
