@@ -7,6 +7,7 @@ import { generateEnhancedPrompt } from '@/services/gemini';
 import { 
   Send, Copy, Check, Layers, ArrowLeft, RefreshCw 
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 
 const RagInspector = dynamic(() => import('@/components/RagInspector'), {
