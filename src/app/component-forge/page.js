@@ -402,9 +402,9 @@ export default function ComponentForgePage() {
               <div style={promptBody}>
                 <pre style={codeBlockStyle}>
                   <code>
-                    {currentPrompt.includes('```prompt')
+                    {(currentPrompt || '').includes('```prompt')
                       ? currentPrompt.match(/```prompt\n([\s\S]*?)\n```/)?.[1] || currentPrompt
-                      : currentPrompt
+                      : currentPrompt || ''
                     }
                   </code>
                 </pre>
