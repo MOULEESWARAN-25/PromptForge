@@ -103,11 +103,12 @@ export default function AuthPage() {
 
   return (
     <div style={root}>
+      {/* Seamless layout grid across the entire viewport */}
+      <div style={panelGrid} />
+
       {/* ══ LEFT — Immersive carousel panel ══════════════════════ */}
       <div className="hidden lg:flex" style={leftPanel}>
-        {/* Deep background */}
-        <div style={panelBg} />
-        <div style={panelGrid} />
+
 
         {/* Animated accent orb that follows slide color */}
         <motion.div
@@ -243,11 +244,9 @@ export default function AuthPage() {
         </div>
       </div>
 
-      {/* ══ RIGHT — Clean form panel ════════════════════════════ */}
+      {/* ══ RIGHT — Immersive & glassmorphic form panel ═════════ */}
       <div style={rightPanel}>
-        {/* Deep background */}
-        <div style={panelBg} />
-        <div style={panelGrid} />
+
 
         {/* Dynamic bottom-right orb matching active slide color */}
         <motion.div
@@ -379,10 +378,10 @@ export default function AuthPage() {
 /* ══════════════════════════════════
    STYLES
 ══════════════════════════════════ */
-const root = { position: 'fixed', inset: 0, display: 'flex', overflow: 'hidden', background: '#000' };
+const root = { position: 'fixed', inset: 0, display: 'flex', overflow: 'hidden', background: 'linear-gradient(155deg,#070612 0%,#0c0b20 45%,#040310 100%)' };
 
 // ── Left panel
-const leftPanel = { flex: '0 0 54%', flexDirection: 'column', position: 'relative', overflow: 'clip', padding: '2.5rem 3rem' };
+const leftPanel = { display: 'flex', flex: '0 0 54%', flexDirection: 'column', position: 'relative', overflow: 'clip', padding: '2.5rem 3rem', height: '100%' };
 const panelBg = { position: 'absolute', inset: 0, background: 'linear-gradient(155deg,#070612 0%,#0c0b20 45%,#040310 100%)', pointerEvents: 'none' };
 const panelGrid = { position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px)', backgroundSize: '44px 44px', pointerEvents: 'none' };
 const panelOrb = { position: 'absolute', top: '5%', left: '15%', width: '550px', height: '550px', borderRadius: '50%', pointerEvents: 'none' };
@@ -418,7 +417,7 @@ const dotTrack = { display: 'flex', alignItems: 'center', gap: 6 };
 const dotBtn = { height: 7, borderRadius: 999, border: 'none', cursor: 'pointer', padding: 0 };
 
 // ── Right panel
-const rightPanel = { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem', position: 'relative', overflowY: 'auto' };
+const rightPanel = { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem', position: 'relative', overflowY: 'auto', height: '100%' };
 const formCard = { width: '100%', maxWidth: '425px', display: 'flex', flexDirection: 'column', gap: '1.25rem', padding: '2.75rem 2.25rem', background: 'rgba(10, 10, 18, 0.45)', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: 24, backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', position: 'relative', overflow: 'hidden' };
 const cardTopShine = { position: 'absolute', top: 0, left: 0, right: 0, height: 2, pointerEvents: 'none' };
 
