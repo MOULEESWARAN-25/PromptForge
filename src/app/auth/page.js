@@ -91,7 +91,7 @@ export default function AuthPage() {
   return (
     <div style={pageWrapper}>
       {/* ── Left Panel — Cinematic Brand ──────────────────────── */}
-      <div style={leftPanel}>
+      <div className="hidden md:flex" style={leftPanel}>
         {/* Grid lines */}
         <div style={gridOverlay} />
 
@@ -340,11 +340,9 @@ const leftPanel = {
   flex: '0 0 48%',
   background: 'linear-gradient(145deg, #030712 0%, #0a0a1a 50%, #000814 100%)',
   padding: '3rem',
-  display: 'flex',
   flexDirection: 'column',
   position: 'relative',
   overflow: 'hidden',
-  '@media (max-width: 768px)': { display: 'none' },
 };
 
 const gridOverlay = {

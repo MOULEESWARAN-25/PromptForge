@@ -1,36 +1,114 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# PromptForge — Premium AI Prompt Architect
+
+PromptForge is a premium, neo-noir inspired SaaS platform designed as an **AI Development Intent Translator**. It bridges the gap between raw developer intent and surgical execution in AI coding tools like Cursor, Lovable, v0, and Bolt. By transforming vague descriptions into highly optimized, context-aware prompt templates enriched with RAG-retrieved CSS design vocabulary, developers can build flawless interfaces and micro-architectures with unparalleled predictability.
+
+---
+
+## Key Pillars
+
+* **Intent Translation Engine**: Analyzes developer descriptions and maps them into clear directives, functional specifications, and architectural constraints.
+* **RAG-Powered Design Vocabulary**: Seamlessly fetches optimal CSS tokens, layouts, and responsive guidelines using custom semantic matching vectors to instruct the coding AI on perfect aesthetics.
+* **Prompt Critique Agent**: Built-in dialog panel running critique loops on prompt structures to flag ambiguities or underspecified requirements.
+* **Component Forge**: Access a rich database of 50+ premium design patterns and ready-to-use micro-frontend layouts.
+* **RAG Inspector**: A real-time developer utility panel to inspect similarity weights, vector distances, and exact vocabulary database matches.
+
+---
+
+## Architecture & Tech Stack
+
+### Frontend
+* **Core Framework**: Next.js 16.2 (utilizing Turbopack)
+* **Styling**: Tailwind CSS v4 + Vanilla CSS Custom Design Token Engine
+* **Interactions & Motion**: Framer Motion (micro-animations, spring-based state sliders, glassmorphic effects)
+* **Typography**: Plus Jakarta Sans (body, inputs) & Bricolage Grotesque (display, headers)
+* **Icons & Notifications**: Lucide React + Sonner
+
+### Backend
+* **Core API Server**: Node.js & Express
+* **Database & Auth**: Supabase (PostgreSQL database & Row-Level Security)
+* **Schema Validation**: Zod
+* **AI Engine**: Google Gemini API for intent translation and automated prompt critique
+
+---
+
+## Directory Structure
+
+```
+PromptForge/
+├── src/
+│   ├── app/                 # Next.js App Router (Layouts, Views, Page Routes)
+│   │   ├── auth/            # Responsive Auth Flow (Login, Registration, Demo Access)
+│   │   ├── chat/            # Autonomous Prompt Critic Dialogue Screen
+│   │   ├── component-forge/ # Premium Component Database & Selector Page
+│   │   ├── forge/           # Primary Prompt Translation Workspace Panel
+│   │   └── learn/           # RAG Educational & Reference Panel
+│   ├── components/          # Reusable UI Patterns (Aurora Background, Navigation, Drawer, RAG Inspector)
+│   ├── context/             # Global App State Provider (API Key persistence, auth session)
+│   ├── data/                # Local CSS Design Patterns & Vocabulary Database
+│   └── services/            # Client Engines (Supabase Client, RAG Engine, Gemini SDK)
+│
+├── backend/
+│   ├── scripts/             # Database Seeding Utility Scripts (seed.js)
+│   ├── services/            # Backend Integrations (RAG Processor, Agent, Supabase)
+│   └── server.js            # Node Express API Server
+│
+├── supabase/
+│   └── schema.sql           # Database schema tables, trigger functions, and indices
+```
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### 1. Prerequisite Setup
+Ensure you have [Node.js](https://nodejs.org) installed on your system.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### 2. Database & API Credentials
+Create a `.env.local` file in the root directory (and a `.env` file in the `backend/` folder) containing your Supabase and Gemini configurations:
+
+```env
+# Root /.env.local (Frontend configuration)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+
+# Backend /backend/.env (API configuration)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+GEMINI_API_KEY=your-google-gemini-api-key
+PORT=5000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Database Initialization
+Execute the SQL statements inside `supabase/schema.sql` inside your Supabase SQL Editor. Once complete, run the seeding script to populate the custom design vocabulary database:
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```bash
+cd backend
+npm install
+npm run seed
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Running the Development Environments
+Start both the Frontend and Backend servers simultaneously to begin prompt forging:
 
-## Learn More
+#### Frontend Development Server (Root directory):
+```bash
+# In the root folder:
+npm install
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+#### Backend API Server:
+```bash
+# In the backend folder:
+npm start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open [http://localhost:3000](http://localhost:3000) on your local browser to access PromptForge.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Premium UX / UI Best Practices Used
+* **Vibrant Neo-Noir Aesthetic**: Dark ambient tones mixed with selective gold highlights (`#fbbf24`) and soft glowing background gradients.
+* **Zero Layout Shift**: Fixed layout wraps and container margins prevent content jitter.
+* **Tactile Interactions**: Buttons and tabs dynamically spring on hover and scale down on click.
+* **Fluid Mobile Responsiveness**: Entire application relies on flexible grid layouts and standard media queries using Tailwind's viewport directives.
