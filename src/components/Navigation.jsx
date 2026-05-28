@@ -9,7 +9,7 @@ import { usePathname, useRouter } from 'next/navigation';
 
 const NAV_LINKS = [
   { href: '/', label: 'Workspace', icon: Compass },
-  { href: '/learn', label: 'Learning Lab', icon: BookOpen },
+  { href: '/vocabulary', label: 'Vocabulary', icon: BookOpen },
 ];
 
 export default function Navigation() {
