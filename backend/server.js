@@ -104,7 +104,7 @@ app.post('/api/forge', async (req, res) => {
     res.json({
       prompt: generatedPrompt,
       ragDetails,
-      source: "Google Gemini 2.5 Flash via LangChain Backend"
+      source: "Google Gemini 3.5 Flash via LangChain Backend"
     });
 
   } catch (error) {
@@ -117,6 +117,6 @@ app.listen(PORT, () => {
   console.log(`================================================================`);
   console.log(` PromptForge Decoupled RAG Backend running on http://localhost:${PORT}`);
   console.log(` Database: Connecting to Supabase Vector DB (pgvector)`);
-  console.log(` AI Orchestration: LangChain + Google Gemini 2.5 Flash API`);
+  console.log(` AI Orchestration: LangChain + Google Gemini 3.5 Flash API`);
   console.log(`================================================================`);
 });

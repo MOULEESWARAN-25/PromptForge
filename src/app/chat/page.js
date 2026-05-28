@@ -1,24 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useRef, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { generateEnhancedPrompt } from '@/services/gemini';
 import { 
-  Send, Copy, Check, Layers, ArrowLeft, RefreshCw 
+  Send, Copy, Check, ArrowLeft, RefreshCw, Sparkles 
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-
-// ─── Animation Variants ────────────────────────────────────────
-const messageStagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.06 } }
-};
-
-const messageVariants = {
-  hidden: { opacity: 0, y: 16, scale: 0.98 },
-  show: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 350, damping: 26 } }
-};
+import { motion } from 'framer-motion';
 
 function ChatContent() {
   const { user, history, updatePromptChat, apiKey } = useApp();
@@ -34,8 +23,6 @@ function ChatContent() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
-
-  const messagesEndRef = useRef(null);
 
   // 1. Fetch active prompt record from history context
   useEffect(() => {
@@ -59,11 +46,6 @@ function ChatContent() {
       }
     }
   }, [promptId, history, user, router]);
-
-  // Scroll to bottom
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMessages]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -103,7 +85,6 @@ function ChatContent() {
 
     } catch (err) {
       console.error(err);
-      setChatMessages([...updatedMessages, { role: 'model', content: "Unable to process refinements at this moment. Please try again." }]);
     } finally {
       setIsGenerating(false);
     }
@@ -113,133 +94,6 @@ function ChatContent() {
     navigator.clipboard.writeText(currentPrompt);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const parseMarkdownInline = (text) => {
-    if (!text) return "";
-    
-    // Split by inline code (backticks)
-    const codeParts = text.split(/(`[^`]+`)/g);
-    
-    return codeParts.map((codePart, cIdx) => {
-      if (codePart.startsWith('`') && codePart.endsWith('`')) {
-        return (
-          <code key={`code-${cIdx}`} style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.78rem',
-            background: 'rgba(255,255,255,0.08)',
-            padding: '2px 6px',
-            borderRadius: '4px',
-            border: '1px solid rgba(255,255,255,0.1)',
-            color: 'var(--accent)',
-            margin: '0 2px'
-          }}>
-            {codePart.slice(1, -1)}
-          </code>
-        );
-      }
-      
-      // Split by bold (**text**)
-      const boldParts = codePart.split(/(\*\*.*?\*\*)/g);
-      return boldParts.map((part, bIdx) => {
-        if (part.startsWith('**') && part.endsWith('**')) {
-          return (
-            <strong key={`bold-${cIdx}-${bIdx}`} style={{ color: 'var(--foreground)', fontWeight: '700' }}>
-              {part.slice(2, -2)}
-            </strong>
-          );
-        }
-        return part;
-      });
-    });
-  };
-
-  const formatMessageText = (text) => {
-    if (!text) return "";
-    const lines = text.split('\n');
-    
-    return lines.map((line, idx) => {
-      let cleanLine = line.trim();
-      if (!cleanLine) {
-        return <div key={idx} style={{ height: '0.65rem' }} />;
-      }
-      
-      // 1. Headers: matches lines starting with one or more #
-      const headerMatch = cleanLine.match(/^(#{1,6})\s*(.*)$/);
-      if (headerMatch) {
-        const level = headerMatch[1].length;
-        const headerText = headerMatch[2];
-        const fontSize = level === 1 ? '1.25rem' : level === 2 ? '1.05rem' : '0.88rem';
-        const marginTop = level === 1 ? '1.5rem' : level === 2 ? '1.1rem' : '0.85rem';
-        
-        return React.createElement(
-          `h${level}`,
-          {
-            key: idx,
-            style: {
-              fontSize,
-              fontWeight: '700',
-              color: 'var(--foreground)',
-              marginTop,
-              marginBottom: '0.45rem',
-              fontFamily: 'var(--font-display)',
-              letterSpacing: '-0.01em',
-              lineHeight: '1.4'
-            }
-          },
-          parseMarkdownInline(headerText)
-        );
-      }
-      
-      // 2. Bullet Lists: starts with -, *, or +
-      if (/^[-*+]\s/.test(cleanLine)) {
-        const bulletText = cleanLine.replace(/^[-*+]\s*/, '');
-        return (
-          <li key={idx} style={{ 
-            marginLeft: '1rem', 
-            marginBottom: '0.35rem', 
-            listStyleType: 'disc', 
-            color: 'rgba(255,255,255,0.85)',
-            fontSize: '0.84rem',
-            lineHeight: '1.55'
-          }}>
-            {parseMarkdownInline(bulletText)}
-          </li>
-        );
-      }
-      
-      // 3. Numbered Lists: starts with 1., 2., etc.
-      if (/^\d+\.\s/.test(cleanLine)) {
-        const numberText = cleanLine.replace(/^\d+\.\s*/, '');
-        const number = cleanLine.match(/^\d+/)[0];
-        return (
-          <div key={idx} style={{ 
-            display: 'flex', 
-            gap: '0.45rem', 
-            marginLeft: '0.25rem', 
-            marginBottom: '0.4rem',
-            fontSize: '0.84rem',
-            lineHeight: '1.55',
-            color: 'rgba(255,255,255,0.85)'
-          }}>
-            <span style={{ fontWeight: '700', color: 'var(--accent)' }}>{number}.</span>
-            <span>{parseMarkdownInline(numberText)}</span>
-          </div>
-        );
-      }
-      
-      // 4. Default normal paragraph text
-      return (
-        <p key={idx} style={{ 
-          marginBottom: '0.45rem', 
-          fontSize: '0.84rem', 
-          lineHeight: '1.55',
-          color: 'rgba(255,255,255,0.82)'
-        }}>
-          {parseMarkdownInline(line)}
-        </p>
-      );
-    });
   };
 
   if (!promptRecord) {
@@ -253,7 +107,7 @@ function ChatContent() {
 
   return (
     <div 
-      style={chatLayout}
+      style={singleColumnLayout}
       className={
         promptRecord.theme === 'Wes Anderson' ? 'theme-wes-anderson' : 
         promptRecord.theme === 'Cyberpunk Neon' ? 'theme-cyberpunk' : 
@@ -261,10 +115,10 @@ function ChatContent() {
         promptRecord.theme === 'Minimalist Typography' ? 'theme-minimal' : ''
       }
     >
-      {/* LEFT SIDE CHAT THREAD */}
-      <div style={chatColumn} className="glass-panel">
-        <div style={chatHeader}>
-          <div>
+      <div style={workspacePanel} className="glass-panel">
+        {/* HEADER SECTION */}
+        <div style={workspaceHeader}>
+          <div style={headerLeft}>
             <motion.button 
               style={backBtn} 
               onClick={() => router.push('/')}
@@ -272,71 +126,48 @@ function ChatContent() {
               whileTap={{ scale: 0.96 }}
             >
               <ArrowLeft size={12} />
-              Workspace Dashboard
+              Dashboard
             </motion.button>
-            <h2 style={chatTitle} className="mt-2">{promptRecord.title}</h2>
-            <span style={themeBadge} className="mt-1 inline-block">{promptRecord.theme}</span>
+            <div style={titleBadgeRow}>
+              <h2 style={workspaceTitle}>{promptRecord.title}</h2>
+              <span style={themeBadge}>{promptRecord.theme}</span>
+            </div>
           </div>
-        </div>
-
-        {/* Scrollable messages container */}
-        <div style={chatBody}>
-          <motion.div 
-            variants={messageStagger} 
-            initial="hidden" 
-            animate="show" 
-            style={messagesList}
+          
+          <motion.button
+            onClick={handleCopy}
+            style={copyBtn}
+            className="btn-accent shine-effect"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
           >
-            {chatMessages.map((msg, idx) => {
-              const isModel = msg.role === 'model';
-              return (
-                <motion.div
-                  key={idx}
-                  variants={messageVariants}
-                  style={{
-                    ...msgBubbleRow,
-                    justifyContent: isModel ? 'flex-start' : 'flex-end'
-                  }}
-                >
-                  <div
-                    style={{
-                      ...msgBubble,
-                      backgroundColor: isModel ? 'rgba(255,255,255,0.02)' : 'var(--accent)',
-                      border: isModel ? '1px solid rgba(255, 255, 255, 0.04)' : 'none',
-                      color: isModel ? 'var(--fg-color)' : 'var(--accent-foreground)',
-                      borderRadius: isModel ? '14px 14px 14px 2px' : '14px 14px 2px 14px',
-                      boxShadow: isModel ? '0 2px 8px rgba(0,0,0,0.1)' : '0 4px 12px rgba(124,58,237,0.15)'
-                    }}
-                  >
-                    <span style={{ fontSize: '0.72rem', fontWeight: '700', display: 'block', marginBottom: '6px', opacity: 0.8, letterSpacing: '0.04em' }}>
-                      {isModel ? "PROMPT ARCHITECT" : "YOU"}
-                    </span>
-                    <div style={bubbleText}>
-                      {isModel 
-                        ? formatMessageText(msg.content.split('```prompt')[0].trim() || "Enhanced prompt compiled successfully. View updated blueprint output in the right panel.")
-                        : formatMessageText(msg.content)
-                      }
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-            {isGenerating && (
-              <motion.div variants={messageVariants} style={msgBubbleRow}>
-                <div style={{ ...msgBubble, backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '14px 14px 14px 2px' }}>
-                  <RefreshCw size={14} className="animate-spin text-purple-400" />
-                </div>
-              </motion.div>
-            )}
-            <div ref={messagesEndRef} />
-          </motion.div>
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+            {copied ? "Copied!" : "Copy Generated Prompt"}
+          </motion.button>
         </div>
 
-        {/* Input box */}
-        <form onSubmit={handleSendMessage} style={chatInputRow(inputFocused)}>
+        {/* PROMPT CONTAINER SECTION */}
+        <div style={workspaceBody}>
+          {isGenerating ? (
+            <div style={refiningContainer}>
+              <RefreshCw size={24} className="animate-spin text-purple-400" style={{ marginBottom: '0.5rem' }} />
+              <p style={refiningText}>Refining architectural prompt blueprint...</p>
+            </div>
+          ) : (
+            <pre style={codeBlockStyle}>
+              <code>{currentPrompt}</code>
+            </pre>
+          )}
+        </div>
+
+        {/* BOTTOM INPUT BAR SECTION */}
+        <form onSubmit={handleSendMessage} style={bottomInputRow(inputFocused)}>
+          <div style={sparklesIconWrap}>
+            <Sparkles size={16} style={{ color: 'var(--accent)' }} />
+          </div>
           <input
             type="text"
-            placeholder="Type refinements (e.g. 'Add e-mail validation errors' or 'Style with HSL lime green accents')..."
+            placeholder="Type refinements (e.g. 'Add email validation forms', 'Style with HSL forest green accents')..."
             value={chatInput}
             onChange={(e) => setChatInput(e.target.value)}
             onFocus={() => setInputFocused(true)}
@@ -356,35 +187,6 @@ function ChatContent() {
             <Send size={16} />
           </motion.button>
         </form>
-      </div>
-
-      {/* RIGHT SIDE STICKY CODE EDITOR VIEW */}
-      <div style={promptColumn}>
-        <div style={promptPanel} className="glass-panel">
-          <div style={promptHeader}>
-            <div style={promptTitleWrap}>
-              <Layers size={14} style={{ color: 'var(--accent)' }} />
-              <span style={promptTitleText}>Generated Enhanced Prompt</span>
-            </div>
-            
-            <motion.button
-              onClick={handleCopy}
-              style={copyBtn}
-              className="btn-accent shine-effect"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              {copied ? <Check size={14} /> : <Copy size={14} />}
-              {copied ? "Copied!" : "Copy Prompt"}
-            </motion.button>
-          </div>
-
-          <div style={promptBody}>
-            <pre style={codeBlockStyle}>
-              <code>{currentPrompt}</code>
-            </pre>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -416,9 +218,9 @@ const loadingContainer = {
   color: 'var(--muted-foreground)',
 };
 
-const chatLayout = {
+const singleColumnLayout = {
   display: 'flex',
-  gap: '1.25rem',
+  flexDirection: 'column',
   height: 'calc(100vh - 140px)',
   minHeight: '600px',
   maxHeight: '900px',
@@ -429,25 +231,32 @@ const chatLayout = {
   zIndex: 2,
 };
 
-const chatColumn = {
-  flex: 1.15,
-  height: '100%',
+const workspacePanel = {
+  flex: 1,
   background: 'rgba(255, 255, 255, 0.01)',
   border: '1px solid rgba(255, 255, 255, 0.04)',
   borderRadius: 'var(--radius-lg)',
   display: 'flex',
   flexDirection: 'column',
-  boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
   overflow: 'hidden',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
 };
 
-const chatHeader = {
-  padding: '0.875rem 1.25rem',
+const workspaceHeader = {
+  padding: '1rem 1.5rem',
   borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: '1rem',
   flexShrink: 0,
+};
+
+const headerLeft = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.5rem',
 };
 
 const backBtn = {
@@ -463,15 +272,24 @@ const backBtn = {
   gap: '0.35rem',
   padding: '0.3rem 0.65rem',
   fontFamily: 'var(--font-sans)',
+  width: 'fit-content',
   transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
 };
 
-const chatTitle = {
-  fontSize: '0.95rem',
+const titleBadgeRow = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.75rem',
+  flexWrap: 'wrap',
+};
+
+const workspaceTitle = {
+  fontSize: '1.1rem',
   fontWeight: '700',
   fontFamily: 'var(--font-display)',
   color: 'var(--foreground)',
   letterSpacing: '-0.02em',
+  margin: 0,
 };
 
 const themeBadge = {
@@ -484,117 +302,24 @@ const themeBadge = {
   padding: '2px 8px',
 };
 
-const chatBody = {
-  flex: 1,
-  overflowY: 'auto',
-  padding: '1.25rem',
-};
-
-const messagesList = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '1rem',
-};
-
-const msgBubbleRow = {
-  display: 'flex',
-  width: '100%',
-};
-
-const msgBubble = {
-  maxWidth: '85%',
-  padding: '0.85rem 1.1rem',
-  lineHeight: '1.6',
-  borderRadius: '12px',
-};
-
-const bubbleText = {
-  fontSize: '0.875rem',
-  whiteSpace: 'normal',
-};
-
-const chatInputRow = (focused) => ({
-  padding: '1rem 1.25rem',
-  borderTop: `1px solid ${focused ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`,
-  boxShadow: focused ? '0 -4px 24px rgba(124,58,237,0.06)' : 'none',
-  display: 'flex',
-  gap: '0.625rem',
-  flexShrink: 0,
-  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-});
-
-const chatField = {
-  flex: 1,
-};
-
-const sendBtn = {
-  height: '40px',
-  width: '40px',
-  borderRadius: '9px',
-  padding: 0,
-  flexShrink: 0,
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};
-
-const promptColumn = {
-  flex: 1,
-  height: '100%',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.875rem',
-};
-
-const promptPanel = {
-  flex: 1,
-  background: 'rgba(255, 255, 255, 0.01)',
-  border: '1px solid rgba(255, 255, 255, 0.04)',
-  borderRadius: 'var(--radius-lg)',
-  display: 'flex',
-  flexDirection: 'column',
-  overflow: 'hidden',
-  boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-};
-
-const promptHeader = {
-  padding: '0.875rem 1.25rem',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  flexShrink: 0,
-};
-
-const promptTitleWrap = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.5rem',
-};
-
-const promptTitleText = {
-  fontSize: '0.85rem',
-  fontWeight: '700',
-  color: 'var(--foreground)',
-  fontFamily: 'var(--font-display)',
-};
-
 const copyBtn = {
-  padding: '0.3rem 0.75rem',
-  fontSize: '0.75rem',
-  height: '28px',
-  borderRadius: '6px',
+  padding: '0.45rem 1rem',
+  fontSize: '0.8rem',
+  height: '36px',
+  borderRadius: '8px',
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  gap: '0.35rem',
+  gap: '0.4rem',
+  fontWeight: '600',
 };
 
-const promptBody = {
+const workspaceBody = {
   flex: 1,
   overflowY: 'auto',
-  padding: '1.25rem',
-  background: 'rgba(0, 0, 0, 0.25)',
+  padding: '1.5rem',
+  background: 'rgba(0, 0, 0, 0.2)',
+  position: 'relative',
 };
 
 const codeBlockStyle = {
@@ -603,5 +328,58 @@ const codeBlockStyle = {
   color: 'rgba(255,255,255,0.92)',
   whiteSpace: 'pre-wrap',
   lineHeight: '1.65',
+  margin: 0,
 };
 
+const refiningContainer = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  height: '100%',
+  minHeight: '200px',
+};
+
+const refiningText = {
+  fontSize: '0.85rem',
+  color: 'var(--muted-foreground)',
+  fontWeight: '500',
+};
+
+const bottomInputRow = (focused) => ({
+  padding: '1.15rem 1.5rem',
+  borderTop: `1px solid ${focused ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`,
+  boxShadow: focused ? '0 -4px 24px rgba(124,58,237,0.06)' : 'none',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.75rem',
+  flexShrink: 0,
+  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+});
+
+const sparklesIconWrap = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '32px',
+  height: '32px',
+  borderRadius: '8px',
+  background: 'rgba(255,255,255,0.02)',
+  border: '1px solid rgba(255,255,255,0.05)',
+  flexShrink: 0,
+};
+
+const chatField = {
+  flex: 1,
+};
+
+const sendBtn = {
+  height: '38px',
+  width: '38px',
+  borderRadius: '8px',
+  padding: 0,
+  flexShrink: 0,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};

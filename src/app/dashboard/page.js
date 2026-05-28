@@ -43,8 +43,8 @@ const WORKFLOWS = [
     href: '/forge',
     wmode: 'page',
     icon: Layout,
-    label: 'Page Wireframer',
-    desc: 'Structured grid layouts, metric cards, hero sections, and landing states in one precise prompt.',
+    label: 'Web Page Design',
+    desc: '1. Select type of page, 2. Select components, 3. Select theme, 4. Generate prompt.',
     accent: '#0891b2',
     accentBg: 'rgba(8,145,178,0.08)',
     badge: 'v0 Ready',
@@ -187,7 +187,7 @@ export default function DashboardPage() {
           variants={fadeUp}
           onSubmit={handleQuickForge}
           style={consoleForm(inputFocused)}
-          className="glass-panel"
+          className="glass-panel dashboard-console-form"
         >
           <Sparkles size={18} style={{ color: 'var(--accent)', flexShrink: 0, opacity: 0.8 }} />
           <input
@@ -244,7 +244,7 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        <div style={bentoGrid}>
+        <div style={bentoGrid} className="workflow-bento-grid">
           {WORKFLOWS.map((w, i) => (
             <BentoCard key={i} workflow={w} />
           ))}
@@ -345,6 +345,34 @@ export default function DashboardPage() {
           </motion.div>
         )}
       </motion.section>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media (max-width: 640px) {
+          .dashboard-console-form {
+            height: auto !important;
+            flex-direction: column;
+            padding: 1rem !important;
+            gap: 0.75rem !important;
+          }
+          .dashboard-console-form input {
+            width: 100% !important;
+            height: 40px !important;
+            padding: 0 0.5rem !important;
+            text-align: center;
+          }
+          .dashboard-console-form button {
+            width: 100% !important;
+            justify-content: center;
+          }
+          .workflow-bento-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .workflow-bento-card {
+            padding: 1.25rem !important;
+            gap: 0.75rem !important;
+          }
+        }
+      ` }} />
     </div>
   );
 }
@@ -364,7 +392,7 @@ function BentoCard({ workflow }) {
         href={href}
         onClick={handleClick}
         style={bentoCard(hovered, accent)}
-        className="glass-panel"
+        className="glass-panel workflow-bento-card"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
@@ -416,21 +444,21 @@ const heroParagraph = {
 
 const consoleForm = (focused) => ({
   width: '100%',
-  maxWidth: '640px',
-  height: '60px',
+  maxWidth: '560px',
+  height: '56px',
   display: 'flex',
   alignItems: 'center',
-  gap: 'var(--space-sm)',
-  padding: '0 0.5rem 0 1.25rem',
+  gap: '0.75rem',
+  padding: '0 0.5rem 0 1.15rem',
   background: 'rgba(10, 10, 12, 0.4)',
   border: `1px solid ${focused ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`,
-  borderRadius: '14px',
+  borderRadius: '12px',
   backdropFilter: 'blur(20px)',
   boxShadow: focused
     ? '0 0 0 1px var(--accent), 0 8px 32px rgba(124,58,237,0.15), inset 0 1px 0 0 rgba(255,255,255,0.1)'
     : '0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 0 rgba(255,255,255,0.05)',
   transition: 'all var(--duration-fast) var(--ease-spring)',
-  marginBottom: 'var(--space-md)',
+  marginBottom: '1.5rem',
 });
 
 const consoleInput = {
@@ -510,8 +538,8 @@ const bentoGrid = {
 const bentoCard = (hovered, accent) => ({
   display: 'flex',
   flexDirection: 'column',
-  gap: 'var(--space-sm)',
-  padding: 'var(--space-lg)',
+  gap: '1rem',
+  padding: '1.5rem',
   borderRadius: '16px',
   textDecoration: 'none',
   position: 'relative',

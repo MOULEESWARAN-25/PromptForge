@@ -250,12 +250,12 @@ function ForgeWizardContent() {
           <div>
             <h1 style={mainTitle}>
               {activeMode === 'application' && "Full-Stack Application Architect"}
-              {activeMode === 'page' && "Custom Webpage Layout Designer"}
+              {activeMode === 'page' && "Web Page Design"}
               {activeMode === 'enhance' && "Technical Design Prompt Enhancer"}
             </h1>
             <p style={mainSub}>
               {activeMode === 'application' && "Build a full multi-page application blueprint, features list, and data schema."}
-              {activeMode === 'page' && "Design a structured single-page layout wireframe grid selecting required components."}
+              {activeMode === 'page' && "1. Select type of page, 2. Select components, 3. Select theme, 4. Generate prompt."}
               {activeMode === 'enhance' && "Inject spring transitions, layout variables, and visual tokens into standard prompt drafts."}
             </p>
           </div>
@@ -446,7 +446,7 @@ function ForgeWizardContent() {
               <div style={stepHeader}>
                 <span style={stepNum}>01</span>
                 <div>
-                  <h3 style={stepTitle}>Select Web Page Type</h3>
+                  <h3 style={stepTitle}>Select type of page</h3>
                   <p style={stepDesc}>What kind of interface layout are you structuring?</p>
                 </div>
               </div>
@@ -485,7 +485,7 @@ function ForgeWizardContent() {
                 <div style={stepHeader}>
                   <span style={stepNum}>02</span>
                   <div>
-                    <h3 style={stepTitle}>Suggested Page Components</h3>
+                    <h3 style={stepTitle}>Select components</h3>
                     <p style={stepDesc}>Select modular components to structure inside the grid.</p>
                   </div>
                 </div>
@@ -536,7 +536,7 @@ function ForgeWizardContent() {
                 <div style={stepHeader}>
                   <span style={stepNum}>03</span>
                   <div>
-                    <h3 style={stepTitle}>Select Desired UI Theme</h3>
+                    <h3 style={stepTitle}>Select theme</h3>
                     <p style={stepDesc}>Apply design variables and HSL tokens.</p>
                   </div>
                 </div>
@@ -585,7 +585,7 @@ function ForgeWizardContent() {
                   ) : (
                     <>
                       <Sparkles size={18} />
-                      Generate Page Prompt
+                      Generate prompt
                     </>
                   )}
                 </button>

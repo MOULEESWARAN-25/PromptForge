@@ -263,11 +263,19 @@ export default function LandingPage() {
           gap: 1.5rem;
           align-items: center;
         }
-        @media (max-width: 1024px) {
+        @media (max-width: 1150px) {
           .hero-split-grid {
             grid-template-columns: 1fr;
             gap: 2.5rem;
             text-align: center;
+          }
+          /* Center elements inside stacked hero column */
+          .console-form-responsive {
+            margin-left: auto;
+            margin-right: auto;
+          }
+          .cta-row-responsive {
+            justify-content: center;
           }
           .showcase-pane {
             height: 380px;
@@ -306,6 +314,28 @@ export default function LandingPage() {
           .comparison-arrow {
             transform: rotate(90deg);
             margin: 0.5rem auto;
+          }
+        }
+        @media (max-width: 640px) {
+          .console-form-responsive {
+            height: auto !important;
+            flex-direction: column;
+            padding: 1rem !important;
+            gap: 0.75rem !important;
+          }
+          .console-form-responsive input {
+            width: 100% !important;
+            height: 40px !important;
+            padding: 0 0.5rem !important;
+            text-align: center;
+          }
+          .console-form-responsive button {
+            width: 100% !important;
+            justify-content: center;
+          }
+          .pricing-card-responsive {
+            padding: 1.75rem 1.25rem !important;
+            gap: 1rem !important;
           }
         }
       ` }} />
@@ -351,7 +381,7 @@ export default function LandingPage() {
           </p>
 
           {/* Prompt Console Form */}
-          <form style={consoleForm} action="/auth" className="active-scale-95">
+          <form style={consoleForm} action="/auth" className="active-scale-95 console-form-responsive">
             <Sparkles size={18} style={{ color: 'var(--accent)', flexShrink: 0, opacity: 0.8 }} />
             <input
               type="text"
@@ -367,7 +397,7 @@ export default function LandingPage() {
           </form>
 
           {/* Interactive Stable CTAs */}
-          <div style={ctaRow}>
+          <div style={ctaRow} className="cta-row-responsive">
             <Link href="/auth" style={primaryCta} className="btn-accent shine-effect active-scale-95">
               Get Started for Free
               <ArrowRight size={15} />
@@ -578,7 +608,7 @@ export default function LandingPage() {
             <motion.div 
               key={tier.tier} 
               style={{ ...pricingCard, border: `1px solid ${tier.tier === 'pro' ? 'rgba(124,58,237,0.3)' : 'var(--border)'}` }} 
-              className="glass-panel"
+              className="glass-panel pricing-card-responsive"
               variants={itemVariants}
               whileHover={{ y: -6 }}
               transition={{ type: 'spring', stiffness: 200, damping: 20 }}
@@ -935,14 +965,14 @@ const previewCode = {
 
 // ─── Pricing Card styling ───
 const pricingCard = {
-  padding: 'var(--space-xl) var(--space-lg)',
+  padding: '2.5rem 1.8rem',
   background: 'var(--card)',
   borderRadius: '20px',
   display: 'flex',
   flexDirection: 'column',
-  gap: 'var(--space-md)',
+  gap: '1.25rem',
   position: 'relative',
-  overflow: 'hidden',
+  overflow: 'visible',
   boxShadow: 'var(--shadow-md)',
 };
 

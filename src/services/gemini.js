@@ -208,9 +208,9 @@ Stitch in premium effects, UX characteristics, micro-interactions, responsive ta
   });
 
   // Call official Gemini Beta API
-  // Using gemini-2.5-flash as the standard fast free-tier model
+  // Using gemini-3.5-flash as the standard fast free-tier model
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: {
@@ -244,7 +244,7 @@ Stitch in premium effects, UX characteristics, micro-interactions, responsive ta
   return {
     prompt: rawModelResponse,
     ragDetails,
-    source: "Google Gemini 2.5 Flash API"
+    source: "Google Gemini 3.5 Flash API"
   };
 }
 
