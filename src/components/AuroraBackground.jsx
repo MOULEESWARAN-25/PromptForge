@@ -1,73 +1,123 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import { useApp } from '../context/AppContext';
 
 export default function AuroraBackground() {
+  const { theme } = useApp();
+  const canvasRef = useRef(null);
+  const animRef = useRef(null);
+
+  useEffect(() => {
+    if (theme !== 'dark') {
+      if (animRef.current) cancelAnimationFrame(animRef.current);
+      return;
+    }
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Orbs configuration
+    const orbs = [
+      { x: 0.2, y: 0.3, r: 0.35, color: 'rgba(251,191,36,0.07)', speedX: 0.0003, speedY: 0.0002, phase: 0 },
+      { x: 0.75, y: 0.6, r: 0.4, color: 'rgba(59,91,219,0.05)', speedX: -0.0002, speedY: 0.0003, phase: 1 },
+      { x: 0.5, y: 0.8, r: 0.3, color: 'rgba(251,191,36,0.04)', speedX: 0.0004, speedY: -0.0002, phase: 2 },
+      { x: 0.85, y: 0.15, r: 0.25, color: 'rgba(99,102,241,0.04)', speedX: -0.0003, speedY: 0.0004, phase: 3 },
+    ];
+
+    let time = 0;
+
+    const draw = () => {
+      time += 1;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      orbs.forEach(orb => {
+        const cx = (orb.x + Math.sin(time * orb.speedX + orb.phase) * 0.08) * canvas.width;
+        const cy = (orb.y + Math.cos(time * orb.speedY + orb.phase) * 0.06) * canvas.height;
+        const radius = orb.r * Math.max(canvas.width, canvas.height);
+
+        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+        grad.addColorStop(0, orb.color);
+        grad.addColorStop(1, 'transparent');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      animRef.current = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      if (animRef.current) cancelAnimationFrame(animRef.current);
+    };
+  }, [theme]);
+
+  if (theme !== 'dark') {
+    // Light mode: very subtle dot grid, no blobs
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: 'none',
+          backgroundImage: 'radial-gradient(rgba(0,0,0,0.04) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+          opacity: 0.8,
+        }}
+      />
+    );
+  }
+
   return (
-    <div style={containerStyle}>
-      <div style={{ ...blobStyle, ...blob1 }} />
-      <div style={{ ...blobStyle, ...blob2 }} />
-      <div style={{ ...blobStyle, ...blob3 }} />
-      <div style={gridOverlayStyle} />
-    </div>
+    <>
+      {/* Canvas aurora */}
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 0,
+          pointerEvents: 'none',
+          willChange: 'transform',
+        }}
+      />
+      {/* Dot grid overlay */}
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1,
+          pointerEvents: 'none',
+          backgroundImage: 'radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }}
+      />
+      {/* Vignette */}
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1,
+          pointerEvents: 'none',
+          background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%)',
+        }}
+      />
+    </>
   );
 }
-
-// Inline styles for high-fidelity animations without CSS loading dependency
-const containerStyle = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  zIndex: -10,
-  overflow: 'hidden',
-  backgroundColor: 'var(--bg-color)',
-  transition: 'background-color 0.4s ease',
-  pointerEvents: 'none',
-};
-
-const blobStyle = {
-  position: 'absolute',
-  width: '60vw',
-  height: '60vw',
-  borderRadius: '50%',
-  filter: 'blur(100px) saturate(150%)',
-  opacity: 0.28,
-  mixBlendMode: 'screen',
-  pointerEvents: 'none',
-  animation: 'pulse-glow 15s infinite alternate ease-in-out',
-};
-
-const blob1 = {
-  top: '-20%',
-  left: '-10%',
-  background: 'radial-gradient(circle, rgba(147, 51, 234, 0.4) 0%, transparent 70%)', // Violet
-};
-
-const blob2 = {
-  bottom: '-10%',
-  right: '-10%',
-  background: 'radial-gradient(circle, rgba(6, 182, 212, 0.4) 0%, transparent 70%)', // Teal
-  animationDelay: '-5s',
-};
-
-const blob3 = {
-  top: '40%',
-  left: '60%',
-  width: '50vw',
-  height: '50vw',
-  background: 'radial-gradient(circle, rgba(236, 72, 153, 0.25) 0%, transparent 70%)', // Pink
-  animationDelay: '-10s',
-};
-
-const gridOverlayStyle = {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px)`,
-  backgroundSize: '24px 24px',
-  opacity: 0.7,
-};

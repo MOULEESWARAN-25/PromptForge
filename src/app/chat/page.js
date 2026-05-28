@@ -4,10 +4,8 @@ import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { generateEnhancedPrompt } from '@/services/gemini';
-import RagInspector from '@/components/RagInspector';
 import { 
-  Send, Copy, Check, Info, Cpu, Database, 
-  RefreshCw, Layers, ArrowLeft, Terminal, HelpCircle 
+  Send, Copy, Check, Layers, ArrowLeft, RefreshCw 
 } from 'lucide-react';
 
 function ChatContent() {
@@ -19,12 +17,10 @@ function ChatContent() {
   const [promptRecord, setPromptRecord] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
   const [currentPrompt, setCurrentPrompt] = useState('');
-  const [ragDetails, setRagDetails] = useState(null);
 
   const [chatInput, setChatInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [showRAG, setShowRAG] = useState(false);
 
   const messagesEndRef = useRef(null);
 
@@ -45,10 +41,7 @@ function ChatContent() {
         let rawPrompt = record.resolvedPrompt;
         let promptMatch = rawPrompt.match(/```prompt\n([\s\S]*?)\n```/);
         setCurrentPrompt(promptMatch ? promptMatch[1] : rawPrompt);
-        
-        setRagDetails(record.ragDetails);
       } else {
-        // Redirect if invalid ID
         router.push('/');
       }
     }
@@ -92,14 +85,12 @@ function ChatContent() {
       let promptMatch = response.prompt.match(/```prompt\n([\s\S]*?)\n```/);
       setCurrentPrompt(promptMatch ? promptMatch[1] : response.prompt);
       
-      setRagDetails(response.ragDetails);
-
       // Persist in AppContext storage
       updatePromptChat(promptRecord.id, finalMessages, response.prompt, response.ragDetails);
 
     } catch (err) {
       console.error(err);
-      setChatMessages([...updatedMessages, { role: 'model', content: "Offline error enhancing prompt. Please verify configuration." }]);
+      setChatMessages([...updatedMessages, { role: 'model', content: "Unable to process refinements at this moment. Please try again." }]);
     } finally {
       setIsGenerating(false);
     }
@@ -130,7 +121,7 @@ function ChatContent() {
         promptRecord.theme === 'Minimalist Typography' ? 'theme-minimal' : ''
       }
     >
-      {/* 1. LEFT SIDE CHAT THREAD */}
+      {/* LEFT SIDE CHAT THREAD */}
       <div style={chatColumn} className="glass-panel">
         <div style={chatHeader}>
           <div>
@@ -141,18 +132,6 @@ function ChatContent() {
             <h2 style={chatTitle}>{promptRecord.title}</h2>
             <span style={themeBadge}>{promptRecord.theme}</span>
           </div>
-
-          <button
-            style={{
-              ...toggleRAGBtn,
-              color: showRAG ? 'hsl(var(--secondary))' : 'var(--fg-muted)',
-              backgroundColor: showRAG ? 'rgba(6, 182, 212, 0.06)' : 'transparent'
-            }}
-            onClick={() => setShowRAG(!showRAG)}
-          >
-            <Database size={14} />
-            RAG Pipeline Visualizer
-          </button>
         </div>
 
         {/* Scrollable messages container */}
@@ -182,7 +161,7 @@ function ChatContent() {
                     </span>
                     <p style={bubbleText}>
                       {isModel 
-                        ? msg.content.split('```prompt')[0].trim() || "Enhanced prompt complied successfully. View updated blueprint output in the right panel."
+                        ? msg.content.split('```prompt')[0].trim() || "Enhanced prompt compiled successfully. View updated blueprint output in the right panel."
                         : msg.content
                       }
                     </p>
@@ -205,7 +184,7 @@ function ChatContent() {
         <form onSubmit={handleSendMessage} style={chatInputRow}>
           <input
             type="text"
-            placeholder="Type refinements (e.g. 'Add e-mail validation errors' or 'Style with pastel red margins')..."
+            placeholder="Type refinements (e.g. 'Add e-mail validation errors' or 'Style with HSL lime green accents')..."
             value={chatInput}
             onChange={(e) => setChatInput(e.target.value)}
             style={chatField}
@@ -223,14 +202,8 @@ function ChatContent() {
         </form>
       </div>
 
-      {/* 2. RIGHT SIDE STICKY CODE EDITOR VIEW */}
+      {/* RIGHT SIDE STICKY CODE EDITOR VIEW */}
       <div style={promptColumn}>
-        {showRAG && (
-          <div style={ragOverlay}>
-            <RagInspector ragDetails={ragDetails} />
-          </div>
-        )}
-
         <div style={promptPanel} className="glass-panel">
           <div style={promptHeader}>
             <div style={promptTitleWrap}>
@@ -264,7 +237,7 @@ export default function ChatPage() {
     <Suspense fallback={
       <div style={loadingContainer}>
         <RefreshCw size={24} className="animate-spin" />
-        <span>Loading Suspense Boundary...</span>
+        <span>Loading Workspace...</span>
       </div>
     }>
       <ChatContent />
@@ -272,7 +245,8 @@ export default function ChatPage() {
   );
 }
 
-// Layout inline CSS
+// ─── Premium Chat Styles ──────────────────────────────────────
+
 const loadingContainer = {
   flex: 1,
   display: 'flex',
@@ -281,79 +255,73 @@ const loadingContainer = {
   justifyContent: 'center',
   gap: '1rem',
   fontSize: '0.85rem',
-  color: 'var(--fg-muted)',
+  color: 'var(--muted-foreground)',
 };
 
 const chatLayout = {
   display: 'flex',
-  gap: '1.5rem',
-  height: 'calc(100vh - 140px)',
-  minHeight: '550px',
-  maxHeight: '800px',
+  gap: '1rem',
+  height: 'calc(100vh - 130px)',
+  minHeight: '560px',
+  maxHeight: '840px',
   paddingTop: '0.5rem',
   width: '100%',
-  transition: 'all 0.3s ease',
+  position: 'relative',
+  zIndex: 2,
 };
 
 const chatColumn = {
-  flex: 1.2,
+  flex: 1.3,
   height: '100%',
-  backgroundColor: 'rgba(6, 6, 9, 0.55)',
-  border: '1px solid rgba(255, 255, 255, 0.05)',
-  borderRadius: '12px',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
+  borderRadius: 'var(--radius-lg)',
   display: 'flex',
   flexDirection: 'column',
+  boxShadow: 'var(--shadow-md)',
+  overflow: 'hidden',
 };
 
 const chatHeader = {
-  padding: '1rem 1.25rem',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+  padding: '0.875rem 1.25rem',
+  borderBottom: '1px solid var(--border)',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
+  flexShrink: 0,
 };
 
 const backBtn = {
   background: 'transparent',
-  border: 'none',
-  color: 'var(--fg-muted)',
-  fontSize: '0.72rem',
+  border: '1px solid var(--border)',
+  borderRadius: '7px',
+  color: 'var(--muted-foreground)',
+  fontSize: '0.75rem',
+  fontWeight: '600',
   cursor: 'pointer',
   display: 'inline-flex',
   alignItems: 'center',
   gap: '0.35rem',
-  padding: '2px 0',
-  marginBottom: '2px',
+  padding: '0.3rem 0.65rem',
+  fontFamily: 'var(--font-sans)',
 };
 
 const chatTitle = {
-  fontSize: '1.15rem',
+  fontSize: '0.95rem',
   fontWeight: '700',
-  fontFamily: 'Outfit, sans-serif',
-  color: '#ffffff',
+  fontFamily: 'var(--font-display)',
+  color: 'var(--foreground)',
+  letterSpacing: '-0.02em',
 };
 
 const themeBadge = {
-  fontSize: '0.7rem',
-  color: 'var(--fg-muted)',
-  backgroundColor: 'rgba(255, 255, 255, 0.02)',
-  border: '1px solid rgba(255, 255, 255, 0.06)',
-  borderRadius: '4px',
-  padding: '1px 5px',
-};
-
-const toggleRAGBtn = {
-  background: 'transparent',
-  border: '1px solid rgba(255, 255, 255, 0.06)',
-  borderRadius: '6px',
-  padding: '6px 12px',
-  fontSize: '0.75rem',
-  fontWeight: '500',
-  cursor: 'pointer',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.35rem',
-  transition: 'all 0.2s',
+  fontSize: '0.68rem',
+  fontWeight: '600',
+  color: 'var(--muted-foreground)',
+  background: 'var(--muted)',
+  border: '1px solid var(--border)',
+  borderRadius: '999px',
+  padding: '2px 8px',
 };
 
 const chatBody = {
@@ -365,7 +333,7 @@ const chatBody = {
 const messagesList = {
   display: 'flex',
   flexDirection: 'column',
-  gap: '1.25rem',
+  gap: '1rem',
 };
 
 const msgBubbleRow = {
@@ -374,21 +342,23 @@ const msgBubbleRow = {
 };
 
 const msgBubble = {
-  maxWidth: '80%',
-  padding: '0.85rem 1.1rem',
+  maxWidth: '82%',
+  padding: '0.75rem 1rem',
   lineHeight: '1.5',
+  borderRadius: '12px',
 };
 
 const bubbleText = {
-  fontSize: '0.85rem',
+  fontSize: '0.875rem',
   whiteSpace: 'pre-wrap',
 };
 
 const chatInputRow = {
-  padding: '1.25rem',
-  borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+  padding: '1rem 1.25rem',
+  borderTop: '1px solid var(--border)',
   display: 'flex',
-  gap: '0.75rem',
+  gap: '0.625rem',
+  flexShrink: 0,
 };
 
 const chatField = {
@@ -396,47 +366,39 @@ const chatField = {
 };
 
 const sendBtn = {
-  height: '42px',
-  width: '42px',
-  borderRadius: '8px',
+  height: '40px',
+  width: '40px',
+  borderRadius: '9px',
   padding: 0,
+  flexShrink: 0,
 };
 
 const promptColumn = {
-  flex: 0.8,
+  flex: 0.75,
   height: '100%',
   display: 'flex',
   flexDirection: 'column',
-  gap: '1rem',
-  position: 'relative',
-};
-
-const ragOverlay = {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  zIndex: 10,
-  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
+  gap: '0.875rem',
 };
 
 const promptPanel = {
   flex: 1,
-  backgroundColor: 'rgba(5, 5, 8, 0.65)',
-  border: '1px solid rgba(255, 255, 255, 0.05)',
-  borderRadius: '12px',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
+  borderRadius: 'var(--radius-lg)',
   display: 'flex',
   flexDirection: 'column',
   overflow: 'hidden',
+  boxShadow: 'var(--shadow-md)',
 };
 
 const promptHeader = {
-  padding: '1rem 1.25rem',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+  padding: '0.875rem 1.25rem',
+  borderBottom: '1px solid var(--border)',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  backgroundColor: 'rgba(0, 0, 0, 0.15)',
+  flexShrink: 0,
 };
 
 const promptTitleWrap = {
@@ -447,28 +409,30 @@ const promptTitleWrap = {
 
 const promptTitleText = {
   fontSize: '0.85rem',
-  fontWeight: '600',
-  color: '#ffffff',
-  fontFamily: 'Outfit, sans-serif',
+  fontWeight: '700',
+  color: 'var(--foreground)',
+  fontFamily: 'var(--font-display)',
 };
 
 const copyBtn = {
-  padding: '4px 12px',
+  padding: '0.3rem 0.75rem',
   fontSize: '0.75rem',
   height: '28px',
+  borderRadius: '6px',
 };
 
 const promptBody = {
   flex: 1,
   overflowY: 'auto',
   padding: '1.25rem',
-  backgroundColor: '#030305',
+  background: 'var(--muted)',
 };
 
 const codeBlockStyle = {
-  fontFamily: 'monospace',
-  fontSize: '0.85rem',
-  color: '#c084fc',
+  fontFamily: 'var(--font-mono)',
+  fontSize: '0.82rem',
+  color: 'var(--foreground)',
   whiteSpace: 'pre-wrap',
-  lineHeight: '1.5',
+  lineHeight: '1.65',
 };
+

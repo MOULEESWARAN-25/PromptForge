@@ -25,8 +25,15 @@ export default function RagInspector({ ragDetails }) {
           <Database size={16} style={{ color: 'hsl(var(--secondary))' }} />
           <span>Local RAG pipeline Visualizer</span>
         </div>
-        <div style={latencyBadge}>
-          Retrieved in {latencyMs}ms
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          {ragDetails.source && (
+            <div style={sourceBadge}>
+              {ragDetails.source}
+            </div>
+          )}
+          <div style={latencyBadge}>
+            Retrieved in {latencyMs}ms
+          </div>
         </div>
       </div>
 
@@ -136,16 +143,18 @@ ${results.map(res => `* Term: "${res.name}" (${res.category})
   );
 }
 
-// Custom Premium inline styles to guarantee high-fidelity obsidian themes
+// Custom Premium inline styles drawing from SaaS theme design tokens
 const containerStyle = {
   display: 'flex',
   flexDirection: 'column',
   width: '100%',
   maxHeight: '400px',
   overflow: 'hidden',
-  background: 'rgba(5, 5, 8, 0.55)',
-  border: '1px solid rgba(255, 255, 255, 0.05)',
-  borderRadius: '12px',
+  background: 'rgba(17, 24, 39, 0.45)',
+  backdropFilter: 'blur(16px)',
+  border: '1px solid var(--border)',
+  borderRadius: 'var(--radius)',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.05)',
 };
 
 const headerStyle = {
@@ -153,7 +162,7 @@ const headerStyle = {
   justifyContent: 'space-between',
   alignItems: 'center',
   padding: '0.85rem 1rem',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+  borderBottom: '1px solid var(--border)',
 };
 
 const titleStyle = {
@@ -161,24 +170,36 @@ const titleStyle = {
   alignItems: 'center',
   gap: '0.5rem',
   fontSize: '0.85rem',
-  fontWeight: '600',
-  color: '#ffffff',
-  fontFamily: 'Outfit, sans-serif',
+  fontWeight: '700',
+  color: 'var(--foreground)',
+  fontFamily: 'var(--font-display), sans-serif',
 };
 
 const latencyBadge = {
   fontSize: '0.75rem',
-  color: 'hsl(var(--secondary))',
-  backgroundColor: 'rgba(6, 182, 212, 0.08)',
-  border: '1px solid rgba(6, 182, 212, 0.2)',
+  color: 'var(--secondary)',
+  backgroundColor: 'rgba(99, 102, 241, 0.08)',
+  border: '1px solid var(--border)',
   borderRadius: '99px',
   padding: '2px 8px',
   fontWeight: '500',
 };
 
+const sourceBadge = {
+  fontSize: '0.7rem',
+  color: 'var(--primary)',
+  backgroundColor: 'rgba(99, 102, 241, 0.08)',
+  border: '1px solid var(--border)',
+  borderRadius: '99px',
+  padding: '2px 8px',
+  fontWeight: '600',
+  textTransform: 'uppercase',
+  letterSpacing: '0.5px',
+};
+
 const tabsRow = {
   display: 'flex',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+  borderBottom: '1px solid var(--border)',
   backgroundColor: 'rgba(0, 0, 0, 0.15)',
 };
 
@@ -187,7 +208,7 @@ const tabBtn = {
   padding: '0.6rem 0',
   background: 'transparent',
   border: 'none',
-  color: 'var(--fg-muted)',
+  color: 'var(--muted-foreground)',
   fontSize: '0.75rem',
   fontWeight: '500',
   cursor: 'pointer',
@@ -200,8 +221,8 @@ const tabBtn = {
 };
 
 const tabBtnActive = {
-  color: '#ffffff',
-  borderBottom: '2px solid hsl(var(--primary))',
+  color: 'var(--foreground)',
+  borderBottom: '2px solid var(--primary)',
   backgroundColor: 'rgba(255, 255, 255, 0.02)',
 };
 
@@ -220,20 +241,20 @@ const scoresPanel = {
 const labelStyle = {
   fontSize: '0.8rem',
   fontWeight: '600',
-  color: '#ffffff',
-  fontFamily: 'Outfit, sans-serif',
+  color: 'var(--foreground)',
+  fontFamily: 'var(--font-sans), sans-serif',
 };
 
 const subLabelStyle = {
   fontSize: '0.75rem',
-  color: 'var(--fg-muted)',
+  color: 'var(--muted-foreground)',
   marginBottom: '0.5rem',
   lineHeight: '1.4',
 };
 
 const noMatchesText = {
   fontSize: '0.75rem',
-  color: 'var(--fg-muted)',
+  color: 'var(--muted-foreground)',
   textAlign: 'center',
   padding: '2rem 0',
 };
@@ -260,12 +281,12 @@ const chartLabels = {
 const termName = {
   fontSize: '0.8rem',
   fontWeight: '600',
-  color: '#ffffff',
+  color: 'var(--foreground)',
 };
 
 const termCategory = {
   fontSize: '0.7rem',
-  color: 'var(--fg-muted)',
+  color: 'var(--muted-foreground)',
   backgroundColor: 'rgba(255, 255, 255, 0.03)',
   padding: '1px 5px',
   borderRadius: '3px',
@@ -275,7 +296,7 @@ const termScore = {
   marginLeft: 'auto',
   fontSize: '0.8rem',
   fontWeight: '600',
-  color: 'hsl(var(--secondary))',
+  color: 'var(--primary)',
   fontFamily: 'monospace',
 };
 
@@ -295,7 +316,7 @@ const chartBarFill = {
 
 const termDesc = {
   fontSize: '0.75rem',
-  color: 'var(--fg-muted)',
+  color: 'var(--muted-foreground)',
   lineHeight: '1.35',
   paddingLeft: '2px',
 };
@@ -307,11 +328,11 @@ const codePanel = {
 };
 
 const codeBlock = {
-  backgroundColor: '#030305',
-  border: '1px solid rgba(255, 255, 255, 0.05)',
+  backgroundColor: 'var(--background)',
+  border: '1px solid var(--border)',
   borderRadius: '8px',
   padding: '0.75rem',
-  color: '#a78bfa',
+  color: 'var(--primary)',
   fontFamily: 'monospace',
   fontSize: '0.75rem',
   overflowX: 'auto',
@@ -322,8 +343,8 @@ const codeBlock = {
 const ragConceptCard = {
   display: 'flex',
   gap: '0.5rem',
-  background: 'rgba(168, 85, 247, 0.03)',
-  border: '1px solid rgba(168, 85, 247, 0.1)',
+  background: 'rgba(99, 102, 241, 0.03)',
+  border: '1px solid var(--border)',
   borderRadius: '8px',
   padding: '0.75rem',
   marginTop: '0.5rem',
@@ -331,7 +352,7 @@ const ragConceptCard = {
 
 const ragConceptText = {
   fontSize: '0.72rem',
-  color: 'var(--fg-muted)',
+  color: 'var(--muted-foreground)',
   lineHeight: '1.4',
 };
 
@@ -343,12 +364,12 @@ const tokensPanel = {
 
 const anchorBox = {
   background: 'rgba(255, 255, 255, 0.01)',
-  border: '1px solid rgba(255, 255, 255, 0.03)',
+  border: '1px solid var(--border)',
   padding: '0.75rem',
   borderRadius: '6px',
   fontSize: '0.78rem',
   fontStyle: 'italic',
-  color: 'var(--fg-muted)',
+  color: 'var(--muted-foreground)',
   lineHeight: '1.4',
 };
 
@@ -361,11 +382,11 @@ const tokensList = {
 
 const tokenBadge = {
   backgroundColor: 'rgba(255, 255, 255, 0.04)',
-  border: '1px solid rgba(255, 255, 255, 0.06)',
+  border: '1px solid var(--border)',
   borderRadius: '4px',
   padding: '2px 8px',
   fontSize: '0.7rem',
-  color: 'var(--fg-color)',
+  color: 'var(--foreground)',
   fontFamily: 'monospace',
 };
 
@@ -376,9 +397,9 @@ const emptyStateStyle = {
   gap: '0.5rem',
   padding: '2rem 1rem',
   fontSize: '0.75rem',
-  color: 'var(--fg-muted)',
+  color: 'var(--muted-foreground)',
   textAlign: 'center',
   background: 'rgba(255, 255, 255, 0.01)',
   borderRadius: '12px',
-  border: '1px dashed rgba(255, 255, 255, 0.05)',
+  border: '1px dashed var(--border)',
 };

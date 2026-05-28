@@ -30,7 +30,38 @@ export async function generateEnhancedPrompt({
 }) {
   const startTime = Date.now();
   
-  // 1. EXECUTE LOCAL RAG VECTOR SEARCH
+  // 1. TRY CALLING DECOUPLED LANGCHAIN & SUPABASE BACKEND
+  try {
+    const backendResponse = await fetch("http://localhost:8000/api/forge", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        mode,
+        query,
+        theme,
+        category,
+        pageType,
+        components,
+        componentName,
+        history
+      })
+    });
+
+    if (backendResponse.ok) {
+      const data = await backendResponse.json();
+      return {
+        prompt: data.prompt,
+        ragDetails: data.ragDetails,
+        source: data.source || "Decoupled LangChain & pgvector Backend"
+      };
+    }
+  } catch (error) {
+    console.warn("Decoupled backend server offline or unavailable. Falling back to local RAG pipeline:", error);
+  }
+  
+  // 2. CLIENT-SIDE LOCAL RAG FALLBACK
   // Construct a retrieval anchor combining query and choices to search our semantic DB
   const retrievalAnchor = `${query} ${category || ''} ${pageType || ''} ${componentName || ''} ${components.join(' ')}`;
   const searchResults = searchVectorVocabulary(retrievalAnchor, 3);

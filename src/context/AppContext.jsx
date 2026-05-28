@@ -17,11 +17,21 @@ export function AppProvider({ children }) {
   const [apiKey, setApiKey] = useState('');
   const [history, setHistory] = useState([]);
   const [activeTheme, setActiveTheme] = useState('Sleek Dark Glassmorphic');
+  const [theme, setTheme] = useState('dark');
   const [loading, setLoading] = useState(true);
   const [dbConnected, setDbConnected] = useState(false);
 
   // 1. Load persisted states & connect to Supabase database
   useEffect(() => {
+    // Sync dark/light mode classes
+    const savedTheme = localStorage.getItem('promptforge_theme') || 'dark';
+    setTheme(savedTheme);
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
     async function initializeApp() {
       // Check database schema & tables connectivity
       const isDbLive = await testDatabaseConnectivity();
@@ -234,12 +244,25 @@ export function AppProvider({ children }) {
     syncHistoryState([]);
   };
 
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    localStorage.setItem('promptforge_theme', nextTheme);
+    if (nextTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       user,
       apiKey,
       history,
       activeTheme,
+      theme,
+      toggleTheme,
       loading,
       dbConnected,
       login,
@@ -252,7 +275,9 @@ export function AppProvider({ children }) {
       deletePromptRecord,
       clearHistory
     }}>
-      {children}
+      <div className={`${theme} theme-container`}>
+        {children}
+      </div>
     </AppContext.Provider>
   );
 }

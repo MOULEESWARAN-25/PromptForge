@@ -489,81 +489,91 @@ export default function ForgePage() {
   );
 }
 
-// Inline Styles for Forge Pages
+// ─── Premium Forge Styles ──────────────────────────────────────
+
 const containerStyle = {
   flex: 1,
   display: 'flex',
   flexDirection: 'column',
   paddingTop: '1rem',
+  position: 'relative',
+  zIndex: 2,
 };
 
 const selectorState = {
   display: 'flex',
   flexDirection: 'column',
-  gap: '3rem',
+  gap: '2.5rem',
 };
 
 const introHeader = {
   textAlign: 'center',
-  maxWidth: '700px',
+  maxWidth: '680px',
   margin: '0 auto',
+  paddingTop: '1.5rem',
 };
 
 const mainTitle = {
-  fontSize: '2.5rem',
+  fontSize: 'clamp(2rem, 4vw, 2.75rem)',
   fontWeight: '800',
-  fontFamily: 'Outfit, sans-serif',
-  color: '#ffffff',
-  letterSpacing: '-0.5px',
-  lineHeight: '1.2',
+  fontFamily: 'var(--font-display)',
+  color: 'var(--foreground)',
+  letterSpacing: '-0.04em',
+  lineHeight: '1.1',
   marginBottom: '0.75rem',
 };
 
 const mainSub = {
   fontSize: '1rem',
-  color: 'var(--fg-muted)',
-  lineHeight: '1.6',
+  color: 'var(--muted-foreground)',
+  lineHeight: '1.65',
+  maxWidth: '520px',
+  margin: '0 auto',
 };
 
 const selectionGrid = {
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-  gap: '1.5rem',
+  gap: '1rem',
 };
 
 const selectCard = {
-  backgroundColor: 'rgba(5, 5, 8, 0.4)',
-  borderRadius: '16px',
-  padding: '2rem 1.5rem',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
+  borderRadius: 'var(--radius-lg)',
+  padding: '1.75rem 1.5rem',
   display: 'flex',
   flexDirection: 'column',
-  gap: '1rem',
+  gap: '0.875rem',
   cursor: 'pointer',
   textAlign: 'left',
+  boxShadow: 'var(--shadow-sm)',
+  transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
 };
 
 const selectIconWrap = {
   width: '40px',
   height: '40px',
   borderRadius: '10px',
-  backgroundColor: 'rgba(255, 255, 255, 0.02)',
-  border: '1px solid rgba(255, 255, 255, 0.06)',
+  background: 'var(--muted)',
+  border: '1px solid var(--border)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
 };
 
 const selectCardTitle = {
-  fontSize: '1.25rem',
+  fontSize: '1.05rem',
   fontWeight: '700',
-  fontFamily: 'Outfit, sans-serif',
-  color: '#ffffff',
+  fontFamily: 'var(--font-display)',
+  color: 'var(--foreground)',
+  letterSpacing: '-0.02em',
 };
 
 const selectCardDesc = {
-  fontSize: '0.85rem',
-  color: 'var(--fg-muted)',
-  lineHeight: '1.5',
+  fontSize: '0.83rem',
+  color: 'var(--muted-foreground)',
+  lineHeight: '1.55',
   flex: 1,
 };
 
@@ -571,54 +581,60 @@ const selectArrow = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  fontSize: '0.8rem',
-  fontWeight: '600',
-  color: '#ffffff',
-  borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-  paddingTop: '1rem',
-  marginTop: '0.5rem',
+  fontSize: '0.78rem',
+  fontWeight: '700',
+  color: 'var(--accent)',
+  borderTop: '1px solid var(--border)',
+  paddingTop: '0.875rem',
+  marginTop: '0.25rem',
 };
 
 const wizardLayout = {
-  backgroundColor: 'rgba(6, 6, 9, 0.5)',
-  border: '1px solid rgba(255, 255, 255, 0.05)',
-  borderRadius: '16px',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
+  borderRadius: 'var(--radius-lg)',
   padding: '2rem',
   display: 'flex',
   flexDirection: 'column',
   gap: '1.5rem',
+  boxShadow: 'var(--shadow-md)',
 };
 
 const backBtn = {
   background: 'transparent',
-  border: 'none',
-  color: 'var(--fg-muted)',
-  fontSize: '0.85rem',
-  fontWeight: '500',
+  border: '1px solid var(--border)',
+  borderRadius: '8px',
+  color: 'var(--muted-foreground)',
+  fontSize: '0.82rem',
+  fontWeight: '600',
   cursor: 'pointer',
   display: 'inline-flex',
   alignItems: 'center',
-  gap: '0.5rem',
+  gap: '0.4rem',
   alignSelf: 'flex-start',
-  transition: 'color 0.2s',
+  padding: '0.4rem 0.85rem',
+  fontFamily: 'var(--font-sans)',
+  transition: 'all 0.2s ease',
 };
 
 const wizardHeader = {
-  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+  borderBottom: '1px solid var(--border)',
   paddingBottom: '1.25rem',
 };
 
 const wizardTitle = {
-  fontSize: '1.5rem',
+  fontSize: '1.35rem',
   fontWeight: '700',
-  fontFamily: 'Outfit, sans-serif',
-  color: '#ffffff',
+  fontFamily: 'var(--font-display)',
+  color: 'var(--foreground)',
+  letterSpacing: '-0.025em',
 };
 
 const wizardDesc = {
-  fontSize: '0.9rem',
-  color: 'var(--fg-muted)',
-  marginTop: '4px',
+  fontSize: '0.875rem',
+  color: 'var(--muted-foreground)',
+  marginTop: '0.35rem',
+  lineHeight: '1.55',
 };
 
 const formStyle = {
@@ -629,7 +645,7 @@ const formStyle = {
 
 const formRow = {
   display: 'flex',
-  gap: '1.5rem',
+  gap: '1.25rem',
   flexWrap: 'wrap',
 };
 
@@ -648,26 +664,26 @@ const formGroup = {
 };
 
 const formLabel = {
-  fontSize: '0.85rem',
+  fontSize: '0.82rem',
   fontWeight: '600',
-  color: '#ffffff',
-  fontFamily: 'Outfit, sans-serif',
+  color: 'var(--foreground)',
+  fontFamily: 'var(--font-sans)',
 };
 
 const selectStyle = {
   width: '100%',
-  backgroundColor: 'rgba(255, 255, 255, 0.02)',
+  background: 'var(--card)',
   cursor: 'pointer',
+  color: 'var(--foreground)',
 };
 
-const inputStyle = {
-  width: '100%',
-};
+const inputStyle = { width: '100%' };
 
 const textareaStyle = {
   width: '100%',
   resize: 'vertical',
-  lineHeight: '1.5',
+  lineHeight: '1.6',
+  minHeight: '120px',
 };
 
 const componentsListHeader = {
@@ -680,34 +696,36 @@ const componentsListHeader = {
 const defaultToggleBtn = {
   background: 'transparent',
   border: 'none',
-  color: 'hsl(var(--secondary))',
+  color: 'var(--accent)',
   fontSize: '0.75rem',
   fontWeight: '600',
   cursor: 'pointer',
-  textDecoration: 'underline',
+  fontFamily: 'var(--font-sans)',
 };
 
 const checkboxGrid = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-  gap: '0.75rem',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+  gap: '0.625rem',
   marginTop: '0.25rem',
 };
 
 const checkboxCard = {
-  border: '1px solid',
+  border: '1px solid var(--border)',
   borderRadius: '8px',
-  padding: '0.75rem 1rem',
+  padding: '0.65rem 0.875rem',
   display: 'flex',
   alignItems: 'center',
-  gap: '0.75rem',
+  gap: '0.625rem',
   cursor: 'pointer',
-  transition: 'all 0.2s',
+  transition: 'all 0.2s ease',
+  background: 'var(--card)',
 };
 
 const checkboxText = {
   fontSize: '0.8rem',
-  color: '#ffffff',
+  color: 'var(--foreground)',
+  fontWeight: '500',
 };
 
 const badgeSelectorGrid = {
@@ -720,57 +738,56 @@ const badgeSelectorGrid = {
 const badgeSelectorBtn = {
   padding: '0.35rem 0.85rem',
   fontSize: '0.75rem',
-  fontWeight: '500',
-  borderRadius: '6px',
-  backgroundColor: 'rgba(255, 255, 255, 0.02)',
-  border: '1px solid rgba(255, 255, 255, 0.06)',
-  color: 'var(--fg-muted)',
+  fontWeight: '600',
+  borderRadius: '999px',
+  background: 'var(--muted)',
+  border: '1px solid var(--border)',
+  color: 'var(--muted-foreground)',
   cursor: 'pointer',
-  transition: 'all 0.2s',
-  fontFamily: 'inherit',
+  transition: 'all 0.2s ease',
+  fontFamily: 'var(--font-sans)',
 };
 
 const badgeSelectorActive = {
-  backgroundColor: 'rgba(6, 182, 212, 0.1)',
-  borderColor: 'hsl(var(--secondary))',
-  color: 'hsl(var(--secondary))',
-  boxShadow: '0 0 10px rgba(6, 182, 212, 0.15)',
+  background: 'var(--accent-subtle)',
+  borderColor: 'var(--accent)',
+  color: 'var(--accent)',
 };
 
 const themeCardGrid = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-  gap: '1rem',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
+  gap: '0.875rem',
   marginTop: '0.25rem',
 };
 
 const themeSelectCard = {
-  border: '1px solid',
+  border: '1px solid var(--border)',
   borderRadius: '10px',
   padding: '1rem',
   cursor: 'pointer',
-  transition: 'all 0.2s',
+  transition: 'all 0.2s ease',
   display: 'flex',
   flexDirection: 'column',
-  gap: '0.5rem',
+  gap: '0.4rem',
+  background: 'var(--card)',
 };
 
 const themeHeader = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  width: '100%',
 };
 
 const themeCardName = {
-  fontSize: '0.85rem',
+  fontSize: '0.82rem',
   fontWeight: '700',
-  color: '#ffffff',
+  color: 'var(--foreground)',
 };
 
 const themeCardDescText = {
   fontSize: '0.75rem',
-  color: 'var(--fg-muted)',
+  color: 'var(--muted-foreground)',
   lineHeight: '1.4',
 };
 
@@ -778,25 +795,27 @@ const submitRow = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+  borderTop: '1px solid var(--border)',
   paddingTop: '1.5rem',
-  marginTop: '0.5rem',
   flexWrap: 'wrap',
-  gap: '1.5rem',
+  gap: '1rem',
 };
 
 const offlineWarning = {
   display: 'flex',
   alignItems: 'center',
   gap: '0.5rem',
-  fontSize: '0.8rem',
-  color: 'var(--fg-muted)',
+  fontSize: '0.78rem',
+  color: 'var(--muted-foreground)',
 };
 
 const submitBtn = {
   display: 'inline-flex',
   alignItems: 'center',
   gap: '0.5rem',
-  fontSize: '0.95rem',
-  padding: '0.8rem 2rem',
+  fontSize: '0.925rem',
+  fontWeight: '700',
+  padding: '0.75rem 1.75rem',
+  fontFamily: 'var(--font-sans)',
 };
+

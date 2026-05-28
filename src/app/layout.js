@@ -1,59 +1,86 @@
-import { Outfit, Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
 import AuroraBackground from "@/components/AuroraBackground";
 import Navigation from "@/components/Navigation";
+import { Toaster } from "sonner";
 
-const outfit = Outfit({
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-outfit",
+  variable: "--font-sans",
   weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
-const inter = Inter({
+const bricolageGrotesque = Bricolage_Grotesque({
   subsets: ["latin"],
-  variable: "--font-inter",
-  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-display",
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
 export const metadata = {
-  title: "PromptForge | AI Prompt Architect & RAG Learning Lab",
-  description: "Enhance your rough development descriptions into highly detailed technical design prompts for Lovable, Cursor, and v0.",
+  title: "PromptForge | AI Prompt Architect",
+  description: "Transform vague ideas into precision-engineered AI prompts for Cursor, Lovable, and v0. Built for developers who demand quality.",
+  keywords: ["AI prompts", "prompt engineering", "Cursor", "Lovable", "v0", "RAG"],
+};
+
+export const viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${outfit.variable} ${inter.variable}`}>
+    <html
+      lang="en"
+      className={`${plusJakartaSans.variable} ${bricolageGrotesque.variable}`}
+      suppressHydrationWarning
+    >
       <head>
-        {/* Force Outfit for headings and Inter for body via simple style tag to guarantee absolute consistency */}
         <style dangerouslySetInnerHTML={{ __html: `
-          body {
-            font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          body, button, input, textarea, select, label, p, span, li, a {
+            font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
           }
-          h1, h2, h3, h4, h5, h6 {
-            font-family: var(--font-outfit), sans-serif;
+          h1, h2, h3, h4, h5, h6, .display-font, .hero-headline, .display-xl, .display-lg, .display-md {
+            font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+            letter-spacing: -0.03em;
           }
-        `}} />
+        ` }} />
       </head>
       <body>
         <AppProvider>
           <AuroraBackground />
           <Navigation />
-          <div style={layoutWrapper}>
+          <main style={mainWrapper}>
             {children}
-          </div>
+          </main>
+          <Toaster
+            position="bottom-right"
+            toastOptions={{
+              style: {
+                borderRadius: '12px',
+                fontFamily: 'var(--font-sans)',
+                fontSize: '0.875rem',
+              },
+            }}
+            richColors
+            closeButton
+          />
         </AppProvider>
       </body>
     </html>
   );
 }
 
-const layoutWrapper = {
+const mainWrapper = {
   width: '100%',
-  maxWidth: '1200px',
+  maxWidth: '1280px',
   margin: '0 auto',
-  padding: '0 1rem 3rem 1rem',
-  minHeight: 'calc(100vh - 120px)',
+  padding: '0 1.5rem 4rem 1.5rem',
+  minHeight: 'calc(100dvh - 100px)',
   display: 'flex',
   flexDirection: 'column',
 };

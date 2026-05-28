@@ -1,0 +1,122 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { searchVectorVocabulary } from './services/ragService.js';
+import { runPromptEnhancerAgent } from './services/agentService.js';
+import { themeStyles } from './services/themeData.js'; // Keep visual design definitions consistent
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 8000;
+
+// Enable CORS and JSON parsing
+app.use(cors());
+app.use(express.json());
+
+// Visual styles catalog for prompt references
+const localThemeStyles = themeStyles || {
+  "Sleek Dark Glassmorphic": {
+    name: "Sleek Dark Glassmorphic",
+    description: "Deep obsidian backdrops, frosted semi-transparent containers, neon-violet glow highlights, and minimal card borders.",
+    keywords: "glassmorphism, dark obsidian background, backdrop-filter blur, subtle neon border glow, premium dark mode, rich transparency effects"
+  }
+};
+
+// Health Check
+app.get('/health', (req, res) => {
+  res.json({ status: 'healthy', timestamp: new Date(), service: 'PromptForge RAG Agent Server' });
+});
+
+/**
+ * Endpoint for Vector Semantic search (used in Learn Sandbox playground)
+ */
+app.post('/api/search', async (req, res) => {
+  const { query, limit = 3, boostCategory = null } = req.body;
+  
+  if (!query) {
+    return res.status(400).json({ error: 'Search query is required' });
+  }
+
+  try {
+    const searchData = await searchVectorVocabulary(query, limit, boostCategory);
+    res.json(searchData);
+  } catch (error) {
+    console.error("Express /api/search error:", error);
+    res.status(500).json({ error: 'Internal server search error', details: error.message });
+  }
+});
+
+/**
+ * Main prompt architect and generator endpoint (grounded by RAG)
+ */
+app.post('/api/forge', async (req, res) => {
+  const {
+    mode,
+    query,
+    theme,
+    category,
+    pageType,
+    components = [],
+    componentName,
+    history = []
+  } = req.body;
+
+  if (!query && mode !== 'enhance') {
+    return res.status(400).json({ error: 'Description query is required' });
+  }
+
+  const startTime = Date.now();
+
+  try {
+    // 1. Construct semantic retrieval anchor to search vector DB
+    const retrievalAnchor = `${query} ${category || ''} ${pageType || ''} ${componentName || ''} ${components.join(' ')}`;
+    
+    // 2. Perform Supabase pgvector search
+    const boostCat = mode === 'component' ? 'Component' : (mode === 'page' ? 'Layout' : null);
+    const ragResult = await searchVectorVocabulary(retrievalAnchor, 3, boostCat);
+    
+    const retrievedTerms = ragResult.results;
+    const latencyMs = Date.now() - startTime;
+
+    const ragDetails = {
+      anchor: retrievalAnchor,
+      results: ragResult.results,
+      latencyMs: ragResult.latencyMs
+    };
+
+    // 3. Resolve visual styles details
+    const selectedThemeDetails = localThemeStyles[theme] || null;
+
+    // 4. Run LangChain Prompt Generation Agent
+    const generatedPrompt = await runPromptEnhancerAgent({
+      mode,
+      query,
+      theme: selectedThemeDetails,
+      category,
+      pageType,
+      components,
+      componentName,
+      history,
+      retrievedTerms
+    });
+
+    res.json({
+      prompt: generatedPrompt,
+      ragDetails,
+      source: "Google Gemini 2.5 Flash via LangChain Backend"
+    });
+
+  } catch (error) {
+    console.error("Express /api/forge error:", error);
+    res.status(500).json({ error: 'Internal prompt agent execution failed', details: error.message });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`================================================================`);
+  console.log(` PromptForge Decoupled RAG Backend running on http://localhost:${PORT}`);
+  console.log(` Database: Connecting to Supabase Vector DB (pgvector)`);
+  console.log(` AI Orchestration: LangChain + Google Gemini 2.5 Flash API`);
+  console.log(`================================================================`);
+});

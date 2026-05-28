@@ -29,8 +29,34 @@ export default function LearnPage() {
     handleRagSearch('glass widgets with cards');
   }, []);
 
-  const handleRagSearch = (queryText) => {
+  const handleRagSearch = async (queryText) => {
     const start = Date.now();
+
+    // Try calling decoupled backend vector search first
+    try {
+      const response = await fetch("http://localhost:8000/api/search", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ query: queryText, limit: 4 })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setRagDetails({
+          anchor: queryText,
+          results: data.results,
+          latencyMs: data.latencyMs,
+          source: "Supabase pgvector Database (Live)"
+        });
+        return;
+      }
+    } catch (error) {
+      console.warn("Express backend search offline. Falling back to local VSM:", error);
+    }
+
+    // Client-side local fallback RAG (the original code)
     const results = searchVectorVocabulary(queryText, 4);
     setRagDetails({
       anchor: queryText,
@@ -40,7 +66,8 @@ export default function LearnPage() {
         score: r.score,
         description: r.term.description
       })),
-      latencyMs: Date.now() - start
+      latencyMs: Date.now() - start,
+      source: "In-Memory TF-IDF Vector Space (Local Fallback)"
     });
   };
 
@@ -168,86 +195,94 @@ export default function LearnPage() {
   );
 }
 
-// Inline Styles for Learn Page
+// ─── Premium Learn Styles ──────────────────────────────────────
+
 const containerStyle = {
   display: 'flex',
   flexDirection: 'column',
-  gap: '3rem',
+  gap: '2.5rem',
   paddingTop: '1rem',
+  position: 'relative',
+  zIndex: 2,
 };
 
 const heroHeader = {
   textAlign: 'center',
-  maxWidth: '800px',
+  maxWidth: '760px',
   margin: '0 auto',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   gap: '1rem',
+  paddingTop: '1rem',
 };
 
 const badgeStyle = {
-  display: 'flex',
+  display: 'inline-flex',
   alignItems: 'center',
   gap: '0.4rem',
-  fontSize: '0.75rem',
-  fontWeight: '600',
-  color: 'hsl(var(--primary))',
-  backgroundColor: 'rgba(168, 85, 247, 0.08)',
-  border: '1px solid rgba(168, 85, 247, 0.2)',
+  fontSize: '0.72rem',
+  fontWeight: '700',
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  color: 'var(--accent)',
+  background: 'var(--accent-subtle)',
+  border: '1px solid rgba(25,57,141,0.15)',
   padding: '4px 12px',
-  borderRadius: '99px',
-  fontFamily: 'Outfit, sans-serif',
-  letterSpacing: '0.5px',
+  borderRadius: '999px',
 };
 
 const titleStyle = {
-  fontSize: '2.25rem',
+  fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)',
   fontWeight: '800',
-  fontFamily: 'Outfit, sans-serif',
-  color: '#ffffff',
-  letterSpacing: '-0.5px',
-  lineHeight: '1.2',
+  fontFamily: 'var(--font-display)',
+  color: 'var(--foreground)',
+  letterSpacing: '-0.04em',
+  lineHeight: '1.1',
 };
 
 const subtitleStyle = {
   fontSize: '1rem',
-  color: 'var(--fg-muted)',
-  lineHeight: '1.6',
+  color: 'var(--muted-foreground)',
+  lineHeight: '1.65',
+  maxWidth: '560px',
 };
 
 const sandboxCard = {
-  background: 'rgba(7, 7, 10, 0.45)',
-  border: '1px solid rgba(255, 255, 255, 0.05)',
-  borderRadius: '16px',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
+  borderRadius: 'var(--radius-lg)',
   padding: '2rem',
   display: 'flex',
   flexDirection: 'column',
   gap: '1.5rem',
+  boxShadow: 'var(--shadow-md)',
 };
 
 const sandboxHeader = {
   display: 'flex',
-  gap: '1rem',
+  gap: '0.875rem',
   alignItems: 'flex-start',
 };
 
 const sectionHeading = {
-  fontSize: '1.25rem',
+  fontSize: '1.15rem',
   fontWeight: '700',
-  fontFamily: 'Outfit, sans-serif',
-  color: '#ffffff',
+  fontFamily: 'var(--font-display)',
+  color: 'var(--foreground)',
+  letterSpacing: '-0.02em',
 };
 
 const sectionSub = {
-  fontSize: '0.85rem',
-  color: 'var(--fg-muted)',
-  marginTop: '2px',
+  fontSize: '0.83rem',
+  color: 'var(--muted-foreground)',
+  marginTop: '0.3rem',
+  lineHeight: '1.5',
 };
 
 const searchRow = {
   display: 'flex',
-  gap: '1rem',
+  gap: '0.75rem',
   width: '100%',
   alignItems: 'center',
   flexWrap: 'wrap',
@@ -265,7 +300,7 @@ const searchIcon = {
   left: '14px',
   top: '50%',
   transform: 'translateY(-50%)',
-  color: 'var(--fg-muted)',
+  color: 'var(--muted-foreground)',
 };
 
 const searchInput = {
@@ -274,12 +309,13 @@ const searchInput = {
 };
 
 const searchBtn = {
-  padding: '0.75rem 2rem',
-  height: '46px',
+  padding: '0.7rem 1.5rem',
+  height: '44px',
+  whiteSpace: 'nowrap',
 };
 
 const inspectorContainer = {
-  marginTop: '0.5rem',
+  marginTop: '0.25rem',
 };
 
 const dictionaryHeaderRow = {
@@ -287,56 +323,60 @@ const dictionaryHeaderRow = {
   justifyContent: 'space-between',
   alignItems: 'center',
   flexWrap: 'wrap',
-  gap: '1.5rem',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-  paddingBottom: '1rem',
+  gap: '1rem',
+  paddingBottom: '1.25rem',
+  borderBottom: '1px solid var(--border)',
 };
 
 const dictionaryTitle = {
-  fontSize: '1.5rem',
+  fontSize: '1.35rem',
   fontWeight: '700',
-  fontFamily: 'Outfit, sans-serif',
-  color: '#ffffff',
+  fontFamily: 'var(--font-display)',
+  color: 'var(--foreground)',
+  letterSpacing: '-0.025em',
 };
 
 const filterList = {
   display: 'flex',
   flexWrap: 'wrap',
-  gap: '0.5rem',
+  gap: '0.4rem',
 };
 
 const filterBtn = {
-  padding: '0.4rem 1rem',
-  fontSize: '0.8rem',
-  fontWeight: '500',
-  borderRadius: '6px',
-  backgroundColor: 'rgba(255, 255, 255, 0.02)',
-  border: '1px solid rgba(255, 255, 255, 0.06)',
-  color: 'var(--fg-muted)',
+  padding: '0.35rem 0.875rem',
+  fontSize: '0.78rem',
+  fontWeight: '600',
+  borderRadius: '999px',
+  background: 'var(--muted)',
+  border: '1px solid var(--border)',
+  color: 'var(--muted-foreground)',
   cursor: 'pointer',
-  transition: 'all 0.2s',
-  fontFamily: 'inherit',
+  transition: 'all 0.2s ease',
+  fontFamily: 'var(--font-sans)',
 };
 
 const filterBtnActive = {
-  backgroundColor: 'hsl(var(--primary))',
-  borderColor: 'hsl(var(--primary))',
-  color: '#ffffff',
+  background: 'var(--accent)',
+  borderColor: 'var(--accent)',
+  color: 'var(--accent-foreground)',
 };
 
 const bentoGrid = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
-  gap: '1.5rem',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+  gap: '1rem',
 };
 
 const vocabCard = {
-  backgroundColor: 'rgba(5, 5, 8, 0.4)',
-  borderRadius: '14px',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
+  borderRadius: 'var(--radius-lg)',
   padding: '1.5rem',
   display: 'flex',
   flexDirection: 'column',
-  gap: '1rem',
+  gap: '0.875rem',
+  boxShadow: 'var(--shadow-sm)',
+  transition: 'all 0.25s ease',
 };
 
 const cardTopRow = {
@@ -346,46 +386,49 @@ const cardTopRow = {
 };
 
 const cardCategory = {
-  fontSize: '0.75rem',
-  fontWeight: '600',
-  color: 'hsl(var(--secondary))',
-  backgroundColor: 'rgba(6, 182, 212, 0.06)',
-  border: '1px solid rgba(6, 182, 212, 0.15)',
+  fontSize: '0.7rem',
+  fontWeight: '700',
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  color: 'var(--accent)',
+  background: 'var(--accent-subtle)',
+  border: '1px solid rgba(25,57,141,0.12)',
   padding: '2px 8px',
-  borderRadius: '4px',
+  borderRadius: '999px',
 };
 
 const copyBtn = {
   background: 'transparent',
-  border: 'none',
-  color: 'var(--fg-muted)',
+  border: '1px solid var(--border)',
+  borderRadius: '6px',
+  color: 'var(--muted-foreground)',
   cursor: 'pointer',
-  padding: '4px',
-  borderRadius: '4px',
-  transition: 'all 0.2s',
+  padding: '5px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+  transition: 'all 0.2s ease',
 };
 
 const vocabName = {
-  fontSize: '1.15rem',
-  fontWeight: '600',
-  fontFamily: 'Outfit, sans-serif',
-  color: '#ffffff',
+  fontSize: '1rem',
+  fontWeight: '700',
+  fontFamily: 'var(--font-display)',
+  color: 'var(--foreground)',
+  letterSpacing: '-0.02em',
 };
 
 const vocabDesc = {
-  fontSize: '0.85rem',
-  color: 'var(--fg-muted)',
-  lineHeight: '1.45',
+  fontSize: '0.83rem',
+  color: 'var(--muted-foreground)',
+  lineHeight: '1.55',
 };
 
 const codeWrapper = {
-  backgroundColor: '#030305',
-  border: '1px solid rgba(255, 255, 255, 0.05)',
+  background: 'var(--muted)',
+  border: '1px solid var(--border)',
   borderRadius: '8px',
-  padding: '0.75rem',
+  padding: '0.875rem',
   display: 'flex',
   flexDirection: 'column',
   gap: '0.5rem',
@@ -395,41 +438,42 @@ const codeHeader = {
   display: 'flex',
   alignItems: 'center',
   gap: '0.4rem',
-  fontSize: '0.7rem',
-  fontWeight: '600',
-  color: 'var(--fg-muted)',
+  fontSize: '0.68rem',
+  fontWeight: '700',
+  color: 'var(--muted-foreground)',
   textTransform: 'uppercase',
-  letterSpacing: '0.5px',
+  letterSpacing: '0.08em',
 };
 
 const codeText = {
-  fontFamily: 'monospace',
-  fontSize: '0.75rem',
-  color: '#c084fc',
+  fontFamily: 'var(--font-mono)',
+  fontSize: '0.78rem',
+  color: 'var(--accent)',
   whiteSpace: 'pre-wrap',
-  lineHeight: '1.4',
+  lineHeight: '1.5',
 };
 
 const promptBlock = {
-  backgroundColor: 'rgba(255, 255, 255, 0.01)',
-  borderLeft: '2px solid hsl(var(--primary))',
-  paddingLeft: '0.75rem',
+  borderLeft: '2px solid var(--accent)',
+  paddingLeft: '0.875rem',
   display: 'flex',
   flexDirection: 'column',
-  gap: '0.25rem',
+  gap: '0.3rem',
 };
 
 const promptLabel = {
-  fontSize: '0.75rem',
+  fontSize: '0.7rem',
   fontWeight: '700',
-  color: '#ffffff',
+  color: 'var(--muted-foreground)',
   textTransform: 'uppercase',
-  letterSpacing: '0.5px',
+  letterSpacing: '0.08em',
 };
 
 const promptText = {
-  fontSize: '0.8rem',
+  fontSize: '0.82rem',
   fontStyle: 'italic',
-  color: 'var(--fg-muted)',
-  lineHeight: '1.4',
+  color: 'var(--muted-foreground)',
+  lineHeight: '1.5',
 };
+
+

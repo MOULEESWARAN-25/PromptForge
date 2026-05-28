@@ -168,8 +168,8 @@ const overlayStyle = {
   left: 0,
   right: 0,
   bottom: 0,
-  backgroundColor: 'rgba(0, 0, 0, 0.65)',
-  backdropFilter: 'blur(8px)',
+  backgroundColor: 'rgba(0, 0, 0, 0.45)',
+  backdropFilter: 'blur(4px)',
   zIndex: 1000,
   display: 'flex',
   justifyContent: 'flex-end',
@@ -179,9 +179,10 @@ const drawerStyle = {
   width: '100%',
   maxWidth: '450px',
   height: '100vh',
-  backgroundColor: '#07070a',
-  borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
-  boxShadow: '-10px 0 40px rgba(0, 0, 0, 0.8)',
+  backgroundColor: 'rgba(10, 15, 26, 0.75)',
+  backdropFilter: 'blur(24px)',
+  borderLeft: '1px solid var(--border)',
+  boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.5)',
   display: 'flex',
   flexDirection: 'column',
   animation: 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -189,7 +190,7 @@ const drawerStyle = {
 
 const headerStyle = {
   padding: '1.5rem',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+  borderBottom: '1px solid var(--border)',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
@@ -203,15 +204,15 @@ const titleContainer = {
 
 const drawerTitle = {
   fontSize: '1.25rem',
-  fontWeight: '600',
-  fontFamily: 'Outfit, sans-serif',
-  color: '#ffffff',
+  fontWeight: '700',
+  fontFamily: 'var(--font-display), sans-serif',
+  color: 'var(--foreground)',
 };
 
 const closeBtn = {
   background: 'transparent',
   border: 'none',
-  color: 'var(--fg-muted)',
+  color: 'var(--muted-foreground)',
   cursor: 'pointer',
   padding: '4px',
   borderRadius: '4px',
@@ -232,8 +233,8 @@ const bodyStyle = {
 
 const sectionCard = {
   background: 'rgba(255, 255, 255, 0.02)',
-  border: '1px solid rgba(255, 255, 255, 0.05)',
-  borderRadius: '12px',
+  border: '1px solid var(--border)',
+  borderRadius: 'var(--radius)',
   padding: '1.25rem',
   display: 'flex',
   flexDirection: 'column',
@@ -242,14 +243,14 @@ const sectionCard = {
 
 const sectionTitle = {
   fontSize: '1.05rem',
-  fontWeight: '600',
-  color: '#ffffff',
-  fontFamily: 'Outfit, sans-serif',
+  fontWeight: '700',
+  color: 'var(--foreground)',
+  fontFamily: 'var(--font-display), sans-serif',
 };
 
 const sectionDesc = {
   fontSize: '0.875rem',
-  color: 'var(--fg-muted)',
+  color: 'var(--muted-foreground)',
   lineHeight: '1.45',
 };
 
@@ -280,7 +281,7 @@ const visibilityBtn = {
   transform: 'translateY(-50%)',
   background: 'transparent',
   border: 'none',
-  color: 'var(--fg-muted)',
+  color: 'var(--muted-foreground)',
   cursor: 'pointer',
 };
 
@@ -340,9 +341,9 @@ const stepBadge = {
   width: '24px',
   height: '24px',
   borderRadius: '50%',
-  backgroundColor: 'rgba(168, 85, 247, 0.15)',
-  border: '1px solid rgba(168, 85, 247, 0.3)',
-  color: 'hsl(var(--primary))',
+  backgroundColor: 'rgba(99, 102, 241, 0.08)',
+  border: '1px solid var(--border)',
+  color: 'var(--primary)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -357,7 +358,7 @@ const stepContent = {
 
 const stepText = {
   fontSize: '0.875rem',
-  color: 'var(--fg-color)',
+  color: 'var(--foreground)',
   lineHeight: '1.4',
 };
 
@@ -365,7 +366,7 @@ const linkStyle = {
   display: 'inline-flex',
   alignItems: 'center',
   gap: '0.35rem',
-  color: 'hsl(var(--secondary))',
+  color: 'var(--primary)',
   fontSize: '0.85rem',
   fontWeight: '500',
   textDecoration: 'none',
@@ -376,14 +377,14 @@ const linkStyle = {
 const infoCard = {
   display: 'flex',
   gap: '0.75rem',
-  background: 'rgba(255, 255, 255, 0.01)',
-  border: '1px dashed rgba(255, 255, 255, 0.08)',
+  background: 'rgba(0, 0, 0, 0.01)',
+  border: '1px dashed var(--border)',
   borderRadius: '10px',
   padding: '1rem',
 };
 
 const infoText = {
   fontSize: '0.8rem',
-  color: 'var(--fg-muted)',
+  color: 'var(--muted-foreground)',
   lineHeight: '1.4',
 };

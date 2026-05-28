@@ -5,10 +5,9 @@ import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 import { generateEnhancedPrompt } from '@/services/gemini';
 import { designVocabulary } from '@/data/designVocabulary';
-import RagInspector from '@/components/RagInspector';
 import { 
-  Sparkles, Search, Send, Copy, Check, Info, Cpu, 
-  Database, RefreshCw, Layers, ArrowLeft 
+  Sparkles, Search, Send, Copy, Check, Info, 
+  RefreshCw, Layers, ArrowLeft 
 } from 'lucide-react';
 
 export default function ComponentForgePage() {
@@ -27,12 +26,10 @@ export default function ComponentForgePage() {
   const [activeSession, setActiveSession] = useState(null); // The saved Prompt record inside history context
   const [chatMessages, setChatMessages] = useState([]);
   const [currentPrompt, setCurrentPrompt] = useState('');
-  const [ragDetails, setRagDetails] = useState(null);
   
   const [chatInput, setChatInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [showRAG, setShowRAG] = useState(false);
 
   const messagesEndRef = useRef(null);
 
@@ -57,13 +54,11 @@ export default function ComponentForgePage() {
         setActiveSession(existing);
         setChatMessages(existing.chatMessages);
         setCurrentPrompt(existing.resolvedPrompt);
-        setRagDetails(existing.ragDetails);
       } else {
         // Clear active session and generate a fresh blueprint
         setActiveSession(null);
         setChatMessages([]);
         setCurrentPrompt('');
-        setRagDetails(null);
         handleInitialGeneration();
       }
     }
@@ -102,7 +97,6 @@ export default function ComponentForgePage() {
       setActiveSession(savedRecord);
       setChatMessages(savedRecord.chatMessages);
       setCurrentPrompt(savedRecord.resolvedPrompt);
-      setRagDetails(savedRecord.ragDetails);
     } catch (e) {
       console.error(e);
     } finally {
@@ -124,7 +118,6 @@ export default function ComponentForgePage() {
 
     try {
       // Build full conversation payload for Gemini API
-      // Filter model messages to extract only raw markdown updates or conversations
       const apiHistory = updatedMessages.slice(0, -1);
 
       const response = await generateEnhancedPrompt({
@@ -147,8 +140,6 @@ export default function ComponentForgePage() {
         setCurrentPrompt(response.prompt);
       }
 
-      setRagDetails(response.ragDetails);
-
       // Save / Update session in AppContext history
       if (activeSession) {
         updatePromptChat(activeSession.id, finalMessages, response.prompt, response.ragDetails);
@@ -156,15 +147,13 @@ export default function ComponentForgePage() {
 
     } catch (err) {
       console.error("Chat failure", err);
-      setChatMessages([...updatedMessages, { role: 'model', content: "Offline error enhancing this component. Check settings." }]);
+      setChatMessages([...updatedMessages, { role: 'model', content: "Unable to process refinements at this moment. Please try again." }]);
     } finally {
       setIsGenerating(false);
     }
   };
 
   const handleCopy = () => {
-    // Copy active prompt content to clipboard
-    // Remove markdown ```prompt if present
     let rawText = currentPrompt;
     let promptMatch = rawText.match(/```prompt\n([\s\S]*?)\n```/);
     if (promptMatch) rawText = promptMatch[1];
@@ -255,7 +244,6 @@ export default function ComponentForgePage() {
 
       {/* 2. RIGHT WORKSPACE PANEL (Twin Workspace Layout) */}
       <div style={workspaceStyle}>
-        {/* Dynamic theme wrapper wrapper */}
         <div 
           style={twinLayoutContainer}
           className={
@@ -272,29 +260,18 @@ export default function ComponentForgePage() {
                 <h3 style={chatTitle}>{selectedComp ? selectedComp.name : "Select a Component"}</h3>
                 <span style={themeStatusBadge}>{selectedTheme}</span>
               </div>
-              <button
-                style={{
-                  ...toggleInspectorBtn,
-                  color: showRAG ? 'hsl(var(--secondary))' : 'var(--fg-muted)',
-                  backgroundColor: showRAG ? 'rgba(6, 182, 212, 0.06)' : 'transparent'
-                }}
-                onClick={() => setShowRAG(!showRAG)}
-              >
-                <Database size={14} />
-                RAG Inspector
-              </button>
             </div>
 
             {/* Chat Thread */}
             <div style={chatBody}>
-              {chatMessages.length === 0 && isGenerating ? (
+              {(chatMessages || []).length === 0 && isGenerating ? (
                 <div style={chatLoading}>
                   <RefreshCw size={24} className="animate-spin" style={{ color: 'hsl(var(--primary))' }} />
                   <p>Assembling design blueprint...</p>
                 </div>
               ) : (
                 <div style={messagesList}>
-                  {chatMessages.map((msg, idx) => {
+                  {(chatMessages || []).map((msg, idx) => {
                     const isModel = msg.role === 'model';
                     return (
                       <div
@@ -317,7 +294,6 @@ export default function ComponentForgePage() {
                             {isModel ? "PROMPT ARCHITECT" : "YOU"}
                           </span>
                           
-                          {/* Render dialog text, omit code blocks in chat thread for absolute layout clarity */}
                           <p style={bubbleText}>
                             {isModel 
                               ? msg.content.split('```prompt')[0].trim() || "Generated Prompt compiled successfully. Copied blueprint output in the right-side editor."
@@ -364,13 +340,6 @@ export default function ComponentForgePage() {
 
           {/* Code Prompt Output (Right side of split) */}
           <div style={promptColumn}>
-            {/* RAG Overlay drawer if showRAG active */}
-            {showRAG && (
-              <div style={ragOverlay}>
-                <RagInspector ragDetails={ragDetails} />
-              </div>
-            )}
-
             <div style={promptPanel} className="glass-panel">
               <div style={promptHeader}>
                 <div style={promptTitleWrap}>
@@ -604,20 +573,6 @@ const themeStatusBadge = {
   padding: '1px 5px',
 };
 
-const toggleInspectorBtn = {
-  background: 'transparent',
-  border: '1px solid rgba(255, 255, 255, 0.06)',
-  borderRadius: '6px',
-  padding: '6px 12px',
-  fontSize: '0.75rem',
-  fontWeight: '500',
-  cursor: 'pointer',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.35rem',
-  transition: 'all 0.2s',
-};
-
 const chatBody = {
   flex: 1,
   overflowY: 'auto',
@@ -682,15 +637,6 @@ const promptColumn = {
   flexDirection: 'column',
   gap: '1rem',
   position: 'relative',
-};
-
-const ragOverlay = {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  zIndex: 10,
-  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
 };
 
 const promptPanel = {

@@ -75,7 +75,7 @@ export async function supabaseRegister(username, password) {
 
     return { success: true };
   } catch (err) {
-    console.error("Supabase Register error:", err);
+    console.error("Supabase Register error:", err.message || err.code || err);
     return { success: false, message: err.message, fallback: true };
   }
 }
@@ -107,7 +107,7 @@ export async function supabaseLogin(username, password) {
 
     return { success: true };
   } catch (err) {
-    console.error("Supabase Login error:", err);
+    console.error("Supabase Login error:", err.message || err.code || err);
     return { success: false, message: err.message, fallback: true };
   }
 }
@@ -142,7 +142,7 @@ export async function supabaseFetchHistory(username) {
       componentName: item.component_name || ''
     }));
   } catch (err) {
-    console.error("Supabase fetch history error:", err);
+    console.error("Supabase fetch history error:", err.message || err.code || err);
     return null;
   }
 }
@@ -151,6 +151,20 @@ export async function supabaseSavePrompt(username, record) {
   if (!isDatabaseActive) return false;
 
   try {
+    // Self-healing database check: Ensure username exists in users table to prevent foreign key errors on out-of-sync sessions
+    const { data: userExists, error: checkError } = await supabase
+      .from('users')
+      .select('username')
+      .eq('username', username)
+      .maybeSingle();
+
+    if (!checkError && !userExists) {
+      // Auto-register the username on-the-fly to satisfy foreign key constraints
+      await supabase
+        .from('users')
+        .insert([{ username, password: 'promptforge_autosync' }]);
+    }
+
     // Map context fields to standard snake_case database schema
     const payload = {
       id: record.id,
@@ -176,7 +190,7 @@ export async function supabaseSavePrompt(username, record) {
     if (error) throw error;
     return true;
   } catch (err) {
-    console.error("Supabase save prompt error:", err);
+    console.error("Supabase save prompt error:", err.message || err.code || err);
     return false;
   }
 }
@@ -193,7 +207,7 @@ export async function supabaseDeletePrompt(id) {
     if (error) throw error;
     return true;
   } catch (err) {
-    console.error("Supabase delete prompt error:", err);
+    console.error("Supabase delete prompt error:", err.message || err.code || err);
     return false;
   }
 }
