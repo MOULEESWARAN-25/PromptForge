@@ -1,37 +1,92 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useApp } from '@/context/AppContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { generateEnhancedPrompt } from '@/services/gemini';
-import {
+import { 
   ArrowLeft, Sparkles, Layout, Monitor, Code2, 
-  Wand2, ChevronRight, CheckCircle2, Sliders, Info 
+  Wand2, ChevronRight, CheckCircle2, Sliders, Info, Plus, Trash2
 } from 'lucide-react';
 import { themeStyles } from '@/data/designVocabulary';
 
-export default function ForgePage() {
+// ─── Categories & Images Configurations ────────────────────────
+const APP_CATEGORIES = [
+  { id: 'SaaS Dashboard Admin Panel', label: 'SaaS Dashboard', desc: 'Enterprise management dashboards, metrics widgets, analytics grids.', image: '/categories/saas-dashboard.png' },
+  { id: 'E-Commerce Marketplace', label: 'E-Commerce', desc: 'Product grid catalog, cart, checkout checkout, client profiles.', image: '/categories/ecommerce.png' },
+  { id: 'Student Management Hub', label: 'Student Hub', desc: 'Student databases, gradebooks, schedulers, parental analytics.', image: '/categories/student-management.png' },
+  { id: 'Freelancer Billing Platform', label: 'Billing Platform', desc: 'Invoice generators, payment integrations, client lists.', image: '/categories/freelancer-billing.png' },
+  { id: 'Digital Creative Portfolio', label: 'Creative Portfolio', desc: 'Grid galleries, lightboxes, timeline resumes, contact forms.', image: '/categories/portfolio.png' },
+  { id: 'Healthcare Tracker', label: 'Healthcare Tracker', desc: 'Patient charts, vitals visualizers, logs, schedules.', image: '/categories/healthcare.png' },
+  { id: 'Fitness Planner', label: 'Fitness Planner', desc: 'Workout builders, calorie logs, weight progression widgets.', image: '/categories/fitness.png' },
+  { id: 'Real Estate Portal', label: 'Real Estate Portal', desc: 'Map search, property highlights, agent panels, pricing lists.', image: '/categories/real-estate.png' },
+  { id: 'Custom', label: 'Custom Application', desc: 'Describe your own custom software structure.', image: null }
+];
+
+const PAGE_TYPES = [
+  { id: 'Dashboard Panel', label: 'Dashboard Panel', desc: 'Sidebar admin dashboard grid, metric widgets, table structures.', image: '/pages/dashboard.png' },
+  { id: 'Landing Homepage', label: 'Landing Homepage', desc: 'SaaS product presentation, CTA banners, pricing grids, FAQs.', image: '/pages/landing.png' },
+  { id: 'Login Page', label: 'Login Page', desc: 'Glassmorphic login entry card with transitions.', image: '/pages/login.png' },
+  { id: 'Signup Page', label: 'Signup Page', desc: 'Form wizards, secure validation checkmarks.', image: '/pages/login.png' },
+  { id: 'Settings Page', label: 'Settings Page', desc: 'Vertical menu navigation tabs, settings forms.', image: '/pages/settings.png' },
+  { id: 'Profile Page', label: 'Profile Page', desc: 'User information header grids, feed stream widgets.', image: '/pages/profile.png' },
+  { id: 'SaaS Pricing Matrix', label: 'Pricing Matrix', desc: 'Spotlight subscription tiers, feature checklists.', image: '/pages/pricing.png' }
+];
+
+const CATEGORY_FEATURES = {
+  'SaaS Dashboard Admin Panel': ['KPI Metric Cards', 'Interactive Charts', 'Data Tables & Filters', 'User Role Permissions', 'Activity Logs', 'Dark Mode Toggle', 'CSV/PDF Data Export', 'Collapsible Sidebar'],
+  'E-Commerce Marketplace': ['Product Search & Filter', 'Shopping Cart & Checkout', 'Product Detail Gallery', 'Customer Reviews', 'Order Tracking Dashboard', 'Stripe Payment Integration', 'Wishlist Page'],
+  'Student Management Hub': ['Student Directory', 'Grades & Performance Analytics', 'Attendance Tracker', 'Course Scheduler', 'Teacher Portal', 'Parent Notifications', 'Assignment Submit Area'],
+  'Freelancer Billing Platform': ['Invoice Generator', 'Client Contact Manager', 'Payment Status Dashboard', 'Time Tracker Widget', 'Recurring Subscriptions', 'Stripe/PayPal Integration', 'Expense Reports'],
+  'Digital Creative Portfolio': ['Filterable Project Grid', 'Image/Video Lightbox', 'About Me Hero Page', 'Contact Form with Validation', 'Interactive Resume Timeline', 'Social Media Integration', 'Testimonial Slider'],
+  'Healthcare Tracker': ['Appointment Scheduler', 'Patient Medical Records', 'Prescription Tracker', 'Vitals Metric Cards', 'Doctor Chat Interface', 'Wearable Sync Dashboard', 'Health Goals Tracker'],
+  'Fitness Planner': ['Workout Builder', 'Calorie Counter Dashboard', 'Weight Progress Graph', 'Exercise Video Library', 'Weekly Routine Planner', 'Achievement Badges', 'Water Intake Tracker'],
+  'Real Estate Portal': ['Interactive Map Search', 'Property Detail Carousel', 'Mortgage Calculator', 'Agent Contact Panel', 'Filter Criteria (Price, Beds)', 'Virtual Tour Link Showcase', 'Saved Searches'],
+  'Custom': ['User Authentication', 'Database API Connect', 'CRUD Action Panel', 'Responsive Grid Layout', 'Dark Mode Toggle', 'Email Notifications', 'Interactive Dashboard Panels', 'Activity Stream Log']
+};
+
+const PAGE_COMPONENTS = {
+  'Dashboard Panel': ['Collapsible Sidebar', 'KPI Metric Cards', 'Sortable Data Table', 'Command Palette (Cmd+K)', 'Skeleton Shimmer Loaders', 'Toast Notifications', 'Quick Stats Charts'],
+  'Landing Homepage': ['Hero CTA Section', 'Bento Grid Features', 'Client Logo Marquee Ticker', 'Testimonial Carousel', 'Accordion FAQ Collapsible', 'Floating Bottom Nav', 'Interactive Video Showcase'],
+  'Login Page': ['Glassmorphism Entry Card', 'Floating Input Labels', 'OTP Verification Code Input', 'Spring Scale Checkmark Bounces', 'Switch Mode Toggle', 'Error Validation States'],
+  'Signup Page': ['Multi-step Registration Form', 'Password Strength Estimator', 'Terms of Service Checkbox', 'Oauth Social Logins', 'Success Animation Screen', 'Email Verification Code'],
+  'Settings Page': ['Vertical Tab Navigation', 'Profile Avatar Uploader', 'Toggle Notification Switches', 'API Key Management Board', 'Danger Zone Deactivation Card', 'Preferences Form'],
+  'Profile Page': ['User Profile Header', 'Activity Stream Feed', 'Follower/Connection Stats', 'Editable Contact Details', 'Bio Summary Box', 'Recent Uploads Gallery', 'Social Media Links'],
+  'SaaS Pricing Matrix': ['Spotlight Pricing Cards', 'Animated Border Glow Highlights', 'Switch Billing Toggle (Annual/Monthly)', 'Checkmark Feature Lists', 'Interactive CTA Buttons', 'Accordion FAQ']
+};
+
+function ForgeWizardContent() {
   const { user, savePromptRecord, apiKey } = useApp();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Active state: null (mode selector) | "application" | "page" | "enhance"
-  const [activeMode, setActiveMode] = useState(null);
-  
-  // Universal options
-  const [selectedTheme, setSelectedTheme] = useState('Sleek Dark Glassmorphic');
-  const [rawDescription, setRawDescription] = useState('');
+  // Active state mode: "application" | "page" | "enhance"
+  const [activeMode, setActiveMode] = useState('application');
+
+  useEffect(() => {
+    const mode = searchParams.get('mode');
+    if (mode === 'application' || mode === 'page' || mode === 'enhance') {
+      setActiveMode(mode);
+    }
+  }, [searchParams]);
+
+  // Universal Wizard States
+  const [selectedTheme, setSelectedTheme] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Application Wizard state
-  const [appCategory, setAppCategory] = useState('SaaS Dashboard');
+  // 1. Full-Stack Application State
+  const [appCategory, setAppCategory] = useState(null);
   const [customCategory, setCustomCategory] = useState('');
+  const [selectedFeatures, setSelectedFeatures] = useState([]);
+  const [customFeatureInput, setCustomFeatureInput] = useState('');
 
-  // Page Wizard state
-  const [pageType, setPageType] = useState('Dashboard Panel');
+  // 2. Custom Webpage State
+  const [pageType, setPageType] = useState(null);
   const [selectedComponents, setSelectedComponents] = useState([]);
-  const [useDefaultComponents, setUseDefaultComponents] = useState(true);
+  const [customComponentInput, setCustomComponentInput] = useState('');
 
-  // Enhancer Wizard state
+  // 3. Raw Prompt Enhancer State
+  const [rawDescription, setRawDescription] = useState('');
   const [selectedQualities, setSelectedQualities] = useState(['modern', 'premium', 'polished']);
   const [selectedMotions, setSelectedMotions] = useState(['hover feedback', 'micro-interactions']);
 
@@ -42,30 +97,43 @@ export default function ForgePage() {
     }
   }, [user, router]);
 
-  // Handle page component option list based on active pageType
-  const getComponentsListForPage = () => {
-    switch (pageType) {
-      case 'Dashboard Panel':
-        return ['Collapsible Sidebar', 'KPI Metric Cards', 'Sortable Data Table', 'Command Palette (Cmd+K)', 'Skeleton Shimmer Loaders', 'Toast Notifications'];
-      case 'Landing Homepage':
-        return ['Hero CTA Section', 'Bento Grid Features', 'Client Logo Marquee Ticker', 'Testimonial Carousel', 'Accordion FAQ Collapsible', 'Floating Bottom Nav'];
-      case 'Login/Signup Portal':
-        return ['Glassmorphism Entry Card', 'Floating Input Labels', 'OTP Verification Code Input', 'Spring Scale Checkmark Bounces', 'Switch Mode Toggle', 'Error Validation States'];
-      case 'SaaS Pricing Matrix':
-        return ['Spotlight Pricing Cards', 'Animated Border Glow Highlights', 'Switch Billing Toggle (Annual/Monthly)', 'Checkmark Feature Lists', 'Interactive CTA Buttons', 'Accordion FAQ'];
-      default:
-        return ['Navbar Header', 'Footer Section', 'Interactive Buttons', 'Responsive Grid Cards'];
+  // Load default features when category changes
+  useEffect(() => {
+    if (appCategory) {
+      const defaults = CATEGORY_FEATURES[appCategory] || CATEGORY_FEATURES['Custom'];
+      setSelectedFeatures([...defaults]);
+    }
+  }, [appCategory]);
+
+  // Load default components when pageType changes
+  useEffect(() => {
+    if (pageType) {
+      const defaults = PAGE_COMPONENTS[pageType] || [];
+      setSelectedComponents([...defaults]);
+    }
+  }, [pageType]);
+
+  // Feature selection handers
+  const handleFeatureToggle = (feature) => {
+    if (selectedFeatures.includes(feature)) {
+      setSelectedFeatures(selectedFeatures.filter(f => f !== feature));
+    } else {
+      setSelectedFeatures([...selectedFeatures, feature]);
     }
   };
 
-  // Reset page components list when page type changes
-  useEffect(() => {
-    setSelectedComponents(getComponentsListForPage());
-    setUseDefaultComponents(true);
-  }, [pageType]);
+  const handleAddCustomFeature = (e) => {
+    e.preventDefault();
+    if (!customFeatureInput.trim()) return;
+    const feat = customFeatureInput.trim();
+    if (!selectedFeatures.includes(feat)) {
+      setSelectedFeatures([...selectedFeatures, feat]);
+    }
+    setCustomFeatureInput('');
+  };
 
+  // Component selection handlers
   const handleComponentToggle = (comp) => {
-    setUseDefaultComponents(false);
     if (selectedComponents.includes(comp)) {
       setSelectedComponents(selectedComponents.filter(c => c !== comp));
     } else {
@@ -73,6 +141,17 @@ export default function ForgePage() {
     }
   };
 
+  const handleAddCustomComponent = (e) => {
+    e.preventDefault();
+    if (!customComponentInput.trim()) return;
+    const comp = customComponentInput.trim();
+    if (!selectedComponents.includes(comp)) {
+      setSelectedComponents([...selectedComponents, comp]);
+    }
+    setCustomComponentInput('');
+  };
+
+  // Modifier toggles (Enhancer)
   const handleQualityToggle = (qual) => {
     if (selectedQualities.includes(qual)) {
       setSelectedQualities(selectedQualities.filter(q => q !== qual));
@@ -89,69 +168,66 @@ export default function ForgePage() {
     }
   };
 
-  const handleForge = async (e) => {
+  // Prompt compiler trigger
+  const handleForgeSubmit = async (e) => {
     e.preventDefault();
-    if (!rawDescription.trim() && activeMode !== 'enhance') {
-      alert("Please describe your idea.");
-      return;
-    }
-
     setIsGenerating(true);
 
     try {
-      const modeQuery = rawDescription;
-      const finalCategory = appCategory === 'Custom' ? customCategory : appCategory;
-      const finalComponents = useDefaultComponents ? getComponentsListForPage() : selectedComponents;
-      
+      let finalQuery = '';
+      let title = '';
+
+      if (activeMode === 'application') {
+        const finalCategory = appCategory === 'Custom' ? customCategory : appCategory;
+        title = `Application: ${finalCategory}`;
+        finalQuery = `Create a premium full-stack ${finalCategory} web application using the theme style "${selectedTheme || 'Sleek Dark Glassmorphic'}". Ensure it incorporates the following features: ${selectedFeatures.join(', ')}.`;
+      } else if (activeMode === 'page') {
+        title = `Page: ${pageType}`;
+        finalQuery = `Create a highly polished, responsive ${pageType} with the theme style "${selectedTheme || 'Sleek Dark Glassmorphic'}". Implement these primary grid page components: ${selectedComponents.join(', ')}.`;
+      } else if (activeMode === 'enhance') {
+        title = `Enhanced: ${rawDescription.slice(0, 24)}...`;
+        finalQuery = `${rawDescription}\n\n[INJECT TECHNICAL MODIFIERS]:\n- Theme Style: ${selectedTheme || 'Sleek Dark Glassmorphic'}\n- Visual Qualities: ${selectedQualities.join(', ')}\n- Transitions & Motion: ${selectedMotions.join(', ')}`;
+      }
+
       const generationParams = {
         mode: activeMode,
-        query: modeQuery,
-        theme: selectedTheme,
+        query: finalQuery,
+        theme: selectedTheme || 'Sleek Dark Glassmorphic',
         apiKey
       };
 
       if (activeMode === 'application') {
-        generationParams.category = finalCategory;
+        generationParams.category = appCategory === 'Custom' ? customCategory : appCategory;
       } else if (activeMode === 'page') {
         generationParams.pageType = pageType;
-        generationParams.components = finalComponents;
-      } else if (activeMode === 'enhance') {
-        // Enforce a robust base prompt for the enhancer
-        generationParams.query = `${rawDescription}\n\n[INJECT STYLES AND BEHAVIORS]:\n- Visual Qualities: ${selectedQualities.join(', ')}\n- Transitions & Motion: ${selectedMotions.join(', ')}`;
+        generationParams.components = selectedComponents;
       }
 
       const response = await generateEnhancedPrompt(generationParams);
-      
-      // Save prompt in Context history log
-      let title = "Untitled Prompt";
-      if (activeMode === 'application') title = `Application: ${finalCategory}`;
-      else if (activeMode === 'page') title = `Page: ${pageType}`;
-      else if (activeMode === 'enhance') title = `Enhanced: ${rawDescription.slice(0, 20)}...`;
 
       const savedRecord = savePromptRecord({
         mode: activeMode,
         title,
-        query: rawDescription,
-        theme: selectedTheme,
+        query: finalQuery,
+        theme: selectedTheme || 'Sleek Dark Glassmorphic',
         resolvedPrompt: response.prompt,
         ragDetails: response.ragDetails,
-        category: finalCategory,
-        pageType: pageType,
-        components: finalComponents,
+        category: activeMode === 'application' ? (appCategory === 'Custom' ? customCategory : appCategory) : null,
+        pageType: activeMode === 'page' ? pageType : null,
+        components: activeMode === 'page' ? selectedComponents : null,
         chatMessages: [
-          { role: 'user', content: `Forge my custom ${activeMode} prompt!` },
+          { role: 'user', content: `Forge my custom ${activeMode} prompt blueprint!` },
           { role: 'model', content: response.prompt }
         ]
       });
 
       setIsGenerating(false);
-      // Redirect to chat Workspace
       router.push(`/chat?id=${savedRecord.id}`);
 
     } catch (err) {
       console.error("Error forging prompt", err);
       setIsGenerating(false);
-      alert("An error occurred generating your prompt. Check console.");
+      alert("An error occurred during prompt compiler engine run. Please check console.");
     }
   };
 
@@ -159,207 +235,400 @@ export default function ForgePage() {
 
   return (
     <div style={containerStyle}>
-      {/* ------------------- 1. MODE SELECTOR STATE ------------------- */}
-      {!activeMode && (
-        <div style={selectorState}>
-          <div style={introHeader}>
-            <h1 style={mainTitle}>Forge Your Design Blueprint</h1>
-            <p style={mainSub}>
-              Select what kind of prompt you are building. PromptForge translates vague requirements into premium technical prompt guides.
-            </p>
+      <button style={backBtn} onClick={() => router.push('/')}>
+        <ArrowLeft size={16} />
+        Back to Dashboard
+      </button>
+
+      <div style={wizardHeader}>
+        <div style={wizardTitleRow}>
+          <div style={wizardIconWrap}>
+            {activeMode === 'application' && <Monitor size={22} style={{ color: '#7c3aed' }} />}
+            {activeMode === 'page' && <Layout size={22} style={{ color: '#0891b2' }} />}
+            {activeMode === 'enhance' && <Wand2 size={22} style={{ color: '#059669' }} />}
           </div>
-
-          <div style={selectionGrid}>
-            {/* A. Application Prompt */}
-            <div style={selectCard} className="glass-panel glass-panel-hover" onClick={() => setActiveMode('application')}>
-              <div style={selectIconWrap}>
-                <Monitor size={22} style={{ color: 'hsl(var(--primary))' }} />
-              </div>
-              <h3 style={selectCardTitle}>Full Application</h3>
-              <p style={selectCardDesc}>
-                Define an entire end-to-end multi-page SaaS dashboard, e-commerce site, or digital portfolio complete with features, routing, and data seeds.
-              </p>
-              <div style={selectArrow}>
-                <span>Configure Wizard</span>
-                <ChevronRight size={16} />
-              </div>
-            </div>
-
-            {/* B. Page Prompt */}
-            <div style={selectCard} className="glass-panel glass-panel-hover" onClick={() => setActiveMode('page')}>
-              <div style={selectIconWrap}>
-                <Layout size={22} style={{ color: 'hsl(var(--secondary))' }} />
-              </div>
-              <h3 style={selectCardTitle}>Custom Web Page</h3>
-              <p style={selectCardDesc}>
-                Design a structured page (login portals, pricing indices, responsive homepage layout grids) select custom component widgets.
-              </p>
-              <div style={selectArrow}>
-                <span>Configure Wizard</span>
-                <ChevronRight size={16} />
-              </div>
-            </div>
-
-            {/* C. Component Prompt (Redirects to split catalog) */}
-            <div style={selectCard} className="glass-panel glass-panel-hover" onClick={() => router.push('/component-forge')}>
-              <div style={selectIconWrap}>
-                <Code2 size={22} style={{ color: 'hsl(var(--accent))' }} />
-              </div>
-              <h3 style={selectCardTitle}>Single UI Component</h3>
-              <p style={selectCardDesc}>
-                Generate highly precise, reusable design system components (Accordions, OTP Inputs, Toast banners, Command Search Palettes).
-              </p>
-              <div style={selectArrow}>
-                <span>Open Split Catalog</span>
-                <ChevronRight size={16} />
-              </div>
-            </div>
-
-            {/* D. Raw Prompt Enhancer */}
-            <div style={selectCard} className="glass-panel glass-panel-hover" onClick={() => setActiveMode('enhance')}>
-              <div style={selectIconWrap}>
-                <Wand2 size={22} style={{ color: '#10b981' }} />
-              </div>
-              <h3 style={selectCardTitle}>Enhance Raw Prompt</h3>
-              <p style={selectCardDesc}>
-                Paste any rough prompt draft or single sentences and automatically inject micro-interactions, responsive grids, and clean design variables.
-              </p>
-              <div style={selectArrow}>
-                <span>Open Enhancer</span>
-                <ChevronRight size={16} />
-              </div>
-            </div>
+          <div>
+            <h1 style={mainTitle}>
+              {activeMode === 'application' && "Full-Stack Application Architect"}
+              {activeMode === 'page' && "Custom Webpage Layout Designer"}
+              {activeMode === 'enhance' && "Technical Design Prompt Enhancer"}
+            </h1>
+            <p style={mainSub}>
+              {activeMode === 'application' && "Build a full multi-page application blueprint, features list, and data schema."}
+              {activeMode === 'page' && "Design a structured single-page layout wireframe grid selecting required components."}
+              {activeMode === 'enhance' && "Inject spring transitions, layout variables, and visual tokens into standard prompt drafts."}
+            </p>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* ------------------- 2. WIZARD FORGE SUB-FORMS ------------------- */}
-      {activeMode && (
-        <div style={wizardLayout} className="glass-panel">
-          {/* Back Button */}
-          <button style={backBtn} onClick={() => { setActiveMode(null); setRawDescription(''); }}>
-            <ArrowLeft size={16} />
-            Back to Selectors
-          </button>
-
-          <div style={wizardHeader}>
-            <h2 style={wizardTitle}>
-              {activeMode === 'application' && "Lovable-Style Application Architect"}
-              {activeMode === 'page' && "v0-Style Page Layout Designer"}
-              {activeMode === 'enhance' && "Technical Design Prompt Enhancer"}
-            </h2>
-            <p style={wizardDesc}>
-              {activeMode === 'application' && "Design an entire application structure using clean layout tokens and system logic."}
-              {activeMode === 'page' && "Build a visual wireframe grid selecting required components and visual states."}
-              {activeMode === 'enhance' && "Inject spring transitions, HSL colors, and high-fidelity modifiers into raw drafts."}
-            </p>
-          </div>
-
-          <form onSubmit={handleForge} style={formStyle}>
-            {/* Mode-Specific Settings */}
-
-            {/* A. APPLICATION WIZARD OPTIONS */}
-            {activeMode === 'application' && (
-              <div style={formRow}>
-                <div style={formGroup}>
-                  <label style={formLabel}>Application Category</label>
-                  <select
-                    value={appCategory}
-                    onChange={(e) => setAppCategory(e.target.value)}
-                    style={selectStyle}
-                    className="glass-input"
-                  >
-                    <option value="SaaS Dashboard Admin Panel">SaaS Dashboard Admin Panel</option>
-                    <option value="E-Commerce Marketplace">E-Commerce Marketplace</option>
-                    <option value="Student Management Hub">Student Management Hub</option>
-                    <option value="Freelancer Billing Platform">Freelancer Billing Platform</option>
-                    <option value="Digital Creative Portfolio">Digital Portfolio</option>
-                    <option value="Custom">Custom (Type below)</option>
-                  </select>
+      <div style={wizardContentBody}>
+        {/* ─── A. APPLICATION ARCHITECT WIZARD FLOW ─────────────────── */}
+        {activeMode === 'application' && (
+          <div style={flowContainer}>
+            {/* Step 1: Application Purpose */}
+            <div style={stepSection}>
+              <div style={stepHeader}>
+                <span style={stepNum}>01</span>
+                <div>
+                  <h3 style={stepTitle}>Select Application Purpose</h3>
+                  <p style={stepDesc}>What kind of digital product are you building?</p>
                 </div>
-
-                {appCategory === 'Custom' && (
-                  <div style={formGroup}>
-                    <label style={formLabel}>Describe Custom Category</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Vintage Synth Controller Workspace"
-                      value={customCategory}
-                      onChange={(e) => setCustomCategory(e.target.value)}
-                      style={inputStyle}
-                      className="glass-input"
-                      required
-                    />
-                  </div>
-                )}
               </div>
-            )}
 
-            {/* B. PAGE WIZARD OPTIONS */}
-            {activeMode === 'page' && (
-              <div style={formVerticalGroup}>
-                <div style={formGroup}>
-                  <label style={formLabel}>Select Web Page Type</label>
-                  <select
-                    value={pageType}
-                    onChange={(e) => setPageType(e.target.value)}
-                    style={selectStyle}
-                    className="glass-input"
-                  >
-                    <option value="Dashboard Panel">Dashboard Panel</option>
-                    <option value="Landing Homepage">Landing Homepage</option>
-                    <option value="Login/Signup Portal">Login/Signup Portal</option>
-                    <option value="SaaS Pricing Matrix">SaaS Pricing Matrix</option>
-                  </select>
-                </div>
-
-                <div style={{ ...formGroup, marginTop: '0.5rem' }}>
-                  <div style={componentsListHeader}>
-                    <label style={formLabel}>Include Components</label>
-                    <button
-                      type="button"
-                      style={defaultToggleBtn}
-                      onClick={() => {
-                        setUseDefaultComponents(!useDefaultComponents);
-                        if (!useDefaultComponents) setSelectedComponents(getComponentsListForPage());
-                      }}
+              <div style={categoryGrid}>
+                {APP_CATEGORIES.map((cat) => {
+                  const isSelected = appCategory === cat.id;
+                  return (
+                    <div 
+                      key={cat.id} 
+                      style={categoryCard(isSelected)}
+                      onClick={() => setAppCategory(cat.id)}
                     >
-                      {useDefaultComponents ? "Custom Selection" : "Reset to Recommended Defaults"}
-                    </button>
-                  </div>
-
-                  <div style={checkboxGrid}>
-                    {getComponentsListForPage().map((comp, idx) => {
-                      const checked = selectedComponents.includes(comp);
-                      return (
-                        <div
-                          key={idx}
-                          style={{
-                            ...checkboxCard,
-                            borderColor: checked ? 'hsl(var(--secondary))' : 'rgba(255,255,255,0.05)',
-                            backgroundColor: checked ? 'rgba(6, 182, 212, 0.04)' : 'rgba(255,255,255,0.01)'
-                          }}
-                          onClick={() => handleComponentToggle(comp)}
-                        >
-                          <CheckCircle2
-                            size={16}
-                            style={{
-                              color: checked ? 'hsl(var(--secondary))' : 'rgba(255,255,255,0.1)',
-                              flexShrink: 0
-                            }}
-                          />
-                          <span style={checkboxText}>{comp}</span>
+                      {cat.image && (
+                        <img src={cat.image} alt={cat.label} style={cardImg} />
+                      )}
+                      {!cat.image && (
+                        <div style={cardImagePlaceholder}>
+                          <Code2 size={24} style={{ color: 'rgba(255,255,255,0.15)' }} />
                         </div>
-                      );
-                    })}
+                      )}
+                      <div style={cardOverlay} />
+                      {isSelected && (
+                        <div style={cardCheckedBadge}>
+                          <CheckCircle2 size={16} style={{ color: '#fbbf24' }} />
+                        </div>
+                      )}
+                      <div style={cardTextWrap}>
+                        <span style={cardTitle}>{cat.label}</span>
+                        <span style={cardDesc}>{cat.desc}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {appCategory === 'Custom' && (
+                <div style={{ ...inputBoxContainer, marginTop: '1.25rem' }}>
+                  <label style={formLabel}>Describe Custom Application Purpose</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Vintage Synthesizer Controller Workspace"
+                    value={customCategory}
+                    onChange={(e) => setCustomCategory(e.target.value)}
+                    style={inputStyle}
+                    className="glass-input"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Step 2: Theme Selection */}
+            {appCategory && (
+              <div style={stepSection} className="animate-fade-up">
+                <div style={stepHeader}>
+                  <span style={stepNum}>02</span>
+                  <div>
+                    <h3 style={stepTitle}>Choose UI Theme Style</h3>
+                    <p style={stepDesc}>Define the overall aesthetic and layout tokens.</p>
                   </div>
+                </div>
+
+                <div style={themeCardGrid}>
+                  {Object.keys(themeStyles).map((themeName) => {
+                    const isSelected = selectedTheme === themeName;
+                    return (
+                      <div
+                        key={themeName}
+                        style={themeSelectCard(isSelected)}
+                        onClick={() => setSelectedTheme(themeName)}
+                      >
+                        <div style={themeHeaderRow}>
+                          <span style={themeCardName}>{themeName}</span>
+                          {isSelected && <CheckCircle2 size={16} style={{ color: '#fbbf24' }} />}
+                        </div>
+                        <p style={themeCardDescText}>{themeStyles[themeName].description}</p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            {/* C. ENHANCER WIZARD OPTIONS */}
-            {activeMode === 'enhance' && (
-              <div style={formVerticalGroup}>
+            {/* Step 3: Features Selection */}
+            {appCategory && selectedTheme && (
+              <div style={stepSection} className="animate-fade-up">
+                <div style={stepHeader}>
+                  <span style={stepNum}>03</span>
+                  <div>
+                    <h3 style={stepTitle}>Select & Customize Features</h3>
+                    <p style={stepDesc}>Choose suggested components or append custom parameters.</p>
+                  </div>
+                </div>
+
+                <div style={checkboxGrid}>
+                  {(CATEGORY_FEATURES[appCategory] || CATEGORY_FEATURES['Custom']).map((feat, idx) => {
+                    const isChecked = selectedFeatures.includes(feat);
+                    return (
+                      <div
+                        key={idx}
+                        style={checkboxCard(isChecked)}
+                        onClick={() => handleFeatureToggle(feat)}
+                      >
+                        <CheckCircle2
+                          size={16}
+                          style={{
+                            color: isChecked ? '#fbbf24' : 'rgba(255,255,255,0.1)',
+                            flexShrink: 0
+                          }}
+                        />
+                        <span style={checkboxText}>{feat}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Custom feature adder */}
+                <form onSubmit={handleAddCustomFeature} style={adderFormStyle}>
+                  <input
+                    type="text"
+                    placeholder="Add custom feature (e.g., Live chat widget)..."
+                    value={customFeatureInput}
+                    onChange={(e) => setCustomFeatureInput(e.target.value)}
+                    style={adderInputStyle}
+                    className="glass-input"
+                  />
+                  <button type="submit" style={adderBtnStyle} className="btn-secondary btn-sm">
+                    <Plus size={14} />
+                    Add
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* Step 4: Submission */}
+            {appCategory && selectedTheme && selectedFeatures.length > 0 && (
+              <div style={submitContainer} className="animate-fade-up">
+                <div style={offlineWarning}>
+                  <Info size={16} />
+                  <span>
+                    {apiKey ? "Live Gemini Compiler engine active." : "Gemini API key missing. Offline Prompt Compiler active."}
+                  </span>
+                </div>
+                <button
+                  onClick={handleForgeSubmit}
+                  style={submitBtn}
+                  className="btn-accent shine-effect"
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <>
+                      <Sliders size={18} className="animate-spin" />
+                      Compiling Application Blueprint...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={18} />
+                      Generate Application Prompt
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─── B. CUSTOM WEBPAGE WIZARD FLOW ────────────────────────── */}
+        {activeMode === 'page' && (
+          <div style={flowContainer}>
+            {/* Step 1: Webpage Page Type */}
+            <div style={stepSection}>
+              <div style={stepHeader}>
+                <span style={stepNum}>01</span>
+                <div>
+                  <h3 style={stepTitle}>Select Web Page Type</h3>
+                  <p style={stepDesc}>What kind of interface layout are you structuring?</p>
+                </div>
+              </div>
+
+              <div style={categoryGrid}>
+                {PAGE_TYPES.map((page) => {
+                  const isSelected = pageType === page.id;
+                  return (
+                    <div 
+                      key={page.id} 
+                      style={categoryCard(isSelected)}
+                      onClick={() => setPageType(page.id)}
+                    >
+                      {page.image && (
+                        <img src={page.image} alt={page.label} style={cardImg} />
+                      )}
+                      <div style={cardOverlay} />
+                      {isSelected && (
+                        <div style={cardCheckedBadge}>
+                          <CheckCircle2 size={16} style={{ color: '#fbbf24' }} />
+                        </div>
+                      )}
+                      <div style={cardTextWrap}>
+                        <span style={cardTitle}>{page.label}</span>
+                        <span style={cardDesc}>{page.desc}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Step 2: Components selection */}
+            {pageType && (
+              <div style={stepSection} className="animate-fade-up">
+                <div style={stepHeader}>
+                  <span style={stepNum}>02</span>
+                  <div>
+                    <h3 style={stepTitle}>Suggested Page Components</h3>
+                    <p style={stepDesc}>Select modular components to structure inside the grid.</p>
+                  </div>
+                </div>
+
+                <div style={checkboxGrid}>
+                  {(PAGE_COMPONENTS[pageType] || []).map((comp, idx) => {
+                    const isChecked = selectedComponents.includes(comp);
+                    return (
+                      <div
+                        key={idx}
+                        style={checkboxCard(isChecked)}
+                        onClick={() => handleComponentToggle(comp)}
+                      >
+                        <CheckCircle2
+                          size={16}
+                          style={{
+                            color: isChecked ? '#fbbf24' : 'rgba(255,255,255,0.1)',
+                            flexShrink: 0
+                          }}
+                        />
+                        <span style={checkboxText}>{comp}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Custom component adder */}
+                <form onSubmit={handleAddCustomComponent} style={adderFormStyle}>
+                  <input
+                    type="text"
+                    placeholder="Add custom component (e.g., Audio Visualizer Card)..."
+                    value={customComponentInput}
+                    onChange={(e) => setCustomComponentInput(e.target.value)}
+                    style={adderInputStyle}
+                    className="glass-input"
+                  />
+                  <button type="submit" style={adderBtnStyle} className="btn-secondary btn-sm">
+                    <Plus size={14} />
+                    Add
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* Step 3: Theme Selection */}
+            {pageType && selectedComponents.length > 0 && (
+              <div style={stepSection} className="animate-fade-up">
+                <div style={stepHeader}>
+                  <span style={stepNum}>03</span>
+                  <div>
+                    <h3 style={stepTitle}>Select Desired UI Theme</h3>
+                    <p style={stepDesc}>Apply design variables and HSL tokens.</p>
+                  </div>
+                </div>
+
+                <div style={themeCardGrid}>
+                  {Object.keys(themeStyles).map((themeName) => {
+                    const isSelected = selectedTheme === themeName;
+                    return (
+                      <div
+                        key={themeName}
+                        style={themeSelectCard(isSelected)}
+                        onClick={() => setSelectedTheme(themeName)}
+                      >
+                        <div style={themeHeaderRow}>
+                          <span style={themeCardName}>{themeName}</span>
+                          {isSelected && <CheckCircle2 size={16} style={{ color: '#fbbf24' }} />}
+                        </div>
+                        <p style={themeCardDescText}>{themeStyles[themeName].description}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Submission */}
+            {pageType && selectedTheme && selectedComponents.length > 0 && (
+              <div style={submitContainer} className="animate-fade-up">
+                <div style={offlineWarning}>
+                  <Info size={16} />
+                  <span>
+                    {apiKey ? "Live Gemini Compiler active." : "Offline Prompt Compiler compilation active."}
+                  </span>
+                </div>
+                <button
+                  onClick={handleForgeSubmit}
+                  style={submitBtn}
+                  className="btn-accent shine-effect"
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <>
+                      <Sliders size={18} className="animate-spin" />
+                      Forging Webpage Blueprint...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={18} />
+                      Generate Page Prompt
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─── C. PROMPT ENHANCER WIZARD FLOW ───────────────────────── */}
+        {activeMode === 'enhance' && (
+          <div style={flowContainer}>
+            {/* Step 1: Input Description */}
+            <div style={stepSection}>
+              <div style={stepHeader}>
+                <span style={stepNum}>01</span>
+                <div>
+                  <h3 style={stepTitle}>Paste Your Raw / Vague Prompt Draft</h3>
+                  <p style={stepDesc}>Describe in raw terms or paste a rough instruction sketch.</p>
+                </div>
+              </div>
+
+              <textarea
+                placeholder="e.g. Create a simple checkout screen with some shopping items, prices, credit card details form, and a pay button..."
+                value={rawDescription}
+                onChange={(e) => setRawDescription(e.target.value)}
+                style={textareaStyle}
+                className="glass-input"
+                rows={5}
+                disabled={isGenerating}
+              />
+            </div>
+
+            {/* Step 2: Modifiers selection */}
+            {rawDescription.trim().length > 5 && (
+              <div style={stepSection} className="animate-fade-up">
+                <div style={stepHeader}>
+                  <span style={stepNum}>02</span>
+                  <div>
+                    <h3 style={stepTitle}>Select Design & Motion Modifiers</h3>
+                    <p style={stepDesc}>Inject technical terminology to refine AI output code.</p>
+                  </div>
+                </div>
+
                 <div style={formGroup}>
                   <label style={formLabel}>Visual Quality Modifiers</label>
                   <div style={badgeSelectorGrid}>
@@ -369,10 +638,7 @@ export default function ForgePage() {
                         <button
                           type="button"
                           key={idx}
-                          style={{
-                            ...badgeSelectorBtn,
-                            ...(selected ? badgeSelectorActive : {})
-                          }}
+                          style={badgeSelectorBtn(selected)}
                           onClick={() => handleQualityToggle(q)}
                         >
                           {q}
@@ -382,7 +648,7 @@ export default function ForgePage() {
                   </div>
                 </div>
 
-                <div style={{ ...formGroup, marginTop: '0.5rem' }}>
+                <div style={{ ...formGroup, marginTop: '1.25rem' }}>
                   <label style={formLabel}>Transitions & Motion Physics</label>
                   <div style={badgeSelectorGrid}>
                     {['Framer Motion', 'spring animations', 'staggered entrance', 'micro-interactions', 'hover feedback', 'magnetic effect', 'cursor following'].map((m, idx) => {
@@ -391,10 +657,7 @@ export default function ForgePage() {
                         <button
                           type="button"
                           key={idx}
-                          style={{
-                            ...badgeSelectorBtn,
-                            ...(selected ? badgeSelectorActive : {})
-                          }}
+                          style={badgeSelectorBtn(selected)}
                           onClick={() => handleMotionToggle(m)}
                         >
                           {m}
@@ -406,198 +669,98 @@ export default function ForgePage() {
               </div>
             )}
 
-            {/* THEME SELECTION SEGMENT (All modes) */}
-            <div style={formGroup}>
-              <label style={formLabel}>Browse Design Styles & Themes</label>
-              <div style={themeCardGrid}>
-                {Object.keys(themeStyles).map((themeName) => {
-                  const selected = selectedTheme === themeName;
-                  return (
-                    <div
-                      key={themeName}
-                      style={{
-                        ...themeSelectCard,
-                        borderColor: selected ? 'hsl(var(--primary))' : 'rgba(255, 255, 255, 0.05)',
-                        backgroundColor: selected ? 'rgba(168, 85, 247, 0.04)' : 'rgba(255, 255, 255, 0.01)'
-                      }}
-                      onClick={() => setSelectedTheme(themeName)}
-                    >
-                      <div style={themeHeader}>
-                        <span style={themeCardName}>{themeName}</span>
-                        {selected && <CheckCircle2 size={16} style={{ color: 'hsl(var(--primary))' }} />}
+            {/* Step 3: Theme selection */}
+            {rawDescription.trim().length > 5 && (
+              <div style={stepSection} className="animate-fade-up">
+                <div style={stepHeader}>
+                  <span style={stepNum}>03</span>
+                  <div>
+                    <h3 style={stepTitle}>Target Visual Style Theme</h3>
+                    <p style={stepDesc}>Frost layout card elements or inject retro symetries.</p>
+                  </div>
+                </div>
+
+                <div style={themeCardGrid}>
+                  {Object.keys(themeStyles).map((themeName) => {
+                    const isSelected = selectedTheme === themeName;
+                    return (
+                      <div
+                        key={themeName}
+                        style={themeSelectCard(isSelected)}
+                        onClick={() => setSelectedTheme(themeName)}
+                      >
+                        <div style={themeHeaderRow}>
+                          <span style={themeCardName}>{themeName}</span>
+                          {isSelected && <CheckCircle2 size={16} style={{ color: '#fbbf24' }} />}
+                        </div>
+                        <p style={themeCardDescText}>{themeStyles[themeName].description}</p>
                       </div>
-                      <p style={themeCardDescText}>{themeStyles[themeName].description}</p>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* RAW prompt / description (All modes) */}
-            <div style={formGroup}>
-              <label style={formLabel}>
-                {activeMode === 'enhance' ? "Paste Your Raw / Vague Prompt Draft" : "Describe Your Functional Idea In Your Own Words"}
-              </label>
-              <textarea
-                placeholder={
-                  activeMode === 'enhance' 
-                    ? "Paste standard prompts like 'Create a simple checkout page with some items and payment details'..."
-                    : "e.g. A digital hub to manage class checklists, search student names, show KPI cards of passing ratios, and filter results by class..."
-                }
-                value={rawDescription}
-                onChange={(e) => setRawDescription(e.target.value)}
-                style={textareaStyle}
-                className="glass-input"
-                rows={5}
-                required={activeMode !== 'enhance'}
-                disabled={isGenerating}
-              />
-            </div>
-
-            {/* Submit Engine */}
-            <div style={submitRow}>
-              <div style={offlineWarning}>
-                <Info size={16} />
-                <span>
-                  {apiKey ? "Live Gemini completes enabled." : "No API key configured. Offline prompt compiler compiling prompt blueprints."}
-                </span>
+            {/* Step 4: Submission */}
+            {rawDescription.trim().length > 5 && selectedTheme && (
+              <div style={submitContainer} className="animate-fade-up">
+                <div style={offlineWarning}>
+                  <Info size={16} />
+                  <span>
+                    {apiKey ? "Live Gemini Enhancer active." : "Offline Prompt Compiler enhancer active."}
+                  </span>
+                </div>
+                <button
+                  onClick={handleForgeSubmit}
+                  style={submitBtn}
+                  className="btn-accent shine-effect"
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <>
+                      <Sliders size={18} className="animate-spin" />
+                      Enhancing Raw Prompt Blueprint...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={18} />
+                      Generate Enhanced Prompt
+                    </>
+                  )}
+                </button>
               </div>
-              
-              <button
-                type="submit"
-                style={submitBtn}
-                className="btn-primary shine-effect"
-                disabled={isGenerating}
-              >
-                {isGenerating ? (
-                  <>
-                    <Sliders size={18} className="animate-spin" />
-                    Forging Design System...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={18} />
-                    Forge Professional Prompt
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-// ─── Premium Forge Styles ──────────────────────────────────────
+export default function ForgePage() {
+  return (
+    <Suspense fallback={
+      <div style={loadingWrap}>
+        <div style={loadingInner}>
+          <div style={loadingSpinner} />
+          <p style={loadingText}>Loading Wizard Workspace…</p>
+        </div>
+      </div>
+    }>
+      <ForgeWizardContent />
+    </Suspense>
+  );
+}
+
+// ─── Inline Premium Wizard CSS Styles ──────────────────────────
 
 const containerStyle = {
   flex: 1,
   display: 'flex',
   flexDirection: 'column',
-  paddingTop: '1rem',
+  paddingTop: '0.5rem',
   position: 'relative',
   zIndex: 2,
-};
-
-const selectorState = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '2.5rem',
-};
-
-const introHeader = {
-  textAlign: 'center',
-  maxWidth: '680px',
-  margin: '0 auto',
-  paddingTop: '1.5rem',
-};
-
-const mainTitle = {
-  fontSize: 'clamp(2rem, 4vw, 2.75rem)',
-  fontWeight: '800',
-  fontFamily: 'var(--font-display)',
-  color: 'var(--foreground)',
-  letterSpacing: '-0.04em',
-  lineHeight: '1.1',
-  marginBottom: '0.75rem',
-};
-
-const mainSub = {
-  fontSize: '1rem',
-  color: 'var(--muted-foreground)',
-  lineHeight: '1.65',
-  maxWidth: '520px',
-  margin: '0 auto',
-};
-
-const selectionGrid = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-  gap: '1rem',
-};
-
-const selectCard = {
-  background: 'var(--card)',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius-lg)',
-  padding: '1.75rem 1.5rem',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.875rem',
-  cursor: 'pointer',
-  textAlign: 'left',
-  boxShadow: 'var(--shadow-sm)',
-  transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
-};
-
-const selectIconWrap = {
-  width: '40px',
-  height: '40px',
-  borderRadius: '10px',
-  background: 'var(--muted)',
-  border: '1px solid var(--border)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};
-
-const selectCardTitle = {
-  fontSize: '1.05rem',
-  fontWeight: '700',
-  fontFamily: 'var(--font-display)',
-  color: 'var(--foreground)',
-  letterSpacing: '-0.02em',
-};
-
-const selectCardDesc = {
-  fontSize: '0.83rem',
-  color: 'var(--muted-foreground)',
-  lineHeight: '1.55',
-  flex: 1,
-};
-
-const selectArrow = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  fontSize: '0.78rem',
-  fontWeight: '700',
-  color: 'var(--accent)',
-  borderTop: '1px solid var(--border)',
-  paddingTop: '0.875rem',
-  marginTop: '0.25rem',
-};
-
-const wizardLayout = {
-  background: 'var(--card)',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius-lg)',
-  padding: '2rem',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '1.5rem',
-  boxShadow: 'var(--shadow-md)',
 };
 
 const backBtn = {
@@ -612,175 +775,246 @@ const backBtn = {
   alignItems: 'center',
   gap: '0.4rem',
   alignSelf: 'flex-start',
-  padding: '0.4rem 0.85rem',
+  padding: '0.45rem 1rem',
   fontFamily: 'var(--font-sans)',
   transition: 'all 0.2s ease',
+  marginBottom: '1.5rem',
 };
 
 const wizardHeader = {
+  marginBottom: '2.5rem',
   borderBottom: '1px solid var(--border)',
-  paddingBottom: '1.25rem',
+  paddingBottom: '1.5rem',
 };
 
-const wizardTitle = {
-  fontSize: '1.35rem',
-  fontWeight: '700',
+const wizardTitleRow = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: '1rem',
+};
+
+const wizardIconWrap = {
+  width: '44px',
+  height: '44px',
+  borderRadius: '12px',
+  background: 'rgba(255, 255, 255, 0.03)',
+  border: '1px solid var(--border)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginTop: '3px',
+};
+
+const mainTitle = {
+  fontSize: '1.65rem',
+  fontWeight: '800',
   fontFamily: 'var(--font-display)',
   color: 'var(--foreground)',
-  letterSpacing: '-0.025em',
+  letterSpacing: '-0.03em',
+  lineHeight: '1.2',
 };
 
-const wizardDesc = {
-  fontSize: '0.875rem',
+const mainSub = {
+  fontSize: '0.9rem',
   color: 'var(--muted-foreground)',
-  marginTop: '0.35rem',
-  lineHeight: '1.55',
+  lineHeight: '1.5',
+  marginTop: '0.25rem',
 };
 
-const formStyle = {
+const wizardContentBody = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2rem',
+  paddingBottom: '4rem',
+};
+
+const flowContainer = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2.5rem',
+};
+
+const stepSection = {
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
+  borderRadius: '16px',
+  padding: '2rem',
   display: 'flex',
   flexDirection: 'column',
   gap: '1.5rem',
+  boxShadow: 'var(--shadow-sm)',
 };
 
-const formRow = {
+const stepHeader = {
   display: 'flex',
-  gap: '1.25rem',
-  flexWrap: 'wrap',
+  alignItems: 'flex-start',
+  gap: '0.75rem',
+  borderBottom: '1px solid rgba(255,255,255,0.03)',
+  paddingBottom: '1rem',
 };
 
-const formVerticalGroup = {
+const stepNum = {
+  fontFamily: 'var(--font-display)',
+  fontSize: '1.25rem',
+  fontWeight: '800',
+  color: '#fbbf24',
+  background: 'rgba(251,191,36,0.08)',
+  border: '1px solid rgba(251,191,36,0.15)',
+  borderRadius: '8px',
+  width: '32px',
+  height: '32px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
+};
+
+const stepTitle = {
+  fontSize: '1.1rem',
+  fontWeight: '700',
+  color: 'var(--foreground)',
+  fontFamily: 'var(--font-display)',
+};
+
+const stepDesc = {
+  fontSize: '0.8rem',
+  color: 'var(--muted-foreground)',
+  marginTop: '0.15rem',
+};
+
+const categoryGrid = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+  gap: '1rem',
+};
+
+const categoryCard = (isSelected) => ({
+  position: 'relative',
+  height: '140px',
+  borderRadius: '12px',
+  border: `1.5px solid ${isSelected ? '#fbbf24' : 'var(--border)'}`,
+  overflow: 'hidden',
+  cursor: 'pointer',
+  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+  transform: isSelected ? 'scale(1.01)' : 'scale(1)',
+  boxShadow: isSelected ? '0 8px 24px rgba(251, 191, 36, 0.08)' : 'var(--shadow-sm)',
+});
+
+const cardImg = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  opacity: 0.35,
+  zIndex: 1,
+  filter: 'grayscale(20%) brightness(85%)',
+  transition: 'transform 0.4s ease',
+};
+
+const cardImagePlaceholder = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  background: 'linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(219,39,119,0.06) 100%)',
+  zIndex: 1,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
+const cardOverlay = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  background: 'linear-gradient(to bottom, rgba(9, 13, 22, 0.25) 0%, rgba(9, 13, 22, 0.95) 90%)',
+  zIndex: 2,
+};
+
+const cardCheckedBadge = {
+  position: 'absolute',
+  top: '0.75rem',
+  right: '0.75rem',
+  zIndex: 4,
+  background: 'rgba(9,13,22,0.85)',
+  borderRadius: '50%',
+  padding: '2px',
+};
+
+const cardTextWrap = {
+  position: 'absolute',
+  bottom: '1rem',
+  left: '1.1rem',
+  right: '1.1rem',
+  zIndex: 3,
   display: 'flex',
   flexDirection: 'column',
-  gap: '1.25rem',
+  gap: '0.2rem',
 };
 
-const formGroup = {
+const cardTitle = {
+  fontSize: '0.9rem',
+  fontWeight: '700',
+  color: '#ffffff',
+  textShadow: '0 1px 3px rgba(0,0,0,0.6)',
+  fontFamily: 'var(--font-display)',
+};
+
+const cardDesc = {
+  fontSize: '0.72rem',
+  color: '#8a8a8a',
+  lineHeight: '1.4',
+};
+
+const inputBoxContainer = {
   display: 'flex',
   flexDirection: 'column',
   gap: '0.5rem',
-  flex: 1,
-  minWidth: '240px',
 };
 
 const formLabel = {
-  fontSize: '0.82rem',
-  fontWeight: '600',
-  color: 'var(--foreground)',
-  fontFamily: 'var(--font-sans)',
-};
-
-const selectStyle = {
-  width: '100%',
-  background: 'var(--card)',
-  cursor: 'pointer',
-  color: 'var(--foreground)',
-};
-
-const inputStyle = { width: '100%' };
-
-const textareaStyle = {
-  width: '100%',
-  resize: 'vertical',
-  lineHeight: '1.6',
-  minHeight: '120px',
-};
-
-const componentsListHeader = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  width: '100%',
-};
-
-const defaultToggleBtn = {
-  background: 'transparent',
-  border: 'none',
-  color: 'var(--accent)',
-  fontSize: '0.75rem',
-  fontWeight: '600',
-  cursor: 'pointer',
-  fontFamily: 'var(--font-sans)',
-};
-
-const checkboxGrid = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-  gap: '0.625rem',
-  marginTop: '0.25rem',
-};
-
-const checkboxCard = {
-  border: '1px solid var(--border)',
-  borderRadius: '8px',
-  padding: '0.65rem 0.875rem',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.625rem',
-  cursor: 'pointer',
-  transition: 'all 0.2s ease',
-  background: 'var(--card)',
-};
-
-const checkboxText = {
   fontSize: '0.8rem',
-  color: 'var(--foreground)',
-  fontWeight: '500',
-};
-
-const badgeSelectorGrid = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '0.5rem',
-  marginTop: '0.25rem',
-};
-
-const badgeSelectorBtn = {
-  padding: '0.35rem 0.85rem',
-  fontSize: '0.75rem',
   fontWeight: '600',
-  borderRadius: '999px',
-  background: 'var(--muted)',
-  border: '1px solid var(--border)',
-  color: 'var(--muted-foreground)',
-  cursor: 'pointer',
-  transition: 'all 0.2s ease',
-  fontFamily: 'var(--font-sans)',
+  color: 'var(--foreground)',
 };
 
-const badgeSelectorActive = {
-  background: 'var(--accent-subtle)',
-  borderColor: 'var(--accent)',
-  color: 'var(--accent)',
+const inputStyle = {
+  width: '100%',
+  fontSize: '0.88rem',
 };
 
 const themeCardGrid = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
   gap: '0.875rem',
-  marginTop: '0.25rem',
 };
 
-const themeSelectCard = {
-  border: '1px solid var(--border)',
-  borderRadius: '10px',
-  padding: '1rem',
+const themeSelectCard = (isSelected) => ({
+  border: `1.5px solid ${isSelected ? '#fbbf24' : 'var(--border)'}`,
+  borderRadius: '12px',
+  padding: '1.25rem',
   cursor: 'pointer',
-  transition: 'all 0.2s ease',
+  transition: 'all 0.25s ease',
   display: 'flex',
   flexDirection: 'column',
-  gap: '0.4rem',
+  gap: '0.5rem',
   background: 'var(--card)',
-};
+  boxShadow: isSelected ? '0 8px 24px rgba(251, 191, 36, 0.06)' : 'var(--shadow-sm)',
+});
 
-const themeHeader = {
+const themeHeaderRow = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
 };
 
 const themeCardName = {
-  fontSize: '0.82rem',
+  fontSize: '0.85rem',
   fontWeight: '700',
   color: 'var(--foreground)',
 };
@@ -788,10 +1022,84 @@ const themeCardName = {
 const themeCardDescText = {
   fontSize: '0.75rem',
   color: 'var(--muted-foreground)',
-  lineHeight: '1.4',
+  lineHeight: '1.45',
 };
 
-const submitRow = {
+const checkboxGrid = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
+  gap: '0.75rem',
+};
+
+const checkboxCard = (isChecked) => ({
+  border: `1px solid ${isChecked ? 'rgba(251, 191, 36, 0.2)' : 'var(--border)'}`,
+  borderRadius: '8px',
+  padding: '0.75rem 1rem',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.75rem',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+  background: isChecked ? 'rgba(251, 191, 36, 0.03)' : 'var(--card)',
+});
+
+const checkboxText = {
+  fontSize: '0.8rem',
+  color: 'var(--foreground)',
+  fontWeight: '500',
+};
+
+const adderFormStyle = {
+  display: 'flex',
+  gap: '0.75rem',
+  marginTop: '0.5rem',
+  maxWidth: '480px',
+};
+
+const adderInputStyle = {
+  flex: 1,
+  fontSize: '0.82rem',
+  padding: '6px 12px',
+};
+
+const adderBtnStyle = {
+  flexShrink: 0,
+};
+
+const textareaStyle = {
+  width: '100%',
+  resize: 'vertical',
+  lineHeight: '1.6',
+  minHeight: '120px',
+  fontSize: '0.9rem',
+};
+
+const formGroup = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.5rem',
+};
+
+const badgeSelectorGrid = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '0.5rem',
+};
+
+const badgeSelectorBtn = (isSelected) => ({
+  padding: '0.4rem 0.95rem',
+  fontSize: '0.75rem',
+  fontWeight: '600',
+  borderRadius: '999px',
+  background: isSelected ? 'rgba(251, 191, 36, 0.08)' : 'var(--muted)',
+  border: `1px solid ${isSelected ? '#fbbf24' : 'var(--border)'}`,
+  color: isSelected ? '#fbbf24' : 'var(--muted-foreground)',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+  fontFamily: 'var(--font-sans)',
+});
+
+const submitContainer = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
@@ -813,9 +1121,42 @@ const submitBtn = {
   display: 'inline-flex',
   alignItems: 'center',
   gap: '0.5rem',
-  fontSize: '0.925rem',
+  fontSize: '0.9rem',
   fontWeight: '700',
-  padding: '0.75rem 1.75rem',
+  padding: '0.8rem 2rem',
   fontFamily: 'var(--font-sans)',
+  cursor: 'pointer',
+  border: 'none',
+  borderRadius: '10px',
 };
 
+const loadingWrap = {
+  minHeight: '60vh',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  position: 'relative',
+  zIndex: 2,
+};
+
+const loadingInner = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: '1rem',
+};
+
+const loadingSpinner = {
+  width: '32px',
+  height: '32px',
+  borderRadius: '50%',
+  border: '2.5px solid var(--border)',
+  borderTopColor: '#fbbf24',
+  animation: 'spin-slow 1s linear infinite',
+};
+
+const loadingText = {
+  fontSize: '0.9rem',
+  color: 'var(--muted-foreground)',
+  fontWeight: '500',
+};

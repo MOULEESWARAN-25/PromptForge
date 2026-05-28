@@ -35,8 +35,8 @@ const WORKFLOWS = [
     href: '/forge',
     wmode: 'application',
     icon: Monitor,
-    label: 'SaaS Application',
-    desc: 'Multi-page routing, state management, sidebars, and premium data architecture — fully described.',
+    label: 'Full Application',
+    desc: 'Design a complete multi-page SaaS dashboard, e-commerce marketplace, or student hub with custom features, routing, and data seeds.',
     accent: '#7c3aed',
     accentBg: 'rgba(124,58,237,0.08)',
     badge: 'Full-Stack',
@@ -45,18 +45,18 @@ const WORKFLOWS = [
     href: '/forge',
     wmode: 'page',
     icon: Layout,
-    label: 'Page Wireframer',
-    desc: 'Structured grid layouts, metric cards, hero sections, and landing states in one precise prompt.',
+    label: 'Custom Webpage',
+    desc: 'Design custom dashboards, landing pages, login portals, settings pages, or pricing matrices with modular UI components.',
     accent: '#0891b2',
     accentBg: 'rgba(8,145,178,0.08)',
-    badge: 'v0 Ready',
+    badge: 'v0 Layout',
   },
   {
     href: '/component-forge',
     wmode: null,
     icon: Code2,
-    label: 'Component Catalog',
-    desc: 'Browse and customize 50+ premium UI components. Describe → AI refines → copy perfect prompt.',
+    label: 'Single UI Component',
+    desc: 'Generate highly precise, reusable design system components (Accordions, OTP Inputs, Toast banners, Command Palettes) tailored to a theme.',
     accent: '#db2777',
     accentBg: 'rgba(219,39,119,0.08)',
     badge: 'Interactive',
@@ -65,11 +65,11 @@ const WORKFLOWS = [
     href: '/forge',
     wmode: 'enhance',
     icon: Wand2,
-    label: 'Prompt Enhancer',
-    desc: 'Paste any rough idea and inject Framer motions, HSL tokens, and professional terminology instantly.',
+    label: 'Enhanced Raw Prompt',
+    desc: 'Paste any rough prompt draft or single sentences and automatically inject micro-interactions, responsive grids, and design system tokens.',
     accent: '#059669',
     accentBg: 'rgba(5,150,105,0.08)',
-    badge: 'Quick',
+    badge: 'Enhancer',
   },
 ];
 
@@ -204,8 +204,8 @@ export default function DashboardPage() {
       >
         <motion.div variants={fadeUp} style={sectionHeader}>
           <div>
-            <p className="section-label" style={{ marginBottom: '0.4rem' }}>Architectural Pipelines</p>
-            <h2 style={sectionTitle}>Choose your workflow</h2>
+            <p className="section-label" style={{ marginBottom: '0.4rem' }}>Forgeo Design Blueprint</p>
+            <h2 style={sectionTitle}>Choose your design wizard</h2>
           </div>
         </motion.div>
 
@@ -314,7 +314,7 @@ function BentoCard({ workflow }) {
   return (
     <motion.div variants={cardVariant}>
       <Link
-        href={href}
+        href={wmode ? `${href}?mode=${wmode}` : href}
         onClick={handleClick}
         style={bentoCard(hovered, accent)}
         className="card"
