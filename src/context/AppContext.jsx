@@ -47,6 +47,8 @@ export function AppProvider({ children }) {
       
       if (activeSession) {
         setUser({ username: activeSession });
+        // Synchronize cookie for middleware protection
+        document.cookie = `promptforge_session=${activeSession}; path=/; max-age=31536000; SameSite=Lax`;
         
         // Fetch History from Supabase if connected, otherwise read local storage
         if (isDbLive) {
@@ -97,6 +99,7 @@ export function AppProvider({ children }) {
       if (result.success) {
         setUser({ username });
         localStorage.setItem('promptforge_session', username);
+        document.cookie = `promptforge_session=${username}; path=/; max-age=31536000; SameSite=Lax`;
         
         // Fetch cloud user history
         const cloudHistory = await supabaseFetchHistory(username);
@@ -123,6 +126,7 @@ export function AppProvider({ children }) {
 
     setUser({ username });
     localStorage.setItem('promptforge_session', username);
+    document.cookie = `promptforge_session=${username}; path=/; max-age=31536000; SameSite=Lax`;
     loadLocalHistory();
     return { success: true };
   };
@@ -136,6 +140,7 @@ export function AppProvider({ children }) {
       if (result.success) {
         setUser({ username });
         localStorage.setItem('promptforge_session', username);
+        document.cookie = `promptforge_session=${username}; path=/; max-age=31536000; SameSite=Lax`;
         syncHistoryState([]); // New user has empty cloud history
         return { success: true };
       } else if (!result.fallback) {
@@ -156,6 +161,7 @@ export function AppProvider({ children }) {
     
     setUser({ username });
     localStorage.setItem('promptforge_session', username);
+    document.cookie = `promptforge_session=${username}; path=/; max-age=31536000; SameSite=Lax`;
     syncHistoryState([]);
     return { success: true };
   };
@@ -163,6 +169,7 @@ export function AppProvider({ children }) {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('promptforge_session');
+    document.cookie = 'promptforge_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
   };
 
   // 3. API Key Management

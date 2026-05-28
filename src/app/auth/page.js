@@ -73,7 +73,7 @@ export default function AuthPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
-  useEffect(() => { if (user) router.push('/'); }, [user, router]);
+  useEffect(() => { if (user) router.push('/dashboard'); }, [user, router]);
   useEffect(() => {
     const t = setInterval(() => setSlide(s => (s + 1) % SLIDES.length), 4500);
     return () => clearInterval(t);
@@ -86,7 +86,7 @@ export default function AuthPage() {
     setLoading(true);
     try {
       const result = isLogin ? await login(username, password) : await register(username, password);
-      if (result.success) { toast.success(isLogin ? 'Welcome back!' : 'Account created!'); router.push('/'); }
+      if (result.success) { toast.success(isLogin ? 'Welcome back!' : 'Account created!'); router.push('/dashboard'); }
       else setError(result.message);
     } catch { setError('Authentication failed.'); }
     finally { setLoading(false); }
@@ -94,8 +94,8 @@ export default function AuthPage() {
 
   const handleDemo = async () => {
     setLoading(true);
-    try { await login('demo_engineer', 'promptforge2026'); toast.success('Demo mode activated!'); router.push('/'); }
-    catch { router.push('/'); }
+    try { await login('demo_engineer', 'promptforge2026'); toast.success('Demo mode activated!'); router.push('/dashboard'); }
+    catch { router.push('/dashboard'); }
     finally { setLoading(false); }
   };
 
@@ -262,9 +262,9 @@ export default function AuthPage() {
             ...formCard,
             boxShadow: `0 32px 80px rgba(0,0,0,0.7), inset 0 1px 1px rgba(255,255,255,0.05), 0 0 0 1px ${cur.accent}12`
           }}
-          initial={{ opacity: 0, y: 24 }}
-          animate={mounted ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          initial={{ opacity: 0 }}
+          animate={mounted ? { opacity: 1 } : {}}
+          transition={{ duration: 0.4 }}
         >
           {/* Top colored shine element matching active accent */}
           <motion.div
@@ -294,7 +294,7 @@ export default function AuthPage() {
           {/* Title */}
           <div style={formHeading}>
             <h2 style={formTitle}>{isLogin ? 'SIGN IN' : 'SIGN UP'}</h2>
-            <p style={formSub}>{isLogin ? 'Access your workspace, endless possibilities.' : 'One account, forge anything.'}</p>
+            <p style={formSub}>{isLogin ? 'Access your forge workspace.' : 'Create your forge account.'}</p>
           </div>
 
           {/* Tab toggle */}
@@ -311,7 +311,7 @@ export default function AuthPage() {
           {/* Error */}
           <AnimatePresence>
             {error && (
-              <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={errMsg}>
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={errMsg}>
                 ⚠ {error}
               </motion.p>
             )}
@@ -350,7 +350,7 @@ export default function AuthPage() {
                 boxShadow: `0 8px 30px ${cur.accent}25`
               }}
               disabled={loading}
-              whileHover={!loading ? { scale: 1.015, y: -1 } : {}}
+              whileHover={!loading ? { scale: 1.015 } : {}}
               whileTap={!loading ? { scale: 0.985 } : {}}
             >
               {loading

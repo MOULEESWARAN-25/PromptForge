@@ -7,6 +7,11 @@ import { generateEnhancedPrompt } from '@/services/gemini';
 import { 
   Send, Copy, Check, Layers, ArrowLeft, RefreshCw 
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const RagInspector = dynamic(() => import('@/components/RagInspector'), {
+  ssr: false,
+});
 
 function ChatContent() {
   const { user, history, updatePromptChat, apiKey } = useApp();
@@ -227,6 +232,9 @@ function ChatContent() {
             </pre>
           </div>
         </div>
+
+        {/* Dynamic local RAG inspector visualizer */}
+        <RagInspector ragDetails={promptRecord.ragDetails} />
       </div>
     </div>
   );

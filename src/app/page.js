@@ -1,416 +1,562 @@
-"use client";
-
-import React, { useEffect, useState, useRef } from 'react';
-import { useApp } from '@/context/AppContext';
-import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'sonner';
-import {
-  Sparkles, History, Trash2, Monitor,
-  Layout, Code2, Wand2, ArrowRight, CornerDownLeft,
-  Trash, Copy, Check, ExternalLink, Clock, Zap, BookOpen,
-  ChevronRight, TrendingUp, Star
-} from 'lucide-react';
+import React from 'react';
 import Link from 'next/link';
+import { Sparkles, ArrowRight, Monitor, Layout, Code2, Wand2, Shield, Zap, Database, Check, Cpu } from 'lucide-react';
 
-// ─── Animation Variants ────────────────────────────────────────
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] } },
+export const metadata = {
+  title: "PromptForge | AI Prompt Architect",
+  description: "Transform vague ideas into precision-engineered AI prompts for Cursor, Lovable, and v0. Built for developers who demand quality.",
+  alternates: {
+    canonical: "https://promptforge.ai",
+  },
 };
 
-const stagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.08 } },
-};
-
-const cardVariant = {
-  hidden: { opacity: 0, y: 20, scale: 0.98 },
-  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
-};
-
-// ─── Workflow Cards Config ─────────────────────────────────────
-const WORKFLOWS = [
+const FEATURES_LIST = [
   {
-    href: '/forge',
-    wmode: 'application',
+    slug: 'prompt-builder',
+    title: 'Full SaaS Architect',
     icon: Monitor,
-    label: 'SaaS Application',
-    desc: 'Multi-page routing, state management, sidebars, and premium data architecture — fully described.',
-    accent: '#7c3aed',
-    accentBg: 'rgba(124,58,237,0.08)',
-    badge: 'Full-Stack',
+    desc: 'Map out entire multi-page application structures complete with database schemas and state managers.',
+    img: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=500&h=300&fit=crop&q=80',
+    tag: 'Full-Stack Specs'
   },
   {
-    href: '/forge',
-    wmode: 'page',
-    icon: Layout,
-    label: 'Page Wireframer',
-    desc: 'Structured grid layouts, metric cards, hero sections, and landing states in one precise prompt.',
-    accent: '#0891b2',
-    accentBg: 'rgba(8,145,178,0.08)',
-    badge: 'v0 Ready',
+    slug: 'design-vocabulary',
+    title: 'Design Vocabulary',
+    icon: Database,
+    desc: 'Semantically retrieve CSS layout grid structures, glassmorphism, and spring transition tokens.',
+    img: 'https://images.unsplash.com/photo-1600132806370-bf17e65e942f?w=500&h=300&fit=crop&q=80',
+    tag: 'RAG Retrieval'
   },
   {
-    href: '/component-forge',
-    wmode: null,
+    slug: 'ai-refiner',
+    title: 'Interactive Catalog',
     icon: Code2,
-    label: 'Component Catalog',
-    desc: 'Browse and customize 50+ premium UI components. Describe → AI refines → copy perfect prompt.',
-    accent: '#db2777',
-    accentBg: 'rgba(219,39,119,0.08)',
-    badge: 'Interactive',
-  },
-  {
-    href: '/forge',
-    wmode: 'enhance',
-    icon: Wand2,
-    label: 'Prompt Enhancer',
-    desc: 'Paste any rough idea and inject Framer motions, HSL tokens, and professional terminology instantly.',
-    accent: '#059669',
-    accentBg: 'rgba(5,150,105,0.08)',
-    badge: 'Quick',
-  },
+    desc: 'Refine single components, buttons, fields, and accordions into prompt blocks optimized for v0.',
+    img: 'https://images.unsplash.com/photo-1607799279861-4dd421887fb3?w=500&h=300&fit=crop&q=80',
+    tag: 'Code Optimization'
+  }
 ];
 
-const MODE_ICONS = { application: Monitor, page: Layout, component: Code2, enhance: Wand2 };
-const MODE_COLORS = {
-  application: '#7c3aed', page: '#0891b2', component: '#db2777', enhance: '#059669',
-};
-
-// ─── Component ─────────────────────────────────────────────────
-export default function DashboardPage() {
-  const { user, history, deletePromptRecord, clearHistory, loading } = useApp();
-  const router = useRouter();
-  const [copiedId, setCopiedId] = useState(null);
-  const [quickInput, setQuickInput] = useState('');
-  const [inputFocused, setInputFocused] = useState(false);
-
-
-  useEffect(() => {
-    if (!loading && !user) router.push('/auth');
-  }, [user, loading, router]);
-
-  const handleCopy = (id, e, text) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    toast.success('Prompt copied to clipboard');
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const handleDelete = (id, e) => {
-    e.stopPropagation();
-    deletePromptRecord(id);
-    toast.success('Workspace deleted');
-  };
-
-  const handleClearAll = () => {
-    clearHistory();
-    toast.success('History cleared');
-  };
-
-  const handleQuickForge = (e) => {
-    e.preventDefault();
-    if (!quickInput.trim()) return;
-    localStorage.setItem('promptforge_quickquery', quickInput);
-    localStorage.setItem('promptforge_wmode', 'enhance');
-    router.push('/forge');
-  };
-
-  const SUGGESTIONS = ['glassmorphic dashboard', 'SaaS pricing page', 'OTP auth screen', 'data table component'];
-
-  if (loading || !user) {
-    return <LoadingScreen />;
+const PRICING_TIERS = [
+  {
+    tier: 'free',
+    name: 'Hobby Plan',
+    price: '$0',
+    frequency: 'Forever Free',
+    desc: 'Ideal for single developers exploring prompt engineering.',
+    features: ['Local Storage fallbacks', 'Universal mode compilers', 'Standard vocabulary search', '3 saved workspaces'],
+    accent: '#fbbf24',
+    badge: 'Standard'
+  },
+  {
+    tier: 'pro',
+    name: 'Professional',
+    price: '$15',
+    frequency: 'per month',
+    desc: 'For professional software builders demanding elite code structures.',
+    features: ['Supabase cloud synchronization', 'Unlimited saved workspaces', 'Priority LLM endpoints', 'Dynamic design templates'],
+    accent: '#7c3aed',
+    badge: 'Recommended'
+  },
+  {
+    tier: 'enterprise',
+    name: 'Enterprise',
+    price: 'Custom',
+    frequency: 'yearly contract',
+    desc: 'Designed for engineering teams scaling AI code generation workflows.',
+    features: ['Dedicated team vector DBs', 'Custom design systems', 'SLA support contracts', 'Self-hosted options'],
+    accent: '#db2777',
+    badge: 'Scale'
   }
+];
+
+export default function LandingPage() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "PromptForge",
+    "operatingSystem": "All",
+    "applicationCategory": "DeveloperApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "description": "Transform vague ideas into precision-engineered AI prompts for Cursor, Lovable, and v0. Built for developers who demand quality."
+  };
 
   return (
-    <div style={{ position: 'relative', zIndex: 2, width: '100%' }}>
-      {/* ── Hero ──────────────────────────────────────────────── */}
-      <motion.section
-        style={heroSection}
-        variants={stagger}
-        initial="hidden"
-        animate="show"
-      >
-        <motion.div variants={fadeUp}>
-          <div className="premium-badge" style={{ marginBottom: '1.5rem' }}>
+    <div style={containerStyle}>
+      {/* CSS Stylesheet Injector for responsive layouts and animations without overlapping */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .hero-split-grid {
+          display: grid;
+          grid-template-columns: 1.1fr 0.9fr;
+          gap: 3rem;
+          align-items: center;
+          padding: 3rem 0;
+          position: relative;
+        }
+        .showcase-pane {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 520px;
+        }
+        .main-showcase-img {
+          width: 82%;
+          border-radius: 14px;
+          border: 1px solid rgba(255,255,255,0.08);
+          box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+          position: relative;
+          z-index: 10;
+        }
+        .overlapping-img-left {
+          position: absolute;
+          left: -40px;
+          bottom: 40px;
+          width: 200px;
+          border-radius: 10px;
+          border: 1px solid rgba(255,255,255,0.06);
+          box-shadow: 0 16px 32px rgba(0,0,0,0.5);
+          z-index: 20;
+          transition: transform 0.3s ease;
+        }
+        .overlapping-img-right {
+          position: absolute;
+          right: -20px;
+          top: 30px;
+          width: 220px;
+          border-radius: 10px;
+          border: 1px solid rgba(255,255,255,0.06);
+          box-shadow: 0 16px 32px rgba(0,0,0,0.5);
+          z-index: 5;
+          transition: transform 0.3s ease;
+        }
+        .showcase-pane:hover .overlapping-img-left {
+          transform: translate(-10px, 5px) scale(1.02);
+        }
+        .showcase-pane:hover .overlapping-img-right {
+          transform: translate(10px, -5px) scale(1.02);
+        }
+        .floating-badge {
+          position: absolute;
+          padding: 6px 14px;
+          border-radius: 999px;
+          backdrop-filter: blur(12px);
+          font-size: 0.72rem;
+          font-weight: 800;
+          border: 1px solid;
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+          z-index: 30;
+        }
+        .fb-1 {
+          top: 80px;
+          left: 10px;
+          color: #fbbf24;
+          background: rgba(251,191,36,0.08);
+          borderColor: rgba(251,191,36,0.2);
+        }
+        .fb-2 {
+          bottom: 80px;
+          right: 20px;
+          color: #db2777;
+          background: rgba(219,39,119,0.08);
+          borderColor: rgba(219,39,119,0.2);
+        }
+        .feature-grid-cards {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1.5rem;
+          margin-top: 1rem;
+        }
+        .pricing-grid-cards {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1.5rem;
+          margin-top: 1rem;
+        }
+        .ide-comparison-grid {
+          display: grid;
+          grid-template-columns: 1fr auto 1.2fr;
+          gap: 1.5rem;
+          align-items: center;
+        }
+        
+        /* Responsive Mobile Breaks to prevent overlaps properly */
+        @media (max-width: 1024px) {
+          .hero-split-grid {
+            grid-template-columns: 1fr;
+            gap: 2.5rem;
+            text-align: center;
+          }
+          .showcase-pane {
+            height: 380px;
+            margin-top: 1.5rem;
+          }
+          .main-showcase-img {
+            width: 75%;
+          }
+          .overlapping-img-left {
+            width: 140px;
+            left: 10px;
+          }
+          .overlapping-img-right {
+            width: 150px;
+            right: 10px;
+          }
+          .feature-grid-cards, .pricing-grid-cards {
+            grid-template-columns: 1fr;
+          }
+          .ide-comparison-grid {
+            grid-template-columns: 1fr;
+          }
+          .comparison-arrow {
+            transform: rotate(90deg);
+            margin: 0.5rem auto;
+          }
+        }
+      ` }} />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      {/* ── IMMERSIVE DUAL-PANE HERO SECTION ── */}
+      <section className="hero-split-grid">
+        {/* Decorative Floating Arc vector */}
+        <svg style={arcSvg} viewBox="0 0 520 700" fill="none" preserveAspectRatio="none">
+          <path d="M500 80 Q 60 350 500 620" stroke="rgba(255,255,255,0.035)" strokeWidth="1.5" strokeDasharray="10 8" />
+        </svg>
+
+        {/* Ambient Glowing Orb Background */}
+        <div style={panelOrb} />
+
+        {/* LEFT COLUMN: Premium copy and dynamic CTA */}
+        <div style={heroContentCol}>
+          <div className="premium-badge animate-fade-in" style={{ marginBottom: '1.25rem', width: 'fit-content' }}>
             <Sparkles size={11} />
-            <span>Prompt Architect v2.0</span>
+            <span>PROMPT ARCHITECT v2.0</span>
           </div>
-        </motion.div>
 
-        <motion.h1 variants={fadeUp} className="hero-headline" style={{ marginBottom: '1.25rem', maxWidth: '820px' }}>
-          Build anything.{' '}
-          <span className="hero-gradient">Refined for AI.</span>
-        </motion.h1>
+          <h1 className="hero-headline animate-fade-up" style={heroHeadline}>
+            Turn vague ideas <br />
+            <span className="hero-gradient">into surgical</span> <br />
+            AI prompts.
+          </h1>
 
-        <motion.p variants={fadeUp} style={heroParagraph}>
-          Vague ideas yield generic code. Inject layout grids, color systems,
-          motion physics, and component specs that AI tools actually understand.
-        </motion.p>
+          <p style={heroParagraph} className="animate-fade-up delay-100">
+            Stop writing weak descriptions. PromptForge translates developer requirements into rich Tailwind configurations, layout wireframes, and Framer Motion spring physics that AI coders digest perfectly.
+          </p>
 
-        {/* Prompt Console */}
-        <motion.form
-          variants={fadeUp}
-          onSubmit={handleQuickForge}
-          style={consoleForm(inputFocused)}
-        >
-          <Sparkles size={18} style={{ color: 'var(--accent)', flexShrink: 0, opacity: 0.8 }} />
-          <input
-            type="text"
-            placeholder="Describe what you want to build..."
-            value={quickInput}
-            onChange={e => setQuickInput(e.target.value)}
-            onFocus={() => setInputFocused(true)}
-            onBlur={() => setInputFocused(false)}
-            style={consoleInput}
-            autoComplete="off"
-          />
-          <motion.button
-            type="submit"
-            style={forgeBtn}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            Forge
-            <CornerDownLeft size={13} />
-          </motion.button>
-        </motion.form>
+          {/* Prompt Console Form */}
+          <form style={consoleForm} className="animate-fade-up delay-200" action="/auth">
+            <Sparkles size={18} style={{ color: 'var(--accent)', flexShrink: 0, opacity: 0.8 }} />
+            <input
+              type="text"
+              name="quickQuery"
+              placeholder="Describe your SaaS idea..."
+              style={consoleInput}
+              autoComplete="off"
+            />
+            <button type="submit" style={forgeBtn}>
+              Forge
+              <ArrowRight size={13} />
+            </button>
+          </form>
 
-        {/* Suggestions */}
-        <motion.div variants={fadeUp} style={suggestRow}>
-          <span style={suggestLabel}>Try:</span>
-          {SUGGESTIONS.map((s, i) => (
-            <motion.button
-              key={i}
-              style={suggestChip}
-              onClick={() => setQuickInput(`A premium ${s} with modern dark glassmorphic aesthetics and responsive layout.`)}
-              whileHover={{ scale: 1.03, y: -1 }}
-              whileTap={{ scale: 0.97 }}
+          {/* Interactive Stable CTAs */}
+          <div style={ctaRow} className="animate-fade-up delay-300">
+            <Link href="/auth" style={primaryCta} className="btn-accent shine-effect">
+              Get Started for Free
+              <ArrowRight size={15} />
+            </Link>
+            <a href="#pricing" style={secondaryCta} className="btn-secondary">
+              View Premium Plans
+            </a>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: Multi-layered overlapping images (Auth carousel aesthetic) */}
+        <div className="showcase-pane animate-scale-in">
+          {/* Main Code Editor Showcase Mockup */}
+          <div className="main-showcase-img" style={browserMockupFrame}>
+            <div style={browserHeader}>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {['#ef4444', '#f59e0b', '#22c55e'].map(c => (
+                  <div key={c} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />
+                ))}
+              </div>
+              <div style={browserUrl}>promptforge.ai/editor</div>
+            </div>
+            <img 
+              src="https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=800&h=500&fit=crop&q=85" 
+              alt="Workspace Code Blueprint View"
+              style={browserImage}
+            />
+          </div>
+
+          {/* Overlapping Image 2 (RAG Pipeline Visualizer Overlay) */}
+          <div className="overlapping-img-left" style={browserMockupFrame}>
+            <div style={browserHeaderSmall}>
+              <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>Local RAG pipeline</span>
+            </div>
+            <img 
+              src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=450&h=300&fit=crop&q=85" 
+              alt="Design Token Database"
+              style={browserImage}
+            />
+          </div>
+
+          {/* Overlapping Image 3 (Sketching UI Architect Overlay) */}
+          <div className="overlapping-img-right" style={browserMockupFrame}>
+            <div style={browserHeaderSmall}>
+              <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>Wireframe Catalog</span>
+            </div>
+            <img 
+              src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=450&h=300&fit=crop&q=85" 
+              alt="Wireframe Wireframes Sketching"
+              style={browserImage}
+            />
+          </div>
+
+          {/* Floating Badges */}
+          <div className="floating-badge fb-1">
+            <Cpu size={12} />
+            <span>Cosine Retrieval</span>
+          </div>
+          <div className="floating-badge fb-2">
+            <Sparkles size={12} />
+            <span>Framer Motion Physics</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── KEY CAPABILITIES FEATURE SECTION ── */}
+      <section id="features" style={sectionContainer}>
+        <div style={sectionHeader}>
+          <p className="section-label">PRODUCT CAPABILITIES</p>
+          <h2 style={sectionTitle}>Tailored Feature Layouts</h2>
+        </div>
+        <div className="feature-grid-cards">
+          {FEATURES_LIST.map((feat) => {
+            const Icon = feat.icon;
+            return (
+              <div key={feat.slug} style={featureCard} className="glass-panel">
+                {/* Feature mockup browser frame */}
+                <div style={featureImageFrame}>
+                  <div style={browserHeaderSmall}>
+                    <span style={{ fontSize: '0.6rem', color: 'var(--muted-foreground)' }}>{feat.tag}</span>
+                  </div>
+                  <img src={feat.img} alt={feat.title} style={featureCardImage} />
+                </div>
+                
+                <div style={{ padding: '1rem' }}>
+                  <div style={featureCardHead}>
+                    <div style={iconWrap}>
+                      <Icon size={18} style={{ color: 'var(--accent)' }} />
+                    </div>
+                    <h3 style={featureTitle}>{feat.title}</h3>
+                  </div>
+                  <p style={featureDesc}>{feat.desc}</p>
+                  <Link href={`/features/${feat.slug}`} style={featureLink}>
+                    Explore technical docs <ArrowRight size={13} />
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── BEFORE & AFTER TRANSLATION BLUEPRINT ── */}
+      <section style={sectionContainer}>
+        <div style={sectionHeader}>
+          <p className="section-label">HOW IT WORKS</p>
+          <h2 style={sectionTitle}>Vague Intent → Rich Spec translation</h2>
+        </div>
+        <div className="ide-comparison-grid glass-panel" style={previewSection}>
+          {/* Left panel: Draft User Query */}
+          <div style={previewBox}>
+            <div style={previewBoxHeader}>
+              <span style={{ color: 'var(--muted-foreground)' }}>user_prompt.txt</span>
+            </div>
+            <div style={{ padding: '1.25rem' }}>
+              <p style={previewBoxText}>
+                "Build a premium dark-mode SaaS dashboard with glassmorphism cards and smooth entrance motions."
+              </p>
+            </div>
+          </div>
+
+          {/* Center Connection Icon */}
+          <div className="comparison-arrow" style={previewArrowWrap}>
+            <Zap size={22} style={{ color: 'var(--accent)' }} />
+          </div>
+
+          {/* Right panel: Enhanced Prompt Output */}
+          <div style={{ ...previewBox, borderLeft: '1px solid var(--border)' }}>
+            <div style={previewBoxHeader}>
+              <span style={{ color: 'var(--accent)' }}>promptforge_enhanced_spec.xml</span>
+            </div>
+            <div style={{ padding: '1.25rem' }}>
+              <pre style={previewCode}>
+{`<design_system>
+  <theme>Sleek Dark Glassmorphism</theme>
+  <tokens>
+    <background>#000000</background>
+    <card_bg>rgba(255,255,255,0.04)</card_bg>
+    <backdrop_blur>24px</backdrop_blur>
+    <border>1px solid rgba(255,255,255,0.08)</border>
+  </tokens>
+  <motion_curve>
+    <type>spring</type>
+    <stiffness>260</stiffness>
+    <damping>20</damping>
+  </motion_curve>
+</design_system>`}
+              </pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── DESIGN PRESETS / PRICING TIERS ── */}
+      <section id="pricing" style={sectionContainer}>
+        <div style={sectionHeader}>
+          <p className="section-label">PAYMENT MATRIX</p>
+          <h2 style={sectionTitle}>Flexible SaaS Subscriptions</h2>
+        </div>
+        <div className="pricing-grid-cards">
+          {PRICING_TIERS.map((tier) => (
+            <div 
+              key={tier.tier} 
+              style={{ ...pricingCard, border: `1px solid ${tier.tier === 'pro' ? 'rgba(124,58,237,0.3)' : 'var(--border)'}` }} 
+              className="glass-panel"
             >
-              {s}
-            </motion.button>
-          ))}
-        </motion.div>
-      </motion.section>
+              {/* Central high-fidelity glow blob for the pro plan */}
+              {tier.tier === 'pro' && <div style={pricingProGlow} />}
 
-      {/* ── Bento Grid ────────────────────────────────────────── */}
-      <motion.section
-        variants={stagger}
-        initial="hidden"
-        animate="show"
-        style={{ marginBottom: '3.5rem' }}
-      >
-        <motion.div variants={fadeUp} style={sectionHeader}>
-          <div>
-            <p className="section-label" style={{ marginBottom: '0.4rem' }}>Architectural Pipelines</p>
-            <h2 style={sectionTitle}>Choose your workflow</h2>
-          </div>
-        </motion.div>
+              <div style={pricingCardTop}>
+                <span style={{ ...pricingName, color: tier.accent }}>{tier.name}</span>
+                <span style={{ ...pricingBadgePill, background: `${tier.accent}12`, color: tier.accent, borderColor: `${tier.accent}25` }}>
+                  {tier.badge}
+                </span>
+              </div>
 
-        <div style={bentoGrid}>
-          {WORKFLOWS.map((w, i) => (
-            <BentoCard key={i} workflow={w} />
+              <div style={priceRow}>
+                <span style={priceText}>{tier.price}</span>
+                {tier.price !== 'Custom' && <span style={priceSub}>/ month</span>}
+              </div>
+
+              <p style={pricingDesc}>{tier.desc}</p>
+              
+              <div style={featureListStyle}>
+                {tier.features.map((f, i) => (
+                  <div key={i} style={featureItemStyle}>
+                    <Check size={13} style={{ color: tier.accent, flexShrink: 0 }} />
+                    <span style={{ fontSize: '0.8rem' }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Link href={`/pricing/${tier.tier}`} style={pricingCtaBtn(tier.tier === 'pro', tier.accent)}>
+                Get Plan Details
+              </Link>
+            </div>
           ))}
         </div>
-      </motion.section>
-
-      {/* ── History ───────────────────────────────────────────── */}
-      <motion.section
-        variants={stagger}
-        initial="hidden"
-        animate="show"
-      >
-        <motion.div variants={fadeUp} style={sectionHeader}>
-          <div>
-            <p className="section-label" style={{ marginBottom: '0.4rem' }}>Recent Activity</p>
-            <h2 style={sectionTitle}>Your workspaces</h2>
-          </div>
-          {history.length > 0 && (
-            <button
-              style={clearBtn}
-              onClick={handleClearAll}
-            >
-              <Trash size={13} />
-              Clear all
-            </button>
-          )}
-        </motion.div>
-
-        {history.length === 0 ? (
-          <motion.div variants={fadeUp} style={emptyState}>
-            <div style={emptyIcon}><Sparkles size={24} /></div>
-            <p style={emptyTitle}>No workspaces yet</p>
-            <p style={emptyDesc}>Describe your idea above to generate your first precision prompt.</p>
-          </motion.div>
-        ) : (
-          <motion.div variants={stagger} style={historyGrid}>
-            {history.slice(0, 6).map((log) => {
-              const ModeIcon = MODE_ICONS[log.mode] || Sparkles;
-              const modeColor = MODE_COLORS[log.mode] || '#19398d';
-              const isCopied = copiedId === log.id;
-              return (
-                <motion.div
-                  key={log.id}
-                  variants={cardVariant}
-                  style={historyCard}
-                  className="card card-hover"
-                  onClick={() => router.push(`/chat?id=${log.id}`)}
-                  whileHover={{ y: -3 }}
-                >
-                  <div style={historyCardTop}>
-                    <div style={{ ...historyModeBadge, background: `${modeColor}12`, color: modeColor, borderColor: `${modeColor}25` }}>
-                      <ModeIcon size={12} />
-                      <span>{log.mode}</span>
-                    </div>
-                    <span style={historyDate}>
-                      <Clock size={11} />
-                      {new Date(log.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                    </span>
-                  </div>
-
-                  <h3 style={historyTitle}>{log.title}</h3>
-                  <p style={historyQuery} className="truncate-2">{log.query || 'No query recorded.'}</p>
-
-                  <div style={historyActions}>
-                    <button
-                      style={{ ...historyActionBtn, color: isCopied ? '#16a34a' : 'var(--muted-foreground)' }}
-                      onClick={e => handleCopy(log.id, e, log.resolvedPrompt)}
-                    >
-                      {isCopied ? <Check size={13} /> : <Copy size={13} />}
-                      {isCopied ? 'Copied' : 'Copy'}
-                    </button>
-                    <button
-                      style={{ ...historyActionBtn, color: '#ef4444' }}
-                      onClick={e => handleDelete(log.id, e)}
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                    <div style={{ flex: 1 }} />
-                    <span style={historyOpen}>
-                      Open <ExternalLink size={11} />
-                    </span>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </motion.div>
-        )}
-      </motion.section>
+      </section>
     </div>
   );
 }
 
-// ─── Bento Card Component ──────────────────────────────────────
-function BentoCard({ workflow }) {
-  const { href, wmode, icon: Icon, label, desc, accent, accentBg, badge } = workflow;
-  const [hovered, setHovered] = useState(false);
+// ─── Inline Styling Tokens (Neo-Noir & Premium Glassmorphism) ───
 
-  const handleClick = () => {
-    if (wmode) localStorage.setItem('promptforge_wmode', wmode);
-  };
-
-  return (
-    <motion.div variants={cardVariant}>
-      <Link
-        href={href}
-        onClick={handleClick}
-        style={bentoCard(hovered, accent)}
-        className="card"
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
-        {/* Ambient glow */}
-        <div style={bentoGlow(accent, hovered)} />
-
-        {/* Header row */}
-        <div style={bentoHead}>
-          <div style={bentoIconWrap(accent, accentBg, hovered)}>
-            <Icon size={18} style={{ color: accent }} />
-          </div>
-          <span style={bentoBadge(accent)}>{badge}</span>
-        </div>
-
-        <h3 style={bentoTitle}>{label}</h3>
-        <p style={bentoDesc}>{desc}</p>
-
-        <div style={bentoFooter(accent, hovered)}>
-          <span>Get started</span>
-          <motion.div animate={{ x: hovered ? 4 : 0 }} transition={{ duration: 0.2 }}>
-            <ArrowRight size={13} />
-          </motion.div>
-        </div>
-      </Link>
-    </motion.div>
-  );
-}
-
-// ─── Loading Screen ────────────────────────────────────────────
-function LoadingScreen() {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      style={loadingWrap}
-    >
-      <div style={loadingInner}>
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
-          style={loadingSpinner}
-        />
-        <p style={loadingText}>Loading workspace…</p>
-      </div>
-    </motion.div>
-  );
-}
-
-// ─── Styles ───────────────────────────────────────────────────
-
-const heroSection = {
+const containerStyle = {
+  position: 'relative',
+  zIndex: 2,
+  width: '100%',
   display: 'flex',
   flexDirection: 'column',
-  alignItems: 'center',
-  textAlign: 'center',
-  paddingTop: '3rem',
-  paddingBottom: '4rem',
-  maxWidth: '900px',
-  margin: '0 auto',
+  gap: '4.5rem',
+  paddingTop: '1rem',
+  overflow: 'hidden',
+};
+
+const arcSvg = {
+  position: 'absolute',
+  top: '30px',
+  right: '10%',
+  width: '450px',
+  height: '600px',
+  zIndex: 1,
+  opacity: 0.6,
+  pointerEvents: 'none',
+};
+
+const panelOrb = {
+  position: 'absolute',
+  top: '15%',
+  right: '5%',
+  width: '580px',
+  height: '580px',
+  borderRadius: '50%',
+  background: 'radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 65%)',
+  filter: 'blur(40px)',
+  zIndex: 1,
+  pointerEvents: 'none',
+};
+
+const heroContentCol = {
+  display: 'flex',
+  flexDirection: 'column',
+  zIndex: 10,
+};
+
+const heroHeadline = {
+  fontSize: 'clamp(2.5rem, 5vw, 4.25rem)',
+  fontWeight: '800',
+  fontFamily: 'var(--font-display)',
+  lineHeight: '1.08',
+  letterSpacing: '-0.04em',
+  color: 'var(--foreground)',
+  marginBottom: '1.25rem',
 };
 
 const heroParagraph = {
   fontSize: '1.05rem',
   color: 'var(--muted-foreground)',
-  lineHeight: '1.7',
-  maxWidth: '580px',
+  lineHeight: '1.75',
+  maxWidth: '520px',
   marginBottom: '2rem',
 };
 
-const consoleForm = (focused) => ({
+const consoleForm = {
   width: '100%',
-  maxWidth: '640px',
-  height: '60px',
+  maxWidth: '520px',
+  height: '56px',
   display: 'flex',
   alignItems: 'center',
   gap: '0.75rem',
-  padding: '0 0.5rem 0 1.25rem',
-  background: 'var(--card)',
-  border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border)'}`,
-  borderRadius: '14px',
-  boxShadow: focused
-    ? '0 0 0 3px var(--accent-glow), var(--shadow-md)'
-    : 'var(--shadow-md)',
-  transition: 'all 0.25s ease',
-  marginBottom: '1rem',
-});
+  padding: '0 0.5rem 0 1.15rem',
+  background: 'rgba(255, 255, 255, 0.03)',
+  border: '1.5px solid var(--border)',
+  borderRadius: '12px',
+  boxShadow: 'var(--shadow-md)',
+  marginBottom: '1.5rem',
+};
 
 const consoleInput = {
   flex: 1,
   background: 'transparent',
   border: 'none',
   outline: 'none',
-  fontSize: '0.95rem',
+  fontSize: '0.9rem',
   color: 'var(--foreground)',
   fontFamily: 'var(--font-sans)',
 };
@@ -419,321 +565,323 @@ const forgeBtn = {
   display: 'flex',
   alignItems: 'center',
   gap: '0.4rem',
-  padding: '0.55rem 1.1rem',
+  padding: '0.5rem 1rem',
   background: 'var(--accent)',
   color: 'var(--accent-foreground)',
   border: 'none',
-  borderRadius: '10px',
-  fontSize: '0.875rem',
+  borderRadius: '8px',
+  fontSize: '0.82rem',
   fontWeight: '700',
   cursor: 'pointer',
   flexShrink: 0,
-  fontFamily: 'var(--font-sans)',
 };
 
-const suggestRow = {
+const ctaRow = {
+  display: 'flex',
+  gap: '0.85rem',
+  flexWrap: 'wrap',
+};
+
+const primaryCta = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.5rem',
+  padding: '0.8rem 1.6rem',
+  fontSize: '0.9rem',
+  fontWeight: '700',
+  borderRadius: '10px',
+  textDecoration: 'none',
+  boxShadow: 'var(--shadow-md)',
+};
+
+const secondaryCta = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: '0.8rem 1.6rem',
+  fontSize: '0.9rem',
+  fontWeight: '600',
+  borderRadius: '10px',
+  textDecoration: 'none',
+};
+
+// ─── browser Mockup Styles ───
+const browserMockupFrame = {
+  background: 'var(--card)',
+  borderRadius: '12px',
+  border: '1px solid rgba(255,255,255,0.08)',
+  boxShadow: 'var(--shadow-lg)',
+  overflow: 'hidden',
+  display: 'flex',
+  flexDirection: 'column',
+};
+
+const browserHeader = {
+  padding: '0.6rem 1rem',
+  background: 'rgba(255, 255, 255, 0.02)',
+  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
   display: 'flex',
   alignItems: 'center',
-  flexWrap: 'wrap',
-  gap: '0.5rem',
-  justifyContent: 'center',
+  gap: '0.75rem',
 };
 
-const suggestLabel = {
-  fontSize: '0.8rem',
+const browserHeaderSmall = {
+  padding: '0.4rem 0.75rem',
+  background: 'rgba(255, 255, 255, 0.02)',
+  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+};
+
+const browserUrl = {
+  fontSize: '0.65rem',
   color: 'var(--muted-foreground)',
-  fontWeight: '600',
-};
-
-const suggestChip = {
-  padding: '0.35rem 0.85rem',
-  background: 'var(--muted)',
-  border: '1px solid var(--border)',
+  opacity: 0.5,
+  background: 'rgba(0,0,0,0.15)',
+  padding: '1px 12px',
   borderRadius: '999px',
-  fontSize: '0.78rem',
-  color: 'var(--muted-foreground)',
-  cursor: 'pointer',
-  fontFamily: 'var(--font-sans)',
-  fontWeight: '500',
-  transition: 'all 0.2s ease',
+};
+
+const browserImage = {
+  width: '100%',
+  height: 'auto',
+  display: 'block',
+};
+
+// ─── Section Header ───
+const sectionContainer = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1.25rem',
+  padding: '1.5rem 0',
+  position: 'relative',
 };
 
 const sectionHeader = {
   display: 'flex',
-  alignItems: 'flex-end',
-  justifyContent: 'space-between',
-  marginBottom: '1.5rem',
-  gap: '1rem',
+  flexDirection: 'column',
+  gap: '0.3rem',
 };
 
 const sectionTitle = {
-  fontSize: '1.4rem',
-  fontWeight: '700',
-  letterSpacing: '-0.025em',
-  color: 'var(--foreground)',
+  fontSize: '1.65rem',
+  fontWeight: '800',
   fontFamily: 'var(--font-display)',
+  color: 'var(--foreground)',
+  letterSpacing: '-0.025em',
 };
 
-const bentoGrid = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-  gap: '1rem',
-};
-
-const bentoCard = (hovered, accent) => ({
+// ─── Feature Card styling ───
+const featureCard = {
+  background: 'var(--card)',
+  borderRadius: '16px',
+  border: '1px solid var(--border)',
+  overflow: 'hidden',
   display: 'flex',
   flexDirection: 'column',
-  gap: '0.75rem',
-  padding: '1.5rem',
-  borderRadius: '16px',
+  boxShadow: 'var(--shadow-sm)',
+  transition: 'transform 0.3s ease, border-color 0.3s ease',
+};
+
+const featureImageFrame = {
+  width: '100%',
+  borderBottom: '1px solid var(--border)',
+  overflow: 'hidden',
+};
+
+const featureCardImage = {
+  width: '100%',
+  height: '160px',
+  objectFit: 'cover',
+  display: 'block',
+};
+
+const featureCardHead = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.65rem',
+  marginBottom: '0.5rem',
+};
+
+const iconWrap = {
+  width: '32px',
+  height: '32px',
+  borderRadius: '8px',
+  background: 'var(--accent-subtle)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
+const featureTitle = {
+  fontSize: '1rem',
+  fontWeight: '700',
+  fontFamily: 'var(--font-display)',
+  color: 'var(--foreground)',
+  letterSpacing: '-0.015em',
+};
+
+const featureDesc = {
+  fontSize: '0.8rem',
+  color: 'var(--muted-foreground)',
+  lineHeight: '1.5',
+  marginBottom: '1rem',
+};
+
+const featureLink = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.3rem',
+  fontSize: '0.78rem',
+  fontWeight: '700',
+  color: 'var(--accent)',
   textDecoration: 'none',
+};
+
+// ─── Comparison Terminal styling ───
+const previewSection = {
+  background: 'var(--card)',
+  borderRadius: '16px',
+  border: '1px solid var(--border)',
+  overflow: 'hidden',
+  boxShadow: 'var(--shadow-lg)',
+};
+
+const previewBox = {
+  display: 'flex',
+  flexDirection: 'column',
+};
+
+const previewBoxHeader = {
+  padding: '0.6rem 1.25rem',
+  background: 'rgba(255, 255, 255, 0.02)',
+  borderBottom: '1px solid var(--border)',
+  fontSize: '0.68rem',
+  fontWeight: '800',
+  letterSpacing: '0.05em',
+  textTransform: 'uppercase',
+};
+
+const previewBoxText = {
+  fontSize: '0.88rem',
+  lineHeight: '1.65',
+  color: 'var(--foreground)',
+  fontStyle: 'italic',
+};
+
+const previewArrowWrap = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '0.5rem',
+};
+
+const previewCode = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: '0.78rem',
+  color: 'var(--foreground)',
+  lineHeight: '1.5',
+  margin: 0,
+};
+
+// ─── Pricing Card styling ───
+const pricingCard = {
+  padding: '2.25rem 2rem',
+  background: 'var(--card)',
+  borderRadius: '20px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1rem',
   position: 'relative',
   overflow: 'hidden',
-  background: 'var(--card)',
-  border: `1px solid ${hovered ? `${accent}30` : 'var(--border)'}`,
-  transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
-  transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
-  boxShadow: hovered
-    ? `0 12px 32px ${accent}15, var(--shadow-md)`
-    : 'var(--shadow-sm)',
-});
+  boxShadow: 'var(--shadow-md)',
+};
 
-const bentoGlow = (accent, hovered) => ({
+const pricingProGlow = {
   position: 'absolute',
-  top: '-30%',
-  right: '-20%',
-  width: '200px',
-  height: '200px',
+  top: '-40%',
+  right: '-30%',
+  width: '280px',
+  height: '280px',
   borderRadius: '50%',
-  background: `radial-gradient(circle, ${accent}12 0%, transparent 70%)`,
-  opacity: hovered ? 1 : 0,
-  transition: 'opacity 0.4s ease',
+  background: 'radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%)',
   pointerEvents: 'none',
-});
+};
 
-const bentoHead = {
+const pricingCardTop = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
 };
 
-const bentoIconWrap = (accent, accentBg, hovered) => ({
-  width: '38px',
-  height: '38px',
-  borderRadius: '10px',
-  background: hovered ? `${accent}15` : accentBg,
-  border: `1px solid ${accent}20`,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  transition: 'all 0.3s ease',
-});
+const pricingName = {
+  fontSize: '0.78rem',
+  fontWeight: '800',
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+};
 
-const bentoBadge = (accent) => ({
+const pricingBadgePill = {
   fontSize: '0.68rem',
   fontWeight: '700',
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase',
-  color: accent,
-  background: `${accent}10`,
-  border: `1px solid ${accent}20`,
   padding: '2px 8px',
-  borderRadius: '999px',
-});
-
-const bentoTitle = {
-  fontSize: '0.98rem',
-  fontWeight: '700',
-  color: 'var(--foreground)',
-  letterSpacing: '-0.01em',
-  fontFamily: 'var(--font-display)',
-};
-
-const bentoDesc = {
-  fontSize: '0.82rem',
-  color: 'var(--muted-foreground)',
-  lineHeight: '1.6',
-  flex: 1,
-};
-
-const bentoFooter = (accent, hovered) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.35rem',
-  fontSize: '0.8rem',
-  fontWeight: '700',
-  color: hovered ? accent : 'var(--muted-foreground)',
-  paddingTop: '0.75rem',
-  borderTop: '1px solid var(--border)',
-  transition: 'color 0.2s ease',
-});
-
-const clearBtn = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.4rem',
-  padding: '0.4rem 0.85rem',
-  background: 'transparent',
-  border: '1px solid var(--border)',
-  borderRadius: '8px',
-  fontSize: '0.78rem',
-  fontWeight: '600',
-  color: 'var(--muted-foreground)',
-  cursor: 'pointer',
-  fontFamily: 'var(--font-sans)',
-  transition: 'all 0.2s ease',
-};
-
-const emptyState = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: '0.75rem',
-  padding: '3rem 2rem',
-  background: 'var(--card)',
-  border: '1px solid var(--border)',
-  borderRadius: '16px',
-  textAlign: 'center',
-};
-
-const emptyIcon = {
-  width: '48px',
-  height: '48px',
-  borderRadius: '12px',
-  background: 'var(--muted)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  color: 'var(--muted-foreground)',
-};
-
-const emptyTitle = {
-  fontSize: '0.95rem',
-  fontWeight: '700',
-  color: 'var(--foreground)',
-};
-
-const emptyDesc = {
-  fontSize: '0.85rem',
-  color: 'var(--muted-foreground)',
-  maxWidth: '360px',
-};
-
-const historyGrid = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-  gap: '1rem',
-};
-
-const historyCard = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.6rem',
-  padding: '1.25rem',
-  cursor: 'pointer',
-};
-
-const historyCardTop = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-};
-
-const historyModeBadge = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.35rem',
-  fontSize: '0.7rem',
-  fontWeight: '700',
-  textTransform: 'uppercase',
-  letterSpacing: '0.06em',
-  padding: '3px 8px',
   borderRadius: '999px',
   border: '1px solid',
 };
 
-const historyDate = {
+const priceRow = {
   display: 'flex',
-  alignItems: 'center',
-  gap: '0.3rem',
-  fontSize: '0.75rem',
-  color: 'var(--muted-foreground)',
+  alignItems: 'baseline',
+  gap: '0.25rem',
 };
 
-const historyTitle = {
-  fontSize: '0.9rem',
-  fontWeight: '700',
-  color: 'var(--foreground)',
-  letterSpacing: '-0.01em',
+const priceText = {
+  fontSize: '2.25rem',
+  fontWeight: '800',
   fontFamily: 'var(--font-display)',
+  color: 'var(--foreground)',
+  letterSpacing: '-0.02em',
 };
 
-const historyQuery = {
-  fontSize: '0.8rem',
+const priceSub = {
+  fontSize: '0.85rem',
   color: 'var(--muted-foreground)',
-  lineHeight: '1.5',
+};
+
+const pricingDesc = {
+  fontSize: '0.82rem',
+  color: 'var(--muted-foreground)',
+  lineHeight: '1.45',
+};
+
+const featureListStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.65rem',
+  margin: '0.75rem 0',
   flex: 1,
 };
 
-const historyActions = {
+const featureItemStyle = {
   display: 'flex',
   alignItems: 'center',
-  gap: '0.25rem',
-  paddingTop: '0.6rem',
-  borderTop: '1px solid var(--border)',
-  marginTop: 'auto',
+  gap: '0.5rem',
+  color: 'var(--foreground)',
 };
 
-const historyActionBtn = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.3rem',
-  padding: '0.3rem 0.65rem',
-  background: 'transparent',
-  border: '1px solid var(--border)',
-  borderRadius: '6px',
-  fontSize: '0.75rem',
-  fontWeight: '600',
-  cursor: 'pointer',
-  fontFamily: 'var(--font-sans)',
-  transition: 'all 0.2s ease',
-};
-
-const historyOpen = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.3rem',
-  fontSize: '0.75rem',
-  fontWeight: '600',
-  color: 'var(--accent)',
-};
-
-const loadingWrap = {
-  minHeight: '60vh',
-  display: 'flex',
+const pricingCtaBtn = (isPro, accentColor) => ({
+  display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  position: 'relative',
-  zIndex: 2,
-};
-
-const loadingInner = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: '1rem',
-};
-
-const loadingSpinner = {
-  width: '32px',
-  height: '32px',
-  borderRadius: '50%',
-  border: '2.5px solid var(--border)',
-  borderTopColor: 'var(--accent)',
-};
-
-const loadingText = {
-  fontSize: '0.9rem',
-  color: 'var(--muted-foreground)',
-  fontWeight: '500',
-};
+  padding: '0.7rem 1.25rem',
+  fontSize: '0.85rem',
+  fontWeight: '700',
+  borderRadius: '8px',
+  textDecoration: 'none',
+  textAlign: 'center',
+  transition: 'opacity 0.2s',
+  background: isPro ? accentColor : 'var(--muted)',
+  color: isPro ? 'var(--accent-foreground)' : 'var(--foreground)',
+  border: isPro ? 'none' : '1px solid var(--border)',
+  marginTop: '0.5rem',
+});

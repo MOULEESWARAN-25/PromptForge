@@ -23,6 +23,10 @@ export const metadata = {
   title: "PromptForge | AI Prompt Architect",
   description: "Transform vague ideas into precision-engineered AI prompts for Cursor, Lovable, and v0. Built for developers who demand quality.",
   keywords: ["AI prompts", "prompt engineering", "Cursor", "Lovable", "v0", "RAG"],
+  metadataBase: new URL("https://promptforge.ai"),
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export const viewport = {
