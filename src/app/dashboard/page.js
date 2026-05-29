@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import {
   Sparkles, Monitor, Layout, Code2, Wand2, ArrowRight,
   CornerDownLeft, Trash, Copy, Check, ExternalLink, Clock, Trash2, AlertTriangle,
-  Search, Star, Calendar, ChevronDown, HelpCircle, Compass, Folder, FolderPlus
+  Search, Star, Calendar, ChevronDown, HelpCircle, Compass, Folder, FolderPlus, TrendingUp
 } from 'lucide-react';
 import Link from 'next/link';
 import { track, EVENTS } from '@/lib/analytics';
@@ -298,18 +298,6 @@ export default function DashboardPage() {
   const SUGGESTIONS = ['glassmorphic dashboard', 'SaaS pricing page', 'OTP auth screen', 'data table component'];
 
   if (loading || !user) {
-    let tempHistory = [];
-    try {
-      const saved = localStorage.getItem('promptforge_history');
-      if (saved) tempHistory = JSON.parse(saved);
-    } catch (_) {}
-    const tempUsage = {
-      used: tempHistory.length,
-      max: 3,
-      isNearLimit: tempHistory.length >= 2,
-      isAtLimit: tempHistory.length >= 3
-    };
-
     return (
       <div style={loadingWrap}>
         <div style={{ width: '100%', maxWidth: '1200px', padding: '2rem' }}>
@@ -337,18 +325,6 @@ export default function DashboardPage() {
               <div style={skeletonLine('180px', '28px')} />
               <div style={skeletonLine('80px', '28px')} />
             </div>
-
-            {/* Upgrade banner skeleton */}
-            {(tempUsage.isNearLimit || tempUsage.isAtLimit) && (
-              <div style={{ height: '96px', borderRadius: '16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', marginBottom: '1.5rem', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }} className="animate-pulse">
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <div style={skeletonLine('140px', '14px')} />
-                  <div style={skeletonLine('80px', '14px')} />
-                </div>
-                <div style={{ height: '8px', background: 'rgba(255,255,255,0.04)', borderRadius: '999px', width: '100%' }} />
-                <div style={skeletonLine('60%', '12px')} />
-              </div>
-            )}
 
             {/* History cards grid skeletons matching exact geometry */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.25rem' }}>
