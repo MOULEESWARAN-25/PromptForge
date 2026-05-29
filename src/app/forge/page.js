@@ -4,11 +4,14 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { generateEnhancedPrompt } from '@/services/gemini';
-import { 
-  ArrowLeft, Sparkles, Layout, Monitor, Code2, 
-  Wand2, ChevronRight, CheckCircle2, Sliders, Info, Plus, Trash2
+import ShadcnDropdown from '@/components/ShadcnDropdown';
+import { toast } from 'sonner';
+import {
+  ArrowLeft, Sparkles, Layout, Monitor, Code2,
+  Wand2, ChevronRight, CheckCircle2, Sliders, Info, Plus, Trash2, RotateCcw, X
 } from 'lucide-react';
 import { themeStyles } from '@/data/designVocabulary';
+import { track, EVENTS } from '@/lib/analytics';
 
 // ─── Categories & Images Configurations ────────────────────────
 const APP_CATEGORIES = [
@@ -62,13 +65,32 @@ function ForgeWizardContent() {
 
   // Active state mode: "application" | "page" | "enhance"
   const [activeMode, setActiveMode] = useState('application');
+  const [draftRecovered, setDraftRecovered] = useState(false);
+  const [showDraftBanner, setShowDraftBanner] = useState(false);
 
-  useEffect(() => {
-    const mode = searchParams.get('mode');
-    if (mode === 'application' || mode === 'page' || mode === 'enhance') {
-      setActiveMode(mode);
-    }
-  }, [searchParams]);
+
+
+  const applyDraft = () => {
+    try {
+      const draft = JSON.parse(localStorage.getItem('promptforge_draft') || '{}');
+      if (draft.mode) setActiveMode(draft.mode);
+      if (draft.appCategory) setAppCategory(draft.appCategory);
+      if (draft.selectedFeatures) setSelectedFeatures(draft.selectedFeatures);
+      if (draft.selectedTheme) setSelectedTheme(draft.selectedTheme);
+      if (draft.pageType) setPageType(draft.pageType);
+      if (draft.selectedComponents) setSelectedComponents(draft.selectedComponents);
+      setShowDraftBanner(false);
+      setDraftRecovered(true);
+      toast.success('Draft restored!', { description: 'Your previous selections have been loaded.' });
+      track(EVENTS.FORGE_DRAFT_RECOVERED);
+    } catch {}
+  };
+
+  const discardDraft = () => {
+    localStorage.removeItem('promptforge_draft');
+    setShowDraftBanner(false);
+    track(EVENTS.FORGE_DRAFT_DISCARDED);
+  };
 
   // Universal Wizard States
   const [selectedTheme, setSelectedTheme] = useState(null);
@@ -89,6 +111,66 @@ function ForgeWizardContent() {
   const [rawDescription, setRawDescription] = useState('');
   const [selectedQualities, setSelectedQualities] = useState(['modern', 'premium', 'polished']);
   const [selectedMotions, setSelectedMotions] = useState(['hover feedback', 'micro-interactions']);
+  const [enhanceStep, setEnhanceStep] = useState('input');
+  const [analyzingText, setAnalyzingText] = useState('');
+  const [analysisReport, setAnalysisReport] = useState(null);
+
+  // Syncing prefill recovery & active intents queue on mount (safely placed after state declarations)
+  useEffect(() => {
+    const quickQuery = localStorage.getItem('promptforge_quickquery');
+    if (quickQuery) {
+      setRawDescription(quickQuery);
+      setActiveMode('enhance');
+      localStorage.setItem('promptforge_wmode', 'enhance');
+      
+      // Purge storage flags immediately to avoid stale state loops
+      localStorage.removeItem('promptforge_quickquery');
+      localStorage.removeItem('promptforge_draft'); // Priority 1 wins over Priority 2
+      toast.success('Quick Forge loaded!', { description: 'Running automated intent discovery...' });
+      track('quick_forge_prefilled', { length: quickQuery.length });
+    } else {
+      const mode = searchParams.get('mode') || localStorage.getItem('promptforge_wmode');
+      if (mode === 'application' || mode === 'page' || mode === 'enhance') {
+        setActiveMode(mode);
+      }
+      
+      // Check for passive draft recovery (Priority 2)
+      const draftRaw = localStorage.getItem('promptforge_draft');
+      if (draftRaw) {
+        try {
+          const draft = JSON.parse(draftRaw);
+          const age = Date.now() - (draft.savedAt || 0);
+          if (age < 24 * 60 * 60 * 1000) { // < 24h old
+            setShowDraftBanner(true);
+          }
+        } catch {}
+      }
+    }
+  }, [searchParams]);
+
+  // Auto-trigger analysis for quick queries with duplicate execution guard
+  useEffect(() => {
+    if (rawDescription && rawDescription.trim() && activeMode === 'enhance' && enhanceStep === 'input' && !analysisReport && !isGenerating) {
+      runPromptAnalysis(rawDescription);
+    }
+  }, [rawDescription, activeMode, enhanceStep, analysisReport, isGenerating]);
+
+  // Draft autosave whenever key state changes
+  useEffect(() => {
+    if (appCategory || pageType || selectedTheme) {
+      const draft = {
+        mode: activeMode,
+        appCategory,
+        selectedFeatures,
+        selectedTheme,
+        pageType,
+        selectedComponents,
+        savedAt: Date.now(),
+      };
+      localStorage.setItem('promptforge_draft', JSON.stringify(draft));
+    }
+  }, [activeMode, appCategory, selectedFeatures, selectedTheme, pageType, selectedComponents]);
+
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -168,6 +250,95 @@ function ForgeWizardContent() {
     }
   };
 
+  const runPromptAnalysis = (text) => {
+    if (!text.trim()) return;
+    setEnhanceStep('analyzing');
+    
+    const stages = [
+      "Deconstructing prompt semantic tokens...",
+      "Matching intent against local design vocabularies...",
+      "Evaluating visual shortcomings (contrast, elevation, physics)...",
+      "Retrieving custom HSL tailwind configuration targets...",
+      "Assembling AI optimization vectors..."
+    ];
+    
+    let stageIdx = 0;
+    setAnalyzingText(stages[0]);
+    
+    const interval = setInterval(() => {
+      stageIdx++;
+      if (stageIdx < stages.length) {
+        setAnalyzingText(stages[stageIdx]);
+      } else {
+        clearInterval(interval);
+        
+        const lowText = text.toLowerCase();
+        let detectedIntent = "Custom Page Component";
+        let confidence = "High (89%)";
+        let recommendedTheme = "Sleek Dark Glassmorphic";
+        
+        if (lowText.includes('dashboard') || lowText.includes('admin') || lowText.includes('panel')) {
+          detectedIntent = "SaaS Admin Dashboard Grid";
+          recommendedTheme = "Sleek Dark Glassmorphic";
+        } else if (lowText.includes('landing') || lowText.includes('product') || lowText.includes('home')) {
+          detectedIntent = "Product Landing Page / Presentation";
+          recommendedTheme = "Cyberpunk Neon";
+        } else if (lowText.includes('login') || lowText.includes('auth') || lowText.includes('signup')) {
+          detectedIntent = "Security Gate / Auth Modal";
+          recommendedTheme = "Sleek Dark Glassmorphic";
+        } else if (lowText.includes('pricing') || lowText.includes('matrix')) {
+          detectedIntent = "Subscription Billing Matrix";
+          recommendedTheme = "Brutalist Bold";
+        } else if (lowText.includes('profile') || lowText.includes('user') || lowText.includes('settings')) {
+          detectedIntent = "Personal Information Settings Workspace";
+          recommendedTheme = "Minimalist Typography";
+        }
+        
+        if (lowText.includes('minimal') || lowText.includes('clean') || lowText.includes('white')) {
+          recommendedTheme = "Minimalist Typography";
+        } else if (lowText.includes('cyber') || lowText.includes('neon') || lowText.includes('retro')) {
+          recommendedTheme = "Cyberpunk Neon";
+        } else if (lowText.includes('brutalist') || lowText.includes('bold') || lowText.includes('thick')) {
+          recommendedTheme = "Brutalist Bold";
+        } else if (lowText.includes('wes') || lowText.includes('anderson') || lowText.includes('vintage')) {
+          recommendedTheme = "Wes Anderson";
+        }
+
+        const shortcomings = [];
+        const solutions = [];
+        
+        if (!lowText.includes('framer') && !lowText.includes('motion') && !lowText.includes('animation')) {
+          shortcomings.push("Lacks tactile micro-interaction transitions & spring physics.");
+          solutions.push("Inject framer-motion spring physics (stiffness 260, damping 20).");
+        } else {
+          shortcomings.push("Basic transition timing triggers.");
+          solutions.push("Upgrade animation timelines to progressive staggered entrances.");
+        }
+        
+        if (!lowText.includes('glass') && !lowText.includes('morphism') && !lowText.includes('hsl')) {
+          shortcomings.push("Missing a modern HSL theme configuration and custom background blurs.");
+          solutions.push("Inject deep obsidian transparency layers and neon halo backdrop filters.");
+        }
+        
+        if (!lowText.includes('responsive') && !lowText.includes('mobile') && !lowText.includes('grid')) {
+          shortcomings.push("Ambiguous layout constraints for mobile and multi-column viewport scales.");
+          solutions.push("Apply fluid Bento Grid responsive columns and mobile bottom navigations.");
+        }
+
+        setAnalysisReport({
+          detectedIntent,
+          confidence,
+          recommendedTheme,
+          shortcomings,
+          solutions
+        });
+        
+        setSelectedTheme(recommendedTheme);
+        setEnhanceStep('analysis_result');
+      }
+    }, 450);
+  };
+
   // Prompt compiler trigger
   const handleForgeSubmit = async (e) => {
     e.preventDefault();
@@ -179,6 +350,8 @@ function ForgeWizardContent() {
 
       if (activeMode === 'application') {
         const finalCategory = appCategory === 'Custom' ? customCategory : appCategory;
+        track(EVENTS.FORGE_CATEGORY_SELECTED, { category: finalCategory });
+        track(EVENTS.FORGE_SUBMITTED, { mode: activeMode, theme: selectedTheme });
         title = `Application: ${finalCategory}`;
         finalQuery = `Create a premium full-stack ${finalCategory} web application using the theme style "${selectedTheme || 'Sleek Dark Glassmorphic'}". Ensure it incorporates the following features: ${selectedFeatures.join(', ')}.`;
       } else if (activeMode === 'page') {
@@ -222,23 +395,91 @@ function ForgeWizardContent() {
       });
 
       setIsGenerating(false);
+      // Clear draft on success
+      localStorage.removeItem('promptforge_draft');
       router.push(`/chat?id=${savedRecord.id}`);
 
     } catch (err) {
       console.error("Error forging prompt", err);
       setIsGenerating(false);
-      alert("An error occurred during prompt compiler engine run. Please check console.");
+      track(EVENTS.FORGE_ERROR, { mode: activeMode, error: err?.message });
+      toast.error("Generation failed", {
+        description: "We couldn't compile your prompt right now. Your draft is saved — try again in a moment.",
+        action: { label: "Retry", onClick: () => handleForgeSubmit({ preventDefault: () => {} }) }
+      });
     }
   };
 
   if (!user) return null;
 
+  // Compute current step for progress indicator
+  const getStep = () => {
+    if (activeMode === 'application') {
+      if (!appCategory) return 1;
+      if (!selectedTheme) return 2;
+      if (selectedFeatures.length === 0) return 3;
+      return 4;
+    }
+    if (activeMode === 'page') {
+      if (!pageType) return 1;
+      if (selectedComponents.length === 0) return 2;
+      if (!selectedTheme) return 3;
+      return 4;
+    }
+    return 1;
+  };
+  const currentStep = getStep();
+
+  const STEP_LABELS = activeMode === 'application'
+    ? ['Purpose', 'Theme', 'Features', 'Generate']
+    : activeMode === 'page'
+    ? ['Page Type', 'Components', 'Theme', 'Generate']
+    : ['Input', 'Analyze', 'Enhance', 'Generate'];
+
   return (
     <div style={containerStyle}>
-      <button style={backBtn} onClick={() => router.push('/')}>
+      <button style={backBtn} onClick={() => router.push('/dashboard')}>
         <ArrowLeft size={16} />
         Back to Dashboard
       </button>
+
+      {/* Draft Recovery Banner */}
+      {showDraftBanner && (
+        <div style={draftBannerStyle}>
+          <RotateCcw size={15} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+          <span style={{ fontSize: '0.85rem', color: 'var(--foreground)', flex: 1 }}>
+            You have an unfinished forge saved. <strong>Continue where you left off?</strong>
+          </span>
+          <button onClick={applyDraft} style={draftYesBtn}>Restore Draft</button>
+          <button onClick={discardDraft} style={draftNoBtn}><X size={14} /></button>
+        </div>
+      )}
+
+      {/* Step Progress Indicator (Application + Page modes) */}
+      {activeMode !== 'enhance' && (
+        <div style={stepProgressWrapper}>
+          {STEP_LABELS.map((label, i) => {
+            const stepNum = i + 1;
+            const isCompleted = currentStep > stepNum;
+            const isActive = currentStep === stepNum;
+            return (
+              <React.Fragment key={i}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem' }}>
+                  <div className={`step-dot ${isCompleted ? 'completed' : isActive ? 'active' : 'pending'}`}>
+                    {isCompleted ? <CheckCircle2 size={13} /> : stepNum}
+                  </div>
+                  <span style={{ fontSize: '0.65rem', color: isActive ? 'var(--accent)' : 'var(--muted-foreground)', fontWeight: isActive ? 700 : 500, whiteSpace: 'nowrap' }}>
+                    {label}
+                  </span>
+                </div>
+                {i < STEP_LABELS.length - 1 && (
+                  <div className={`step-connector ${isCompleted ? 'completed' : ''}`} style={{ marginBottom: '18px' }} />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      )}
 
       <div style={wizardHeader}>
         <div style={wizardTitleRow}>
@@ -597,137 +838,215 @@ function ForgeWizardContent() {
         {/* ─── C. PROMPT ENHANCER WIZARD FLOW ───────────────────────── */}
         {activeMode === 'enhance' && (
           <div style={flowContainer}>
-            {/* Step 1: Input Description */}
-            <div style={stepSection}>
-              <div style={stepHeader}>
-                <span style={stepNum}>01</span>
-                <div>
-                  <h3 style={stepTitle}>Paste Your Raw / Vague Prompt Draft</h3>
-                  <p style={stepDesc}>Describe in raw terms or paste a rough instruction sketch.</p>
-                </div>
-              </div>
-
-              <textarea
-                placeholder="e.g. Create a simple checkout screen with some shopping items, prices, credit card details form, and a pay button..."
-                value={rawDescription}
-                onChange={(e) => setRawDescription(e.target.value)}
-                style={textareaStyle}
-                className="glass-input"
-                rows={5}
-                disabled={isGenerating}
-              />
-            </div>
-
-            {/* Step 2: Modifiers selection */}
-            {rawDescription.trim().length > 5 && (
+            {/* Stage 1: Raw Prompt Input */}
+            {enhanceStep === 'input' && (
               <div style={stepSection} className="animate-fade-up">
                 <div style={stepHeader}>
-                  <span style={stepNum}>02</span>
+                  <span style={stepNum}>01</span>
                   <div>
-                    <h3 style={stepTitle}>Select Design & Motion Modifiers</h3>
-                    <p style={stepDesc}>Inject technical terminology to refine AI output code.</p>
+                    <h3 style={stepTitle}>Paste Your Vague / Raw Prompt Draft</h3>
+                    <p style={stepDesc}>Explain your SaaS feature or paste a rough instruction sketch. We will criticize and optimize it.</p>
                   </div>
                 </div>
 
-                <div style={formGroup}>
-                  <label style={formLabel}>Visual Quality Modifiers</label>
-                  <div style={badgeSelectorGrid}>
-                    {['modern', 'premium', 'polished', 'elegant', 'futuristic', 'clean', 'minimal', 'sleek', 'sophisticated', 'enterprise-grade'].map((q, idx) => {
-                      const selected = selectedQualities.includes(q);
-                      return (
-                        <button
-                          type="button"
-                          key={idx}
-                          style={badgeSelectorBtn(selected)}
-                          onClick={() => handleQualityToggle(q)}
-                        >
-                          {q}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div style={{ ...formGroup, marginTop: '1.25rem' }}>
-                  <label style={formLabel}>Transitions & Motion Physics</label>
-                  <div style={badgeSelectorGrid}>
-                    {['Framer Motion', 'spring animations', 'staggered entrance', 'micro-interactions', 'hover feedback', 'magnetic effect', 'cursor following'].map((m, idx) => {
-                      const selected = selectedMotions.includes(m);
-                      return (
-                        <button
-                          type="button"
-                          key={idx}
-                          style={badgeSelectorBtn(selected)}
-                          onClick={() => handleMotionToggle(m)}
-                        >
-                          {m}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Theme selection */}
-            {rawDescription.trim().length > 5 && (
-              <div style={stepSection} className="animate-fade-up">
-                <div style={stepHeader}>
-                  <span style={stepNum}>03</span>
-                  <div>
-                    <h3 style={stepTitle}>Target Visual Style Theme</h3>
-                    <p style={stepDesc}>Frost layout card elements or inject retro symetries.</p>
-                  </div>
-                </div>
-
-                <div style={themeCardGrid}>
-                  {Object.keys(themeStyles).map((themeName) => {
-                    const isSelected = selectedTheme === themeName;
-                    return (
-                      <div
-                        key={themeName}
-                        style={themeSelectCard(isSelected)}
-                        onClick={() => setSelectedTheme(themeName)}
-                      >
-                        <div style={themeHeaderRow}>
-                          <span style={themeCardName}>{themeName}</span>
-                          {isSelected && <CheckCircle2 size={16} style={{ color: '#fbbf24' }} />}
-                        </div>
-                        <p style={themeCardDescText}>{themeStyles[themeName].description}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Step 4: Submission */}
-            {rawDescription.trim().length > 5 && selectedTheme && (
-              <div style={submitContainer} className="animate-fade-up">
-                <div style={offlineWarning}>
-                  <Info size={16} />
-                  <span>
-                    {apiKey ? "Live Gemini Enhancer active." : "Offline Prompt Compiler enhancer active."}
-                  </span>
-                </div>
-                <button
-                  onClick={handleForgeSubmit}
-                  style={submitBtn}
-                  className="btn-accent shine-effect"
+                <textarea
+                  placeholder="e.g. Create a simple checkout screen with some shopping items, prices, credit card details form, and a pay button..."
+                  value={rawDescription}
+                  onChange={(e) => setRawDescription(e.target.value)}
+                  style={textareaStyle}
+                  className="glass-input"
+                  rows={6}
                   disabled={isGenerating}
-                >
-                  {isGenerating ? (
-                    <>
-                      <Sliders size={18} className="animate-spin" />
-                      Enhancing Raw Prompt Blueprint...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={18} />
-                      Generate Enhanced Prompt
-                    </>
-                  )}
-                </button>
+                />
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+                  <button
+                    onClick={() => runPromptAnalysis(rawDescription)}
+                    style={{ ...submitBtn, background: 'var(--accent)', color: 'var(--accent-foreground)' }}
+                    disabled={!rawDescription.trim() || isGenerating}
+                    className="btn-accent shine-effect active-scale-95"
+                  >
+                    <Sparkles size={16} />
+                    Analyze & Optimize Draft
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Stage 2: Immersive Scanner / Loader */}
+            {enhanceStep === 'analyzing' && (
+              <div style={{ ...stepSection, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3.5rem 2rem', gap: '1.5rem' }} className="glass-panel animate-fade-in">
+                <div style={{ position: 'relative', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div
+                    style={{
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '50%',
+                      border: '2.5px solid rgba(255,255,255,0.06)',
+                      borderTopColor: 'var(--accent)',
+                      animation: 'spin-slow 1s linear infinite',
+                    }}
+                  />
+                  <Sparkles size={24} style={{ color: 'var(--accent)', position: 'absolute', opacity: 0.8 }} className="animate-pulse" />
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ ...stepTitle, fontSize: '1.1rem', marginBottom: '0.25rem' }}>Automated AI Intent Discovery</p>
+                  <p style={{ ...stepDesc, fontSize: '0.82rem', color: 'var(--muted-foreground)' }}>{analyzingText}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Stage 3: Bento Grid AI Intent Analysis Report */}
+            {enhanceStep === 'analysis_result' && analysisReport && (
+              <div className="animate-fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                
+                {/* Intent Header summary */}
+                <div style={{ ...stepSection, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', padding: '1.25rem 1.5rem' }} className="glass-panel">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'rgba(5, 150, 105, 0.1)', border: '1px solid rgba(5, 150, 105, 0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Wand2 size={20} style={{ color: '#059669' }} />
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.72rem', color: '#059669', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Auto-Detected Intent</span>
+                      <h4 style={{ fontSize: '1.05rem', fontWeight: '800', color: '#ffffff', fontFamily: 'var(--font-display)', marginTop: '2px' }}>
+                        {analysisReport.detectedIntent}
+                      </h4>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: '700', padding: '2px 8px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--muted-foreground)' }}>
+                      Match Confidence: {analysisReport.confidence}
+                    </span>
+                    <button 
+                      onClick={() => setEnhanceStep('input')}
+                      style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--muted-foreground)', cursor: 'pointer' }}
+                      className="active-scale-95"
+                    >
+                      Reset Draft
+                    </button>
+                  </div>
+                </div>
+
+                {/* Bento Grid layout */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '1.25rem' }}>
+                  
+                  {/* Left Column: Shortcomings & Solutions Critique */}
+                  <div style={{ ...stepSection, display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.5rem' }} className="glass-panel">
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--foreground)', display: 'flex', alignItems: 'center', gap: '0.4rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.5rem', marginBottom: '0.25rem' }}>
+                      <Info size={14} style={{ color: 'var(--accent)' }} />
+                      Suggested Style & Layout Refinements
+                    </h4>
+
+                    {/* Deficiencies */}
+                    <div>
+                      <span style={{ fontSize: '0.72rem', color: '#ef4444', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.5rem' }}>Identified Design Gaps</span>
+                      <ul style={{ padding: 0, margin: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                        {analysisReport.shortcomings.map((item, idx) => (
+                          <li key={idx} style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)', paddingLeft: '1rem', position: 'relative' }}>
+                            <span style={{ position: 'absolute', left: 0, top: '6px', width: '5px', height: '5px', borderRadius: '50%', background: '#ef4444' }} />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Enhancements */}
+                    <div style={{ marginTop: '0.5rem' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.5rem' }}>Recommended Enhancements</span>
+                      <ul style={{ padding: 0, margin: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                        {analysisReport.solutions.map((item, idx) => (
+                          <li key={idx} style={{ fontSize: '0.78rem', color: 'var(--foreground)', paddingLeft: '1rem', position: 'relative' }}>
+                            <span style={{ position: 'absolute', left: 0, top: '6px', width: '5px', height: '5px', borderRadius: '50%', background: '#16a34a' }} />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Customizer & Theme */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    
+                    {/* Visual Theme Selection */}
+                    <div style={{ ...stepSection, padding: '1.25rem' }} className="glass-panel">
+                      <h4 style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--foreground)', marginBottom: '0.65rem' }}>Selected Design System Theme</h4>
+                      <ShadcnDropdown
+                        value={selectedTheme || 'Sleek Dark Glassmorphic'}
+                        onChange={(val) => setSelectedTheme(val)}
+                        options={Object.keys(themeStyles).map(themeName => ({ label: themeName, value: themeName }))}
+                        triggerWidth="100%"
+                        style={{ background: '#08080c', border: '1px solid rgba(255,255,255,0.08)' }}
+                      />
+                      {selectedTheme && (
+                        <p style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', marginTop: '0.5rem', lineHeight: '1.4' }}>
+                          Style Keywords: <span style={{ color: 'var(--accent)' }}>{themeStyles[selectedTheme].keywords}</span>
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Modify badges */}
+                    <div style={{ ...stepSection, padding: '1.25rem' }} className="glass-panel">
+                      <h4 style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--foreground)', marginBottom: '0.65rem' }}>Tune Quality & Physics Tokens</h4>
+                      
+                      <div style={formGroup}>
+                        <div style={badgeSelectorGrid}>
+                          {['modern', 'premium', 'polished', 'Framer Motion', 'spring animations', 'micro-interactions', 'hover feedback'].map((badge) => {
+                            const isQuality = ['modern', 'premium', 'polished'].includes(badge);
+                            const isSelected = isQuality ? selectedQualities.includes(badge) : selectedMotions.includes(badge);
+                            const toggle = () => {
+                              if (isQuality) {
+                                handleQualityToggle(badge);
+                              } else {
+                                handleMotionToggle(badge);
+                              }
+                            };
+                            return (
+                              <button
+                                type="button"
+                                key={badge}
+                                style={badgeSelectorBtn(isSelected)}
+                                onClick={toggle}
+                              >
+                                {badge}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                </div>
+
+                {/* Submit Container */}
+                <div style={{ ...submitContainer, border: 'none', paddingTop: 0, marginTop: '0.5rem' }} className="animate-fade-up">
+                  <div style={offlineWarning}>
+                    <Info size={16} />
+                    <span>
+                      {apiKey ? "Live Gemini Compiler active." : "Offline Local RAG Compiler fallback active."}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleForgeSubmit}
+                    style={{ ...submitBtn, background: 'var(--accent)', color: 'var(--accent-foreground)' }}
+                    className="btn-accent shine-effect active-scale-95"
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Sliders size={18} className="animate-spin" />
+                        Generating precision blueprint...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={18} />
+                        Generate Precision Enhanced Prompt
+                      </>
+                    )}
+                  </button>
+                </div>
+
               </div>
             )}
           </div>
@@ -1161,3 +1480,55 @@ const loadingText = {
   color: 'var(--muted-foreground)',
   fontWeight: '500',
 };
+
+// ─── New Forge UX Styles ─────────────────────────────────────
+
+const draftBannerStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.75rem',
+  padding: '0.85rem 1.25rem',
+  marginBottom: '1.25rem',
+  background: 'rgba(251,191,36,0.06)',
+  border: '1px solid rgba(251,191,36,0.2)',
+  borderRadius: '12px',
+  flexWrap: 'wrap',
+};
+
+const draftYesBtn = {
+  display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+  padding: '0.4rem 0.9rem', borderRadius: '8px', cursor: 'pointer',
+  background: 'var(--accent)', color: '#000',
+  fontSize: '0.8rem', fontWeight: '700', border: 'none',
+  fontFamily: 'var(--font-sans)', whiteSpace: 'nowrap',
+};
+
+const draftNoBtn = {
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  width: '30px', height: '30px', borderRadius: '8px', cursor: 'pointer',
+  background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
+  color: 'var(--muted-foreground)', flexShrink: 0,
+};
+
+const stepProgressWrapper = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  padding: '1.25rem 1.5rem',
+  marginBottom: '0.75rem',
+  background: 'rgba(255,255,255,0.02)',
+  border: '1px solid rgba(255,255,255,0.05)',
+  borderRadius: '12px',
+};
+
+const cardGradients = {
+  'SaaS Dashboard Admin Panel': 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(8,145,178,0.1))',
+  'E-Commerce Marketplace': 'linear-gradient(135deg, rgba(219,39,119,0.15), rgba(249,115,22,0.1))',
+  'Student Management Hub': 'linear-gradient(135deg, rgba(5,150,105,0.15), rgba(8,145,178,0.1))',
+  'Freelancer Billing Platform': 'linear-gradient(135deg, rgba(251,191,36,0.1), rgba(249,115,22,0.1))',
+  'Digital Creative Portfolio': 'linear-gradient(135deg, rgba(168,85,247,0.15), rgba(219,39,119,0.1))',
+  'Healthcare Tracker': 'linear-gradient(135deg, rgba(5,150,105,0.15), rgba(34,197,94,0.1))',
+  'Fitness Planner': 'linear-gradient(135deg, rgba(249,115,22,0.15), rgba(251,191,36,0.1))',
+  'Real Estate Portal': 'linear-gradient(135deg, rgba(8,145,178,0.15), rgba(5,150,105,0.1))',
+  'Custom': 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))',
+};
+

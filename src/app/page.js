@@ -7,6 +7,8 @@ import {
   Sparkles, ArrowRight, Monitor, Code2, 
   Wand2, Shield, Zap, Database, Check, Cpu 
 } from 'lucide-react';
+import { getExperimentVariant, trackExperimentConversion } from '@/lib/experimentation';
+
 
 const FEATURES_LIST = [
   {
@@ -20,11 +22,11 @@ const FEATURES_LIST = [
   },
   {
     slug: 'design-vocabulary',
-    title: 'Design Vocabulary',
+    title: 'Design Tokens',
     icon: Database,
     desc: 'Semantically retrieve CSS layout grid structures, glassmorphism, and spring transition tokens.',
     img: 'https://images.unsplash.com/photo-1600132806370-bf17e65e942f?w=500&h=300&fit=crop&q=80',
-    tag: 'RAG Retrieval',
+    tag: 'Style Tokens',
     gridClass: 'col-span-1'
   },
   {
@@ -45,7 +47,7 @@ const PRICING_TIERS = [
     price: '$0',
     frequency: 'Forever Free',
     desc: 'Ideal for single developers exploring prompt engineering.',
-    features: ['Local Storage fallbacks', 'Universal mode compilers', 'Standard vocabulary search', '3 saved workspaces'],
+    features: ['Local Storage fallbacks', 'Universal mode compilers', 'Design token library search', '3 saved workspaces'],
     accent: '#fbbf24',
     badge: 'Standard'
   },
@@ -85,6 +87,11 @@ const itemVariants = {
 };
 
 export default function LandingPage() {
+  const ctaVariant = getExperimentVariant("pricing-cta", {
+    A: "Get Started for Free",
+    B: "Generate Your First Prompt"
+  });
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -398,8 +405,13 @@ export default function LandingPage() {
 
           {/* Interactive Stable CTAs */}
           <div style={ctaRow} className="cta-row-responsive">
-            <Link href="/auth" style={primaryCta} className="btn-accent shine-effect active-scale-95">
-              Get Started for Free
+            <Link
+              href="/auth"
+              style={primaryCta}
+              className="btn-accent shine-effect active-scale-95"
+              onClick={() => trackExperimentConversion("pricing-cta")}
+            >
+              {ctaVariant === "A" ? "Get Started for Free" : "Generate Your First Prompt"}
               <ArrowRight size={15} />
             </Link>
             <a href="#pricing" style={secondaryCta} className="btn-secondary active-scale-95">

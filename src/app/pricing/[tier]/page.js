@@ -9,11 +9,11 @@ const PRICING_DATA = {
     price: '$0',
     frequency: 'Forever Free',
     desc: 'Perfect for individual developers experimenting with AI prompts.',
-    detailedDesc: 'Get started with PromptForge at zero cost. The Hobby tier offers full access to standard Universal Mode compilers, local storage fallback mechanics, and semantic design vocabulary search limits. Designed to make your local prompting experience smooth.',
+    detailedDesc: 'Get started with PromptForge at zero cost. The Hobby tier offers full access to standard Universal Mode compilers, local storage fallback mechanics, and design token library search limits. Designed to make your local prompting experience smooth.',
     features: [
       'Local Storage database fallbacks',
       'Universal prompt mode compilers',
-      'Standard vector design dictionary search',
+      'Standard Design Token library search',
       'Up to 3 concurrent active workspaces',
       'Community Slack support access'
     ],

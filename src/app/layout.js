@@ -4,6 +4,7 @@ import { AppProvider } from "@/context/AppContext";
 import AuroraBackground from "@/components/AuroraBackground";
 import Navigation from "@/components/Navigation";
 import { Toaster } from "sonner";
+import OfflineBanner from "@/components/OfflineBanner";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -55,10 +56,15 @@ export default function RootLayout({ children }) {
         ` }} />
       </head>
       <body>
+        {/* Skip-to-content link for keyboard/screen reader accessibility */}
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
         <AppProvider>
+          <OfflineBanner />
           <AuroraBackground />
           <Navigation />
-          <main style={mainWrapper}>
+          <main id="main-content" style={mainWrapper}>
             {children}
           </main>
           <Toaster

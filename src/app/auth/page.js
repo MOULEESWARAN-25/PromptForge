@@ -5,7 +5,8 @@ import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { Lock, User, LogIn, UserPlus, Sparkles, KeyRound, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Lock, User, LogIn, UserPlus, Sparkles, KeyRound, ArrowRight, Eye, EyeOff, Info } from 'lucide-react';
+import { track, EVENTS } from '@/lib/analytics';
 
 const SLIDES = [
   {
@@ -82,21 +83,39 @@ export default function AuthPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!username.trim() || !password.trim()) { setError('Please fill in all fields.'); return; }
+    if (!username.trim() || !password.trim()) {
+      setError('Please fill in both fields to continue.');
+      return;
+    }
     setLoading(true);
     try {
       const result = isLogin ? await login(username, password) : await register(username, password);
-      if (result.success) { toast.success(isLogin ? 'Welcome back!' : 'Account created!'); router.push('/dashboard'); }
-      else setError(result.message);
-    } catch { setError('Authentication failed.'); }
-    finally { setLoading(false); }
+      if (result.success) {
+        toast.success(isLogin ? 'Welcome back! 🎉' : 'Account created — let\'s forge some prompts!');
+        router.push('/dashboard');
+      } else {
+        setError(result.message);
+        track(EVENTS.AUTH_ERROR, { reason: result.message, mode: isLogin ? 'login' : 'register' });
+      }
+    } catch {
+      setError("We couldn't connect right now. Check your connection and try again — your details are safe.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDemo = async () => {
     setLoading(true);
-    try { await login('demo_engineer', 'promptforge2026'); toast.success('Demo mode activated!'); router.push('/dashboard'); }
-    catch { router.push('/dashboard'); }
-    finally { setLoading(false); }
+    try {
+      await login('demo_engineer', 'promptforge2026');
+      toast.success('Demo mode activated — explore freely!');
+      track(EVENTS.DEMO_ACTIVATED);
+      router.push('/dashboard');
+    } catch {
+      router.push('/dashboard');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const cur = SLIDES[slide];
@@ -308,12 +327,20 @@ export default function AuthPage() {
             ))}
           </div>
 
-          {/* Error */}
+          {/* Error — accessible alert region */}
           <AnimatePresence>
             {error && (
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={errMsg}>
-                ⚠ {error}
-              </motion.p>
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                style={errMsg}
+                role="alert"
+                aria-live="polite"
+              >
+                <Info size={14} style={{ flexShrink: 0, marginTop: '1px' }} />
+                <span>{error}</span>
+              </motion.div>
             )}
           </AnimatePresence>
 
@@ -361,14 +388,21 @@ export default function AuthPage() {
 
           <div style={divRow}><div style={divLine} /><span style={divTxt}>or</span><div style={divLine} /></div>
 
-          <motion.button onClick={handleDemo} style={demoBtn} disabled={loading}
+          <motion.button
+            onClick={handleDemo}
+            style={demoBtn}
+            disabled={loading}
             whileHover={{ scale: 1.01, background: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(255, 255, 255, 0.12)' }}
-            whileTap={{ scale: 0.99 }}>
+            whileTap={{ scale: 0.99 }}
+            title="Explore the app with a pre-filled demo account — no sign-up needed"
+            aria-label="Continue with demo account (no registration required)"
+          >
             <KeyRound size={15} style={{ opacity: 0.6 }} />
-            Continue with Demo Account
+            Try Demo Account
+            <span style={{ fontSize: '0.7rem', opacity: 0.5, fontWeight: 500 }}>No sign-up needed</span>
           </motion.button>
 
-          <p style={footerNote}>🔒 100% client-side · Credentials stored locally</p>
+          <p style={footerNote}>🔒 Credentials stored locally · No personal data collected</p>
         </motion.div>
       </div>
     </div>
@@ -378,7 +412,7 @@ export default function AuthPage() {
 /* ══════════════════════════════════
    STYLES
 ══════════════════════════════════ */
-const root = { position: 'fixed', inset: 0, display: 'flex', overflow: 'hidden', background: 'linear-gradient(155deg,#070612 0%,#0c0b20 45%,#040310 100%)' };
+const root = { position: 'fixed', inset: 0, display: 'flex', overflowY: 'auto', background: 'linear-gradient(155deg,#070612 0%,#0c0b20 45%,#040310 100%)' };
 
 // ── Left panel
 const leftPanel = { display: 'flex', flex: '0 0 54%', flexDirection: 'column', position: 'relative', overflow: 'clip', padding: '2.5rem 3rem', height: '100%' };
@@ -433,7 +467,7 @@ const tabTrack = { display: 'flex', background: 'rgba(255,255,255,0.03)', border
 const tabBtn = (a, accent) => ({ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', padding: '0.6rem', background: 'transparent', border: 'none', borderRadius: 9, cursor: 'pointer', fontFamily: 'var(--font-sans)', color: a ? accent : 'rgba(255,255,255,0.4)', position: 'relative', transition: 'color 0.3s ease' });
 const tabHighlight = { position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8 };
 
-const errMsg = { background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: '0.7rem 1rem', fontSize: '0.83rem', color: '#ef4444', lineHeight: 1.45, position: 'relative', zIndex: 1 };
+const errMsg = { background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: '0.7rem 1rem', fontSize: '0.83rem', color: '#ef4444', lineHeight: 1.5, position: 'relative', zIndex: 1, display: 'flex', alignItems: 'flex-start', gap: '0.5rem' };
 
 const fieldStack = { display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative', zIndex: 1 };
 const fieldGroup = { display: 'flex', flexDirection: 'column', gap: '0.45rem' };

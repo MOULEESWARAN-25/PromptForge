@@ -10,6 +10,86 @@ import {
   RefreshCw, Layers, ArrowLeft, Sliders, CheckCircle2, ChevronRight
 } from 'lucide-react';
 
+function renderMarkdown(text) {
+  if (!text) return null;
+  const lines = text.split('\n');
+  return lines.map((line, idx) => {
+    if (line.startsWith('### ')) {
+      return (
+        <h3 key={idx} style={{ fontSize: '0.98rem', fontWeight: '800', color: 'var(--accent)', marginTop: '0.85rem', marginBottom: '0.4rem', fontFamily: 'var(--font-display)' }}>
+          {parseInlineMarkdown(line.slice(4))}
+        </h3>
+      );
+    }
+    if (line.startsWith('## ')) {
+      return (
+        <h2 key={idx} style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ffffff', marginTop: '1.1rem', marginBottom: '0.5rem', fontFamily: 'var(--font-display)' }}>
+          {parseInlineMarkdown(line.slice(3))}
+        </h2>
+      );
+    }
+    if (line.startsWith('# ')) {
+      return (
+        <h1 key={idx} style={{ fontSize: '1.25rem', fontWeight: '800', color: '#ffffff', marginTop: '1.25rem', marginBottom: '0.6rem', fontFamily: 'var(--font-display)' }}>
+          {parseInlineMarkdown(line.slice(2))}
+        </h1>
+      );
+    }
+    if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
+      const content = line.trim().slice(2);
+      return (
+        <div key={idx} style={{ display: 'flex', gap: '0.5rem', paddingLeft: '0.5rem', marginBottom: '0.3rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.85)', lineHeight: '1.5' }}>
+          <span style={{ color: 'var(--accent)' }}>•</span>
+          <span>{parseInlineMarkdown(content)}</span>
+        </div>
+      );
+    }
+    if (line.trim() === '---' || line.trim() === '***') {
+      return <hr key={idx} style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.06)', margin: '0.75rem 0' }} />;
+    }
+    if (line.trim() === '') {
+      return <div key={idx} style={{ height: '0.4rem' }} />;
+    }
+    return (
+      <p key={idx} style={{ margin: '0 0 0.4rem 0', fontSize: '0.8rem', color: 'rgba(255,255,255,0.88)', lineHeight: '1.55' }}>
+        {parseInlineMarkdown(line)}
+      </p>
+    );
+  });
+}
+
+function parseInlineMarkdown(text) {
+  const parts = [];
+  let currentIdx = 0;
+  const regex = /(\*\*.*?\*\*|`.*?`)/g;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    const matchStr = match[0];
+    const matchIdx = match.index;
+    if (matchIdx > currentIdx) {
+      parts.push(text.slice(currentIdx, matchIdx));
+    }
+    if (matchStr.startsWith('**') && matchStr.endsWith('**')) {
+      parts.push(
+        <strong key={matchIdx} style={{ fontWeight: '700', color: '#ffffff' }}>
+          {matchStr.slice(2, -2)}
+        </strong>
+      );
+    } else if (matchStr.startsWith('`') && matchStr.endsWith('`')) {
+      parts.push(
+        <code key={matchIdx} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', padding: '2px 5px', borderRadius: '4px', color: '#c084fc' }}>
+          {matchStr.slice(1, -1)}
+        </code>
+      );
+    }
+    currentIdx = regex.lastIndex;
+  }
+  if (currentIdx < text.length) {
+    parts.push(text.slice(currentIdx));
+  }
+  return parts.length > 0 ? parts : text;
+}
+
 export default function ComponentForgePage() {
   const { user, savePromptRecord, updatePromptChat, history, apiKey } = useApp();
   const router = useRouter();
@@ -182,7 +262,7 @@ export default function ComponentForgePage() {
       {/* 1. LEFT SIDEBAR PANEL (Component Index Catalog) */}
       <div style={sidebarStyle} className="glass-panel">
         <div style={sidebarHeader}>
-          <button style={backBtn} onClick={() => router.push('/')}>
+          <button style={backBtn} onClick={() => router.push('/dashboard')}>
             <ArrowLeft size={13} />
             Back to Dashboard
           </button>
@@ -248,7 +328,7 @@ export default function ComponentForgePage() {
               
               {selectedComp?.keywords && (
                 <div style={keywordTagsContainer}>
-                  <span style={keywordsLabel}>RAG Keywords:</span>
+                  <span style={keywordsLabel}>Design Keywords:</span>
                   <div style={tagRow}>
                     {selectedComp.keywords.map((kw, i) => (
                       <span key={i} style={keywordTag}>{kw}</span>
@@ -304,94 +384,28 @@ export default function ComponentForgePage() {
             </div>
           </div>
         ) : (
-          /* B. Interactive Twin Chat & Code Workspace */
-          <div style={twinLayoutContainer}>
-            {/* Chat Column */}
-            <div style={chatColumn} className="glass-panel">
-              <div style={chatHeader}>
-                <div>
-                  <h3 style={chatTitle}>{selectedComp ? selectedComp.name : "Select a Component"}</h3>
-                  <div style={headerBadgeRow}>
+          /* B. Clean Copyable Prompt Blueprint Panel */
+          <div style={{ ...twinLayoutContainer, gap: 0 }}>
+            {/* Prompt Output Column taking full width */}
+            <div style={{ ...promptColumn, flex: 1 }} className="glass-panel animate-fade-up">
+              <div style={promptHeader}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <div style={promptTitleWrap}>
+                    <Layers size={14} style={{ color: '#fbbf24' }} />
+                    <span style={promptTitle}>Precision Component Prompt Blueprint</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center', marginTop: '2px' }}>
                     <span style={themeStatusBadge}>{selectedTheme}</span>
                     <button style={changeConfigLink} onClick={handleResetConfig}>
-                      Change Style
+                      Change Style Theme
                     </button>
                   </div>
-                </div>
-              </div>
-
-              {/* Messages viewport */}
-              <div style={chatBody}>
-                <div style={messagesList}>
-                  {(chatMessages || []).map((msg, idx) => {
-                    const isModel = msg.role === 'model';
-                    // Strip prompt tags for chat messages display
-                    let displayContent = msg.content;
-                    if (isModel) {
-                      displayContent = msg.content.split('```prompt')[0].trim() || "Generated Prompt compiled successfully. Copied blueprint output in the right-side editor.";
-                    }
-                    return (
-                      <div
-                        key={idx}
-                        style={{
-                          ...msgBubbleRow,
-                          justifyContent: isModel ? 'flex-start' : 'flex-end'
-                        }}
-                      >
-                        <div style={msgBubble(isModel)}>
-                          <span style={msgBubbleSender(isModel)}>
-                            {isModel ? "PROMPT ARCHITECT" : "YOU"}
-                          </span>
-                          <p style={bubbleText}>{displayContent}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {isGenerating && (
-                    <div style={msgBubbleRow}>
-                      <div style={msgBubble(true)}>
-                        <RefreshCw size={14} className="animate-spin" style={{ color: '#fbbf24' }} />
-                      </div>
-                    </div>
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
-              </div>
-
-              {/* Chat Input form */}
-              <form onSubmit={handleSendMessage} style={chatInputRow}>
-                <input
-                  type="text"
-                  placeholder={`Ask Architect to refine the ${selectedComp?.name || 'component'}...`}
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  style={chatField}
-                  className="glass-input"
-                  disabled={isGenerating || !selectedComp}
-                />
-                <button
-                  type="submit"
-                  style={sendBtn}
-                  className="btn-primary shine-effect"
-                  disabled={isGenerating || !selectedComp || !chatInput.trim()}
-                >
-                  <Send size={15} />
-                </button>
-              </form>
-            </div>
-
-            {/* Prompt Output Column */}
-            <div style={promptColumn} className="glass-panel">
-              <div style={promptHeader}>
-                <div style={promptTitleWrap}>
-                  <Layers size={14} style={{ color: '#fbbf24' }} />
-                  <span style={promptTitle}>Refined Component Prompt</span>
                 </div>
                 {currentPrompt && (
                   <button
                     onClick={handleCopy}
                     style={copyBtnStyle}
-                    className="btn-primary btn-sm"
+                    className="btn-accent shine-effect"
                   >
                     {copied ? <Check size={14} /> : <Copy size={14} />}
                     {copied ? "Copied!" : "Copy Prompt"}
@@ -399,15 +413,12 @@ export default function ComponentForgePage() {
                 )}
               </div>
 
-              <div style={promptBody}>
-                <pre style={codeBlockStyle}>
-                  <code>
-                    {(currentPrompt || '').includes('```prompt')
-                      ? currentPrompt.match(/```prompt\n([\s\S]*?)\n```/)?.[1] || currentPrompt
-                      : currentPrompt || ''
-                    }
-                  </code>
-                </pre>
+              <div style={{ ...promptBody, fontFamily: 'var(--font-sans)', overflowY: 'auto' }}>
+                {renderMarkdown(
+                  (currentPrompt || '').includes('```prompt')
+                    ? currentPrompt.match(/```prompt\n([\s\S]*?)\n```/)?.[1] || currentPrompt
+                    : currentPrompt || ''
+                )}
               </div>
             </div>
           </div>
@@ -881,9 +892,16 @@ const promptTitle = {
 };
 
 const copyBtnStyle = {
-  padding: '4px 12px',
-  fontSize: '0.75rem',
-  height: '28px',
+  padding: '0.45rem 1rem',
+  fontSize: '0.8rem',
+  height: '36px',
+  borderRadius: '8px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '0.4rem',
+  fontWeight: '600',
+  flexShrink: 0,
 };
 
 const promptBody = {

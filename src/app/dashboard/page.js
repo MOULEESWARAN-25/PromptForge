@@ -1,15 +1,21 @@
 "use client";
 
-import React, { useEffect, useState, useOptimistic, useTransition } from 'react';
+import React, { useEffect, useState, useOptimistic, useTransition, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
-  Sparkles, Monitor, Layout, Code2, Wand2, ArrowRight, 
-  CornerDownLeft, Trash, Copy, Check, ExternalLink, Clock, Trash2
+  Sparkles, Monitor, Layout, Code2, Wand2, ArrowRight,
+  CornerDownLeft, Trash, Copy, Check, ExternalLink, Clock, Trash2, AlertTriangle,
+  Search, Star, Calendar, ChevronDown, HelpCircle, Compass, Folder, FolderPlus
 } from 'lucide-react';
 import Link from 'next/link';
+import { track, EVENTS } from '@/lib/analytics';
+import TemplateLibrary from '@/components/TemplateLibrary';
+import HelpKeyboardOverlay from '@/components/HelpKeyboardOverlay';
+import OnboardingChecklist from '@/components/OnboardingChecklist';
+import ShadcnDropdown from '@/components/ShadcnDropdown';
 
 // ─── Animation Variants ────────────────────────────────────────
 const fadeUp = {
@@ -30,7 +36,7 @@ const cardVariant = {
 // ─── Workflow Cards Config ─────────────────────────────────────
 const WORKFLOWS = [
   {
-    href: '/forge',
+    href: '/forge?mode=application',
     wmode: 'application',
     icon: Monitor,
     label: 'SaaS Application',
@@ -40,7 +46,7 @@ const WORKFLOWS = [
     badge: 'Full-Stack',
   },
   {
-    href: '/forge',
+    href: '/forge?mode=page',
     wmode: 'page',
     icon: Layout,
     label: 'Web Page Design',
@@ -60,7 +66,7 @@ const WORKFLOWS = [
     badge: 'Interactive',
   },
   {
-    href: '/forge',
+    href: '/forge?mode=enhance',
     wmode: 'enhance',
     icon: Wand2,
     label: 'Prompt Enhancer',
@@ -75,14 +81,119 @@ const MODE_ICONS = { application: Monitor, page: Layout, component: Code2, enhan
 const MODE_COLORS = {
   application: '#7c3aed', page: '#0891b2', component: '#db2777', enhance: '#059669',
 };
+const MODE_LABELS = {
+  application: 'Full-Stack App',
+  page: 'Web Page',
+  component: 'Component',
+  enhance: 'Quick Enhance',
+};
+
+const ROTATING_PLACEHOLDERS = [
+  'A glassmorphic SaaS dashboard with dark mode and metric cards...',
+  'A premium pricing page with animated tier cards...',
+  'A real-time chat interface with presence indicators...',
+  'An e-commerce product grid with filter sidebar...',
+  'A beautiful auth screen with glassmorphic card...',
+];
 
 export default function DashboardPage() {
-  const { user, history, deletePromptRecord, clearHistory, loading } = useApp();
+  const { user, history, deletePromptRecord, clearHistory, loading, updatePromptCollection, getUsageStats } = useApp();
   const router = useRouter();
   const [copiedId, setCopiedId] = useState(null);
   const [quickInput, setQuickInput] = useState('');
   const [inputFocused, setInputFocused] = useState(false);
+  const [clearConfirm, setClearConfirm] = useState(false);
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterMode, setFilterMode] = useState('all'); 
+  const [sortBy, setSortBy] = useState('recent'); 
+  const [favorites, setFavorites] = useState([]); 
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [showInterceptModal, setShowInterceptModal] = useState(false);
+
+  const usage = getUsageStats ? getUsageStats() : { used: 0, max: 3, isAtLimit: false, isNearLimit: false, percent: 0 };
+
+  const handleNewWorkspaceIntent = (action) => {
+    if (usage.isAtLimit) {
+      setShowInterceptModal(true);
+      track('workspace_limit_intercepted', { source: 'dashboard' });
+    } else {
+      action();
+    }
+  };
+
+  // ── Folder Collections state
+  const [collections, setCollections] = useState(["SaaS Ideas", "Client Projects", "Landing Pages", "AI Tools"]);
+  const [selectedCollection, setSelectedCollection] = useState('all');
+  const [newCollectionName, setNewCollectionName] = useState('');
+  const [activeFolderPromptId, setActiveFolderPromptId] = useState(null);
+
+  const clearTimerRef = useRef(null);
   const [, startTransition] = useTransition();
+
+  // Load collections from local storage on mount
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('pf_collections'));
+      if (saved && Array.isArray(saved)) {
+        setCollections(saved);
+      }
+    } catch {}
+  }, []);
+
+  const handleCreateCollection = (e) => {
+    e.preventDefault();
+    if (!newCollectionName.trim()) return;
+    if (collections.includes(newCollectionName.trim())) {
+      toast.error('Folder already exists!');
+      return;
+    }
+    const updated = [...collections, newCollectionName.trim()];
+    setCollections(updated);
+    localStorage.setItem('pf_collections', JSON.stringify(updated));
+    setNewCollectionName('');
+    toast.success(`Created folder: ${newCollectionName.trim()}`);
+    track('collection_created', { name: newCollectionName.trim() });
+  };
+
+  // Load favorites from local storage
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('pf_favorites') || '[]');
+      setFavorites(saved);
+    } catch {}
+  }, []);
+
+  const toggleFavorite = (id, e) => {
+    e.stopPropagation();
+    let updated;
+    if (favorites.includes(id)) {
+      updated = favorites.filter(fid => fid !== id);
+      toast.success('Removed from favorites');
+    } else {
+      updated = [...favorites, id];
+      toast.success('Added to favorites!');
+    }
+    setFavorites(updated);
+    localStorage.setItem('pf_favorites', JSON.stringify(updated));
+    track('favorite_toggled', { id, isFavorite: updated.includes(id) });
+  };
+
+
+  // Rotate placeholder text every 3.5s
+  useEffect(() => {
+    const t = setInterval(() => setPlaceholderIdx(i => (i + 1) % ROTATING_PLACEHOLDERS.length), 3500);
+    return () => clearInterval(t);
+  }, []);
+
+  // Track dashboard view
+  useEffect(() => {
+    if (user) {
+      track(EVENTS.DASHBOARD_VIEWED);
+      if (history.length === 0) track(EVENTS.FIRST_FORGE_STARTED);
+    }
+  }, [user]);
 
   // Optimistic UI updates for prompt history using React 19 useOptimistic
   const [optimisticHistory, setOptimisticHistory] = useOptimistic(
@@ -103,6 +214,7 @@ export default function DashboardPage() {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     toast.success('Prompt copied to clipboard');
+    track(EVENTS.PROMPT_COPIED, { source: 'dashboard' });
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -119,14 +231,24 @@ export default function DashboardPage() {
     });
   };
 
+  // 2-click safe clear all pattern
   const handleClearAll = () => {
+    if (!clearConfirm) {
+      setClearConfirm(true);
+      clearTimerRef.current = setTimeout(() => setClearConfirm(false), 3000);
+      return;
+    }
+    clearTimeout(clearTimerRef.current);
+    setClearConfirm(false);
     startTransition(async () => {
       setOptimisticHistory({ action: 'clear' });
       try {
         await clearHistory();
-        toast.success('History cleared');
+        toast.success('All workspaces cleared', {
+          description: 'Start fresh with a new forge anytime.',
+        });
       } catch (err) {
-        toast.error('Failed to clear history');
+        toast.error('Failed to clear history. Please try again.');
       }
     });
   };
@@ -134,23 +256,115 @@ export default function DashboardPage() {
   const handleQuickForge = (e) => {
     e.preventDefault();
     if (!quickInput.trim()) return;
-    localStorage.setItem('promptforge_quickquery', quickInput);
-    localStorage.setItem('promptforge_wmode', 'enhance');
-    router.push('/forge');
+
+    handleNewWorkspaceIntent(() => {
+      localStorage.setItem('promptforge_quickquery', quickInput);
+      localStorage.setItem('promptforge_wmode', 'enhance');
+      track('quick_forge_started', { query: quickInput });
+      router.push('/forge');
+    });
   };
+
+  const handleSelectTemplate = (tpl) => {
+    handleNewWorkspaceIntent(() => {
+      const draft = {
+        mode: tpl.mode,
+        appCategory: tpl.category || null,
+        selectedFeatures: tpl.features || [],
+        selectedTheme: tpl.theme || null,
+        pageType: tpl.pageType || null,
+        selectedComponents: tpl.components || [],
+        savedAt: Date.now(),
+      };
+      localStorage.setItem('promptforge_draft', JSON.stringify(draft));
+      toast.success(`Loaded ${tpl.title} template!`, { description: 'Starting forge wizard...' });
+      router.push(`/forge?mode=${tpl.mode}`);
+    });
+  };
+
+  // Listen to keyboard shortcut for Help overlay
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === '?') {
+        if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+        e.preventDefault();
+        setShowHelp(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const SUGGESTIONS = ['glassmorphic dashboard', 'SaaS pricing page', 'OTP auth screen', 'data table component'];
 
   if (loading || !user) {
+    let tempHistory = [];
+    try {
+      const saved = localStorage.getItem('promptforge_history');
+      if (saved) tempHistory = JSON.parse(saved);
+    } catch (_) {}
+    const tempUsage = {
+      used: tempHistory.length,
+      max: 3,
+      isNearLimit: tempHistory.length >= 2,
+      isAtLimit: tempHistory.length >= 3
+    };
+
     return (
       <div style={loadingWrap}>
-        <div style={loadingInner}>
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
-            style={loadingSpinner}
-          />
-          <p style={loadingText}>Verifying session…</p>
+        <div style={{ width: '100%', maxWidth: '1200px', padding: '2rem' }}>
+          {/* Hero skeleton */}
+          <div style={{ marginBottom: '3rem' }}>
+            <div style={skeletonLine('160px', '24px')} />
+            <div style={{ ...skeletonLine('75%', '56px'), marginTop: '1.25rem' }} />
+            <div style={{ ...skeletonLine('50%', '20px'), marginTop: '1rem' }} />
+            <div style={{ ...skeletonLine('100%', '58px'), marginTop: '1.5rem', borderRadius: '12px' }} />
+          </div>
+
+          {/* Workflow grids skeletons matching repeat(auto-fit, minmax(260px, 1fr)) */}
+          <div style={{ marginBottom: '3rem' }}>
+            <div style={{ ...skeletonLine('200px', '24px'), marginBottom: '1.25rem' }} />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
+              {[...Array(4)].map((_, i) => (
+                <div key={i} style={skeletonCard} className="animate-pulse" />
+              ))}
+            </div>
+          </div>
+
+          {/* Workspaces list skeletons matching actual banner + cards layout */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+              <div style={skeletonLine('180px', '28px')} />
+              <div style={skeletonLine('80px', '28px')} />
+            </div>
+
+            {/* Upgrade banner skeleton */}
+            {(tempUsage.isNearLimit || tempUsage.isAtLimit) && (
+              <div style={{ height: '96px', borderRadius: '16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', marginBottom: '1.5rem', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }} className="animate-pulse">
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={skeletonLine('140px', '14px')} />
+                  <div style={skeletonLine('80px', '14px')} />
+                </div>
+                <div style={{ height: '8px', background: 'rgba(255,255,255,0.04)', borderRadius: '999px', width: '100%' }} />
+                <div style={skeletonLine('60%', '12px')} />
+              </div>
+            )}
+
+            {/* History cards grid skeletons matching exact geometry */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.25rem' }}>
+              {[...Array(3)].map((_, i) => (
+                <div key={i} style={{ height: '172px', borderRadius: '14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }} className="animate-pulse">
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={skeletonLine('80px', '18px')} />
+                    <div style={skeletonLine('60px', '14px')} />
+                  </div>
+                  <div style={skeletonLine('160px', '18px')} />
+                  <div style={skeletonLine('100%', '32px')} />
+                  <div style={{ ...skeletonLine('100%', '1px'), marginTop: '0.5rem' }} />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -188,17 +402,20 @@ export default function DashboardPage() {
           onSubmit={handleQuickForge}
           style={consoleForm(inputFocused)}
           className="glass-panel dashboard-console-form"
+          role="search"
+          aria-label="Quick forge input"
         >
           <Sparkles size={18} style={{ color: 'var(--accent)', flexShrink: 0, opacity: 0.8 }} />
           <input
             type="text"
-            placeholder="Describe what you want to build..."
+            placeholder={ROTATING_PLACEHOLDERS[placeholderIdx]}
             value={quickInput}
             onChange={e => setQuickInput(e.target.value)}
             onFocus={() => setInputFocused(true)}
             onBlur={() => setInputFocused(false)}
             style={consoleInput}
             autoComplete="off"
+            aria-label="Describe what you want to build"
           />
           <motion.button
             type="submit"
@@ -206,6 +423,7 @@ export default function DashboardPage() {
             style={forgeBtn}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.96 }}
+            disabled={!quickInput.trim()}
           >
             Forge
             <CornerDownLeft size={13} />
@@ -229,6 +447,9 @@ export default function DashboardPage() {
         </motion.div>
       </motion.section>
 
+      {/* Onboarding Checklist Widget */}
+      <OnboardingChecklist history={history} favorites={favorites} />
+
       {/* ── Bento Grid ────────────────────────────────────────── */}
       <motion.section
         variants={stagger}
@@ -246,7 +467,7 @@ export default function DashboardPage() {
 
         <div style={bentoGrid} className="workflow-bento-grid">
           {WORKFLOWS.map((w, i) => (
-            <BentoCard key={i} workflow={w} />
+            <BentoCard key={i} workflow={w} onIntercept={(action) => handleNewWorkspaceIntent(action)} />
           ))}
         </div>
       </motion.section>
@@ -265,86 +486,324 @@ export default function DashboardPage() {
             <h2 style={sectionTitle}>Your workspaces</h2>
           </div>
           {optimisticHistory.length > 0 && (
-            <motion.button
-              style={clearBtn}
-              onClick={handleClearAll}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
-            >
-              <Trash size={13} />
-              Clear all
-            </motion.button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <AnimatePresence mode="wait">
+                <motion.button
+                  key={clearConfirm ? 'confirm' : 'normal'}
+                  style={clearBtn(clearConfirm)}
+                  onClick={handleClearAll}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  aria-label={clearConfirm ? 'Click again to confirm clearing all workspaces' : 'Clear all workspaces'}
+                >
+                  {clearConfirm
+                    ? <><AlertTriangle size={13} /> Click again to confirm</>  
+                    : <><Trash size={13} /> Clear all</>}
+                </motion.button>
+              </AnimatePresence>
+            </div>
           )}
         </motion.div>
 
-        {optimisticHistory.length === 0 ? (
-          <motion.div variants={fadeUp} style={emptyState} className="glass-panel">
-            <div style={emptyIcon} className="glass-panel"><Sparkles size={24} style={{ color: 'var(--accent)' }} /></div>
-            <p style={emptyTitle}>No workspaces yet</p>
-            <p style={emptyDesc}>Describe your idea above to generate your first precision prompt.</p>
-          </motion.div>
-        ) : (
-          <motion.div variants={stagger} style={historyGrid}>
-            <AnimatePresence mode="popLayout">
-              {optimisticHistory.slice(0, 6).map((log) => {
-                const ModeIcon = MODE_ICONS[log.mode] || Sparkles;
-                const modeColor = MODE_COLORS[log.mode] || '#19398d';
-                const isCopied = copiedId === log.id;
-                return (
-                  <motion.div
-                    key={log.id}
-                    variants={cardVariant}
-                    layout
-                    style={historyCard}
-                    className="glass-panel card-hover"
-                    onClick={() => router.push(`/chat?id=${log.id}`)}
-                    whileHover={{ y: -4 }}
-                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                  >
-                    <div style={historyCardTop}>
-                      <div style={{ ...historyModeBadge, background: `${modeColor}12`, color: modeColor, borderColor: `${modeColor}25` }}>
-                        <ModeIcon size={12} />
-                        <span>{log.mode}</span>
-                      </div>
-                      <span style={historyDate}>
-                        <Clock size={11} />
-                        {new Date(log.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                      </span>
-                    </div>
-
-                    <h3 style={historyTitle}>{log.title}</h3>
-                    <p style={historyQuery} className="truncate-2">{log.query || 'No query recorded.'}</p>
-
-                    <div style={historyActions}>
-                      <motion.button
-                        style={{ ...historyActionBtn, color: isCopied ? '#16a34a' : 'var(--muted-foreground)' }}
-                        onClick={e => handleCopy(log.id, e, log.resolvedPrompt)}
-                        whileHover={{ scale: 1.04 }}
-                        whileTap={{ scale: 0.96 }}
-                      >
-                        {isCopied ? <Check size={13} /> : <Copy size={13} />}
-                        {isCopied ? 'Copied' : 'Copy'}
-                      </motion.button>
-                      <motion.button
-                        style={{ ...historyActionBtn, color: '#ef4444' }}
-                        onClick={e => handleDelete(log.id, e)}
-                        whileHover={{ scale: 1.04, background: 'rgba(239,68,68,0.06)', borderColor: 'rgba(239,68,68,0.15)' }}
-                        whileTap={{ scale: 0.96 }}
-                      >
-                        <Trash2 size={13} />
-                      </motion.button>
-                      <div style={{ flex: 1 }} />
-                      <span style={historyOpen}>
-                        Open <ExternalLink size={11} />
-                      </span>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+        {/* Progress-Based Conversion Upgrade Banner */}
+        {optimisticHistory.length > 0 && (usage.isNearLimit || usage.isAtLimit) && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            style={usageBannerStyle(usage.isAtLimit)}
+            className="glass-panel"
+          >
+            <div style={usageBannerHead}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <TrendingUp size={16} style={{ color: usage.isAtLimit ? '#f43f5e' : '#fbbf24' }} />
+                <span style={usageBannerTitle}>
+                  {usage.isAtLimit 
+                    ? `${usage.used} of ${usage.max} workspaces used (Limit Reached)` 
+                    : `${usage.used} of ${usage.max} workspaces used`}
+                </span>
+              </div>
+              <Link href="/pricing/pro" style={usageBannerUpgradeLink(usage.isAtLimit)}>
+                Upgrade to Pro <ArrowRight size={12} />
+              </Link>
+            </div>
+            
+            <div style={usageBannerProgressBg}>
+              <div style={usageBannerProgressFill(usage.percent, usage.isAtLimit)} />
+            </div>
+            
+            <p style={usageBannerDesc}>
+              {usage.isAtLimit 
+                ? "Workspace storage full! Upgrade to Pro for unlimited workspaces, priority cloud synchronization, and custom template models." 
+                : "You are close to your workspace limit. Upgrade now to preserve all future generation drafts safely."}
+            </p>
           </motion.div>
         )}
+
+        {optimisticHistory.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+            {/* Folder Collections Filter Row */}
+            <div style={foldersTabRow}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', flex: 1 }}>
+                <button
+                  style={folderTabBtn(selectedCollection === 'all')}
+                  onClick={() => setSelectedCollection('all')}
+                >
+                  <Compass size={13} />
+                  <span>All Spaces</span>
+                </button>
+                {collections.map(col => {
+                  const count = optimisticHistory.filter(h => h.collection === col).length;
+                  return (
+                    <button
+                      key={col}
+                      style={folderTabBtn(selectedCollection === col)}
+                      onClick={() => setSelectedCollection(col)}
+                    >
+                      <Folder size={13} fill={selectedCollection === col ? 'var(--accent)' : 'none'} style={{ color: selectedCollection === col ? 'var(--accent)' : 'inherit' }} />
+                      <span>{col}</span>
+                      {count > 0 && <span style={folderCountBadge}>{count}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Dynamic Folder Creator */}
+              <form onSubmit={handleCreateCollection} style={folderCreateForm}>
+                <input
+                  type="text"
+                  placeholder="New Folder..."
+                  value={newCollectionName}
+                  onChange={e => setNewCollectionName(e.target.value)}
+                  style={folderCreateInput}
+                />
+                <button type="submit" style={folderCreateBtn} title="Create Folder">
+                  <FolderPlus size={13} />
+                </button>
+              </form>
+            </div>
+
+            <div style={filterBar}>
+              {/* Search Input */}
+              <div style={searchWrap} className="glass-panel">
+                <Search size={14} style={{ color: 'var(--muted-foreground)' }} />
+                <input
+                  type="text"
+                  placeholder="Search prompt blueprints..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  style={searchInput}
+                />
+              </div>
+
+              {/* Mode Filters */}
+              <div style={filterGroup}>
+                {['all', 'application', 'page', 'enhance'].map(mode => (
+                  <button
+                    key={mode}
+                    style={filterChipBtn(filterMode === mode)}
+                    onClick={() => setFilterMode(mode)}
+                  >
+                    {mode === 'all' ? 'All' : mode === 'application' ? 'Apps' : mode === 'page' ? 'Pages' : 'Enhance'}
+                  </button>
+                ))}
+              </div>
+
+              {/* Favorites Toggle */}
+              <button
+                style={filterChipBtn(showFavoritesOnly, true)}
+                onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+              >
+                <Star size={12} fill={showFavoritesOnly ? '#fbbf24' : 'none'} style={{ color: showFavoritesOnly ? '#fbbf24' : 'inherit' }} />
+                <span>Favorites</span>
+              </button>
+
+              {/* Sort Toggle */}
+              <div style={sortWrap}>
+                <Calendar size={12} />
+                <ShadcnDropdown
+                  value={sortBy}
+                  onChange={(val) => setSortBy(val)}
+                  options={[
+                    { label: 'Recent', value: 'recent' },
+                    { label: 'Alphabetical', value: 'title' }
+                  ]}
+                  style={{
+                    background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid rgba(255,255,255,0.05)',
+                    padding: '0.4rem 0.65rem',
+                    fontSize: '0.78rem',
+                    color: '#fff',
+                    fontFamily: 'var(--font-sans)',
+                    minWidth: '100px'
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+
+        {(() => {
+          // Perform filtering and sorting
+          const filtered = optimisticHistory.filter(item => {
+            const matchesSearch =
+              item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              (item.query && item.query.toLowerCase().includes(searchQuery.toLowerCase()));
+            const matchesMode = filterMode === 'all' || item.mode === filterMode;
+            const matchesFavorite = !showFavoritesOnly || favorites.includes(item.id);
+            const matchesCollection = selectedCollection === 'all' || item.collection === selectedCollection;
+            return matchesSearch && matchesMode && matchesFavorite && matchesCollection;
+          });
+
+          // Sort
+          if (sortBy === 'title') {
+            filtered.sort((a, b) => a.title.localeCompare(b.title));
+          } else {
+            filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+          }
+
+          if (filtered.length === 0) {
+            return (
+              <motion.div variants={fadeUp} style={emptyState} className="glass-panel">
+                <div style={emptyIconWrap} className="glass-panel">
+                  <Sparkles size={28} style={{ color: 'var(--accent)' }} />
+                </div>
+                <div style={{ textAlign: 'center', maxWidth: '420px' }}>
+                  <p style={emptyTitle}>No workspaces match filters</p>
+                  <p style={emptyDesc}>
+                    Try clearing your search query or choosing a different category workflow.
+                  </p>
+                </div>
+              </motion.div>
+            );
+          }
+
+          return (
+            <motion.div variants={stagger} style={historyGrid}>
+              <AnimatePresence mode="popLayout">
+                {filtered.map((log) => {
+                  const ModeIcon = MODE_ICONS[log.mode] || Sparkles;
+                  const modeColor = MODE_COLORS[log.mode] || '#19398d';
+                  const modeLabel = MODE_LABELS[log.mode] || log.mode;
+                  const isCopied = copiedId === log.id;
+                  const isFav = favorites.includes(log.id);
+                  return (
+                    <motion.div
+                      key={log.id}
+                      variants={cardVariant}
+                      layout
+                      style={historyCard}
+                      className="glass-panel card-hover"
+                      onClick={() => router.push(`/chat?id=${log.id}`)}
+                      whileHover={{ y: -4 }}
+                      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                      role="article"
+                      aria-label={`Open workspace: ${log.title}`}
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && router.push(`/chat?id=${log.id}`)}
+                    >
+                      <div style={historyCardTop}>
+                        <div style={{ ...historyModeBadge, background: `${modeColor}12`, color: modeColor, borderColor: `${modeColor}25` }}>
+                          <ModeIcon size={12} />
+                          <span>{modeLabel}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <motion.button
+                            onClick={(e) => toggleFavorite(log.id, e)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: isFav ? '#fbbf24' : 'var(--muted-foreground)' }}
+                            whileHover={{ scale: 1.15 }}
+                            title={isFav ? "Remove from favorites" : "Add to favorites"}
+                          >
+                            <Star size={13} fill={isFav ? '#fbbf24' : 'none'} />
+                          </motion.button>
+                          <span style={historyDate}>
+                            <Clock size={11} />
+                            {new Date(log.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                          </span>
+                        </div>
+                      </div>
+
+                      <h3 style={historyTitle}>{log.title}</h3>
+                      <p style={historyQuery} className="truncate-2">{log.query || 'No query recorded.'}</p>
+
+                      <div style={historyActions}>
+                        <motion.button
+                          style={{ ...historyActionBtn, color: isCopied ? '#16a34a' : 'var(--muted-foreground)' }}
+                          onClick={e => handleCopy(log.id, e, log.resolvedPrompt)}
+                          whileHover={{ scale: 1.04 }}
+                          whileTap={{ scale: 0.96 }}
+                        >
+                          {isCopied ? <Check size={13} /> : <Copy size={13} />}
+                          {isCopied ? 'Copied' : 'Copy'}
+                        </motion.button>
+                        <motion.button
+                          style={{ ...historyActionBtn, color: '#ef4444' }}
+                          onClick={e => handleDelete(log.id, e)}
+                          whileHover={{ scale: 1.04, background: 'rgba(239,68,68,0.06)', borderColor: 'rgba(239,68,68,0.15)' }}
+                          whileTap={{ scale: 0.96 }}
+                        >
+                          <Trash2 size={13} />
+                        </motion.button>
+                        
+                        <div onClick={e => e.stopPropagation()}>
+                          <ShadcnDropdown
+                            value={log.collection || ''}
+                            onChange={(val) => updatePromptCollection(log.id, val)}
+                            options={[
+                              { label: '📁 Move to...', value: '' },
+                              ...collections.map(c => ({ label: c, value: c }))
+                            ]}
+                            style={{
+                              background: 'rgba(255,255,255,0.01)',
+                              border: '1px solid rgba(255,255,255,0.05)',
+                              padding: '0.25rem 0.5rem',
+                              fontSize: '0.72rem',
+                              color: 'var(--muted-foreground)',
+                              borderRadius: '6px',
+                              fontFamily: 'var(--font-sans)',
+                              minWidth: '110px'
+                            }}
+                          />
+                        </div>
+                        
+                        <div style={{ flex: 1 }} />
+                        <span style={historyOpen}>
+                          Open <ExternalLink size={11} />
+                        </span>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </motion.div>
+          );
+        })()}
       </motion.section>
+
+      {/* ── Template Library ───────────────────────────────────── */}
+      <motion.section
+        initial={{ opacity: 0, y: 15 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+      >
+        <TemplateLibrary onSelectTemplate={handleSelectTemplate} />
+      </motion.section>
+
+      {/* Keyboard Shortcuts Help Button */}
+      <button
+        onClick={() => setShowHelp(true)}
+        style={floatingHelpBtn}
+        title="Show Keyboard Shortcuts (?)"
+      >
+        <HelpCircle size={16} />
+      </button>
+
+      {/* Help Keyboard Overlay Modal */}
+      <HelpKeyboardOverlay isOpen={showHelp} onClose={() => setShowHelp(false)} />
 
       <style dangerouslySetInnerHTML={{ __html: `
         @media (max-width: 640px) {
@@ -373,17 +832,23 @@ export default function DashboardPage() {
           }
         }
       ` }} />
+      <InterceptModal isOpen={showInterceptModal} onClose={() => setShowInterceptModal(false)} />
     </div>
   );
 }
 
 // ─── Bento Card Component ──────────────────────────────────────
-function BentoCard({ workflow }) {
+function BentoCard({ workflow, onIntercept }) {
   const { href, wmode, icon: Icon, label, desc, accent, accentBg, badge } = workflow;
   const [hovered, setHovered] = useState(false);
+  const router = useRouter();
 
-  const handleClick = () => {
-    if (wmode) localStorage.setItem('promptforge_wmode', wmode);
+  const handleClick = (e) => {
+    e.preventDefault();
+    onIntercept(() => {
+      if (wmode) localStorage.setItem('promptforge_wmode', wmode);
+      router.push(href);
+    });
   };
 
   return (
@@ -623,44 +1088,71 @@ const bentoFooter = (accent, hovered) => ({
   transition: 'color 0.2s ease',
 });
 
-const clearBtn = {
+const clearBtn = (isConfirm) => ({
   display: 'flex',
   alignItems: 'center',
   gap: '0.4rem',
   padding: '0.4rem 0.85rem',
-  background: 'transparent',
-  border: '1px solid rgba(255,255,255,0.06)',
+  background: isConfirm ? 'rgba(239,68,68,0.08)' : 'transparent',
+  border: `1px solid ${isConfirm ? 'rgba(239,68,68,0.25)' : 'rgba(255,255,255,0.06)'}`,
   borderRadius: '8px',
   fontSize: '0.78rem',
   fontWeight: '600',
-  color: 'var(--muted-foreground)',
+  color: isConfirm ? '#ef4444' : 'var(--muted-foreground)',
   cursor: 'pointer',
   fontFamily: 'var(--font-sans)',
   transition: 'all 0.2s ease',
-};
+  whiteSpace: 'nowrap',
+});
 
 const emptyState = {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  gap: '0.75rem',
-  padding: '3rem 2rem',
+  gap: '1.25rem',
+  padding: '4rem 2rem',
   background: 'rgba(255,255,255,0.01)',
-  border: '1px solid rgba(255,255,255,0.04)',
-  borderRadius: '16px',
+  border: '1px dashed rgba(255,255,255,0.07)',
+  borderRadius: '20px',
   textAlign: 'center',
 };
 
-const emptyIcon = {
-  width: '48px',
-  height: '48px',
-  borderRadius: '12px',
-  background: 'rgba(255,255,255,0.02)',
-  border: '1px solid rgba(255,255,255,0.04)',
+const emptyIconWrap = {
+  width: '64px',
+  height: '64px',
+  borderRadius: '16px',
+  background: 'rgba(251,191,36,0.06)',
+  border: '1px solid rgba(251,191,36,0.15)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  color: 'var(--muted-foreground)',
+};
+
+const emptyStartBtn = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.5rem',
+  padding: '0.7rem 1.5rem',
+  borderRadius: '10px',
+  fontSize: '0.875rem',
+  fontWeight: '700',
+  cursor: 'pointer',
+  background: 'transparent',
+  border: 'none',
+};
+
+const skeletonLine = (width, height) => ({
+  width,
+  height,
+  borderRadius: '8px',
+  background: 'rgba(255,255,255,0.04)',
+  animation: 'pulse 1.5s ease-in-out infinite',
+});
+
+const skeletonCard = {
+  height: '160px',
+  borderRadius: '16px',
+  background: 'rgba(255,255,255,0.03)',
 };
 
 const emptyTitle = {
@@ -798,3 +1290,445 @@ const loadingText = {
   color: 'var(--muted-foreground)',
   fontWeight: '500',
 };
+
+// ─── New History Filters & Keyboard Help Styles ───────────────
+
+const filterBar = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '1rem',
+  marginBottom: '1.25rem',
+  flexWrap: 'wrap',
+};
+
+const searchWrap = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.5rem',
+  background: 'rgba(255,255,255,0.02)',
+  border: '1px solid rgba(255,255,255,0.05)',
+  borderRadius: '8px',
+  padding: '0.4rem 0.75rem',
+  flex: 1,
+  minWidth: '220px',
+};
+
+const searchInput = {
+  background: 'transparent',
+  border: 'none',
+  fontSize: '0.8rem',
+  color: '#fff',
+  fontFamily: 'var(--font-sans)',
+  outline: 'none',
+  width: '100%',
+};
+
+const filterGroup = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.35rem',
+};
+
+const filterChipBtn = (active, isStar = false) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.35rem',
+  padding: '0.4rem 0.8rem',
+  borderRadius: '8px',
+  fontSize: '0.78rem',
+  fontWeight: active ? '700' : '500',
+  cursor: 'pointer',
+  background: active
+    ? (isStar ? 'rgba(251,191,36,0.1)' : 'rgba(255,255,255,0.08)')
+    : 'rgba(255,255,255,0.02)',
+  border: `1px solid ${active ? (isStar ? 'rgba(251,191,36,0.25)' : 'rgba(255,255,255,0.15)') : 'rgba(255,255,255,0.05)'}`,
+  color: active ? (isStar ? '#fbbf24' : '#ffffff') : 'var(--muted-foreground)',
+  fontFamily: 'var(--font-sans)',
+  transition: 'all 0.2s ease',
+});
+
+const sortWrap = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.4rem',
+  fontSize: '0.78rem',
+  color: 'var(--muted-foreground)',
+};
+
+const sortSelect = {
+  background: 'rgba(255,255,255,0.02)',
+  border: '1px solid rgba(255,255,255,0.05)',
+  borderRadius: '8px',
+  padding: '0.4rem 0.65rem',
+  fontSize: '0.78rem',
+  color: '#fff',
+  fontFamily: 'var(--font-sans)',
+  outline: 'none',
+  cursor: 'pointer',
+};
+
+const floatingHelpBtn = {
+  position: 'fixed',
+  bottom: '1.5rem',
+  right: '1.5rem',
+  width: '36px',
+  height: '36px',
+  borderRadius: '50%',
+  background: 'rgba(255,255,255,0.03)',
+  border: '1px solid rgba(255,255,255,0.08)',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: 'var(--muted-foreground)',
+  cursor: 'pointer',
+  zIndex: 99,
+  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+};
+
+// ─── Folder Collections Styles ────────────────────────────────
+
+const foldersTabRow = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '1rem',
+  borderBottom: '1px solid rgba(255,255,255,0.05)',
+  paddingBottom: '0.75rem',
+  flexWrap: 'wrap',
+};
+
+const folderTabBtn = (active) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.4rem',
+  padding: '0.35rem 0.7rem',
+  borderRadius: '6px',
+  fontSize: '0.78rem',
+  fontWeight: active ? '700' : '500',
+  color: active ? '#ffffff' : 'var(--muted-foreground)',
+  background: active ? 'rgba(255,255,255,0.04)' : 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+});
+
+const folderCountBadge = {
+  fontSize: '0.65rem',
+  background: 'rgba(255,255,255,0.06)',
+  padding: '1px 5px',
+  borderRadius: '4px',
+  marginLeft: '0.2rem',
+  color: 'var(--muted-foreground)',
+};
+
+const folderCreateForm = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.25rem',
+  background: 'rgba(255,255,255,0.02)',
+  border: '1px solid rgba(255,255,255,0.05)',
+  borderRadius: '6px',
+  padding: '2px 4px',
+};
+
+const folderCreateInput = {
+  background: 'transparent',
+  border: 'none',
+  fontSize: '0.72rem',
+  color: '#ffffff',
+  outline: 'none',
+  padding: '2px 6px',
+  width: '90px',
+  fontFamily: 'var(--font-sans)',
+};
+
+const folderCreateBtn = {
+  background: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+  color: 'var(--muted-foreground)',
+  padding: '2px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
+const folderSelectorCard = {
+  background: 'rgba(255,255,255,0.02)',
+  border: '1px solid rgba(255,255,255,0.05)',
+  borderRadius: '6px',
+  padding: '0.25rem 0.5rem',
+  fontSize: '0.72rem',
+  color: 'var(--muted-foreground)',
+  fontFamily: 'var(--font-sans)',
+  outline: 'none',
+  cursor: 'pointer',
+  maxWidth: '90px',
+};
+
+
+// ─── Intercept Modal Component ─────────────────────────────
+function InterceptModal({ isOpen, onClose }) {
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        style={modalOverlayStyle}
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.95, y: 15, opacity: 0 }}
+          animate={{ scale: 1, y: 0, opacity: 1 }}
+          exit={{ scale: 0.95, y: 15, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          style={modalContentStyle}
+          className="glass-panel"
+          onClick={e => e.stopPropagation()}
+        >
+          <div style={modalHeaderRow}>
+            <div style={modalWarningIconWrap}>
+              <AlertTriangle size={20} style={{ color: '#f43f5e' }} />
+            </div>
+            <h3 style={modalTitle}>Workspace Limit Reached</h3>
+          </div>
+          
+          <p style={modalDesc}>
+            You already have <strong>3 active workspaces</strong> on the Hobby Plan. Upgrade to Professional to continue building:
+          </p>
+
+          <div style={modalFeaturesList}>
+            <div style={modalFeatureItem}>
+              <Check size={14} style={{ color: '#fbbf24', flexShrink: 0, marginTop: '2px' }} />
+              <span><strong>Unlimited Workspaces</strong> — build as many projects as you want</span>
+            </div>
+            <div style={modalFeatureItem}>
+              <Check size={14} style={{ color: '#fbbf24', flexShrink: 0, marginTop: '2px' }} />
+              <span><strong>Supabase Cloud Sync</strong> — secure backups & cross-device access</span>
+            </div>
+            <div style={modalFeatureItem}>
+              <Check size={14} style={{ color: '#fbbf24', flexShrink: 0, marginTop: '2px' }} />
+              <span><strong>Priority LLM Orchestrator</strong> — instant, zero-delay compilations</span>
+            </div>
+            <div style={modalFeatureItem}>
+              <Check size={14} style={{ color: '#fbbf24', flexShrink: 0, marginTop: '2px' }} />
+              <span><strong>Premium Visual Blueprints</strong> — full bento & animation library access</span>
+            </div>
+          </div>
+
+          <div style={modalActions}>
+            <button
+              onClick={() => {
+                track('upgrade_modal_click', { source: 'intercept_modal' });
+                window.location.href = '/pricing/pro';
+              }}
+              style={modalUpgradeBtn}
+              className="shine-effect"
+            >
+              Upgrade to Pro — $15/mo
+            </button>
+            <button
+              onClick={onClose}
+              style={modalCloseBtn}
+            >
+              Manage Existing Workspaces
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+
+// ─── Usage Progress Banner Styles ────────────────────────────
+const usageBannerStyle = (isAtLimit) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.75rem',
+  padding: '1.25rem 1.5rem',
+  borderRadius: '16px',
+  background: isAtLimit ? 'rgba(239,68,68,0.03)' : 'rgba(251,191,36,0.02)',
+  border: `1px solid ${isAtLimit ? 'rgba(239,68,68,0.2)' : 'rgba(251,191,36,0.15)'}`,
+  boxShadow: isAtLimit 
+    ? '0 0 24px rgba(239,68,68,0.05), inset 0 1px 0 0 rgba(255,255,255,0.05)'
+    : '0 0 24px rgba(251,191,36,0.05), inset 0 1px 0 0 rgba(255,255,255,0.05)',
+  marginBottom: '1.5rem',
+});
+
+const usageBannerHead = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  flexWrap: 'wrap',
+  gap: '0.5rem',
+};
+
+const usageBannerTitle = {
+  fontSize: '0.88rem',
+  fontWeight: '700',
+  color: 'var(--foreground)',
+  fontFamily: 'var(--font-display)',
+};
+
+const usageBannerUpgradeLink = (isAtLimit) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.3rem',
+  fontSize: '0.8rem',
+  fontWeight: '700',
+  color: isAtLimit ? '#ef4444' : 'var(--accent)',
+  textDecoration: 'none',
+  transition: 'all 0.2s ease',
+});
+
+const usageBannerProgressBg = {
+  width: '100%',
+  height: '8px',
+  background: 'rgba(255,255,255,0.04)',
+  borderRadius: '999px',
+  overflow: 'hidden',
+};
+
+const usageBannerProgressFill = (percent, isAtLimit) => ({
+  width: `${percent}%`,
+  height: '100%',
+  background: isAtLimit 
+    ? 'linear-gradient(90deg, #ef4444, #db2777)'
+    : 'linear-gradient(90deg, #fbbf24, #f59e0b)',
+  borderRadius: '999px',
+  transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+});
+
+const usageBannerDesc = {
+  fontSize: '0.78rem',
+  color: 'var(--muted-foreground)',
+  lineHeight: '1.5',
+};
+
+// ─── Intercept Modal Styles ─────────────────────────────────
+const modalOverlayStyle = {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  background: 'rgba(5,5,8,0.75)',
+  backdropFilter: 'blur(8px)',
+  zIndex: 1100,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '1.5rem',
+};
+
+const modalContentStyle = {
+  width: '100%',
+  maxWidth: '480px',
+  background: 'rgba(10,10,14,0.94)',
+  border: '1px solid rgba(255,255,255,0.08)',
+  borderRadius: '20px',
+  padding: '2rem',
+  boxShadow: '0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 0 rgba(255,255,255,0.05)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1.25rem',
+};
+
+const modalHeaderRow = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.75rem',
+};
+
+const modalWarningIconWrap = {
+  width: '40px',
+  height: '40px',
+  borderRadius: '10px',
+  background: 'rgba(244,63,94,0.08)',
+  border: '1px solid rgba(244,63,94,0.2)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
+};
+
+const modalTitle = {
+  fontSize: '1.25rem',
+  fontWeight: '700',
+  fontFamily: 'var(--font-display)',
+  color: '#fff',
+  letterSpacing: '-0.02em',
+};
+
+const modalDesc = {
+  fontSize: '0.85rem',
+  color: 'var(--muted-foreground)',
+  lineHeight: '1.6',
+};
+
+const modalFeaturesList = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.75rem',
+  background: 'rgba(255,255,255,0.01)',
+  border: '1px solid rgba(255,255,255,0.04)',
+  borderRadius: '12px',
+  padding: '1rem',
+};
+
+const modalFeatureItem = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: '0.6rem',
+  fontSize: '0.8rem',
+  color: 'var(--foreground)',
+  lineHeight: '1.4',
+};
+
+const modalActions = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.65rem',
+  marginTop: '0.5rem',
+};
+
+const modalUpgradeBtn = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '0.8rem 1.5rem',
+  background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+  color: '#000',
+  border: 'none',
+  borderRadius: '10px',
+  fontSize: '0.88rem',
+  fontWeight: '700',
+  cursor: 'pointer',
+  fontFamily: 'var(--font-sans)',
+  transition: 'opacity 0.2s ease',
+};
+
+const modalCloseBtn = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '0.8rem 1.5rem',
+  background: 'rgba(255,255,255,0.02)',
+  border: '1px solid rgba(255,255,255,0.06)',
+  borderRadius: '10px',
+  fontSize: '0.88rem',
+  fontWeight: '600',
+  color: 'var(--muted-foreground)',
+  cursor: 'pointer',
+  fontFamily: 'var(--font-sans)',
+  transition: 'all 0.2s ease',
+};
+
+
+

@@ -5,6 +5,8 @@ import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 import { designVocabulary } from '@/data/designVocabulary';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
+import { toast } from 'sonner';
+
 import {
   Search, Copy, Check, Code, BookOpen, Filter,
   Paintbrush, LayoutGrid, Box, Navigation2, Zap, Cpu,
@@ -87,8 +89,8 @@ export default function VocabularyPage() {
       >
         <motion.div variants={fadeUp}>
           <div className="premium-badge animate-pulse-slow" style={{ marginBottom: '1.25rem' }}>
-            <BookOpen size={11} className="text-purple-400" />
-            <span>Design Vocabulary</span>
+            <Box size={11} className="text-purple-400" />
+            <span>Design Tokens Library</span>
           </div>
         </motion.div>
 
@@ -98,8 +100,7 @@ export default function VocabularyPage() {
         </motion.h1>
 
         <motion.p variants={fadeUp} style={heroSub}>
-          Each term is a precision tool. Learn the vocabulary, copy the prompt, and watch AI tools
-          generate exactly what you envision.
+          Each design token represents an optimized visual style, layout pattern, or motion curve. Reference these building blocks to enrich your generated UI specifications.
         </motion.p>
 
         {/* ── Search Console ──────────────────────────────────── */}
@@ -412,7 +413,6 @@ const cardStyle = (meta) => ({
   borderRadius: '16px',
   background: 'rgba(255,255,255,0.01)',
   border: '1px solid rgba(255,255,255,0.04)',
-  borderLeft: `3px solid ${meta.color}bf`,
   boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
   transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
 });

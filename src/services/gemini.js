@@ -32,11 +32,15 @@ export async function generateEnhancedPrompt({
   
   // 1. TRY CALLING DECOUPLED LANGCHAIN & SUPABASE BACKEND
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 1000);
+
     const backendResponse = await fetch("http://localhost:8000/api/forge", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
+      signal: controller.signal,
       body: JSON.stringify({
         mode,
         query,
@@ -49,12 +53,14 @@ export async function generateEnhancedPrompt({
       })
     });
 
+    clearTimeout(timeoutId);
+
     if (backendResponse.ok) {
       const data = await backendResponse.json();
       return {
         prompt: data.prompt,
         ragDetails: data.ragDetails,
-        source: data.source || "Decoupled LangChain & pgvector Backend"
+        source: data.source || "PromptForge Cloud Engine"
       };
     }
   } catch (error) {
@@ -122,7 +128,7 @@ export async function generateEnhancedPrompt({
   return {
     prompt: compiledPrompt,
     ragDetails,
-    source: "Offline RAG Prompt Compiler"
+    source: "Offline Style Engine"
   };
 }
 
@@ -300,12 +306,12 @@ You can continue modifying the details in this chat room. I will update the blue
   if (mode === "application") {
     preamble = `Here is a complete, enterprise-grade architecture blueprint to build an entire **${category.toUpperCase()}** application.
 
-I evaluated your idea and mapped it against our local Vector database. I retrieved relevant design patterns like **Bento Grid** and **collapsible app shells** to form a highly detailed prompt structure.
+I analyzed your design intent and compiled high-fidelity styling patterns to form a production-ready blueprint.
 
 ### Architecture Highlights:
 1. **Layout Shell**: Implements a sticky top navigation, collapsible left navigation sidebar, and dynamic content cards.
 2. **Visual Palette**: Anchored strictly on the **${themeName}** design language.
-3. **Semantic RAG Terms Injected**:
+3. **Design Tokens Injected**:
 ${termsText}
 
 Here is your copyable, highly optimized prompt:`;
@@ -322,7 +328,7 @@ Here is your copyable, highly optimized prompt:`;
 
 ### 2. UI/UX Design System & Tokens
 - **Theme Palette**: Align colors with [${themeKeywords}]. Provide a seamless, dark-mode-first HSL system.
-- **Retrieved Design Tokens**:
+- **Design System Tokens**:
 ${retrievedTerms.map(t => `  - **${t.name}**: ${t.description}`).join('\n')}
 
 ### 3. State Management & Data
@@ -339,12 +345,12 @@ ${retrievedTerms.map(t => `  - **${t.name}**: ${t.description}`).join('\n')}
     const componentList = components.length > 0 ? components : ["collapsible sidebar", "KPI metric cards", "data table", "command palette"];
     preamble = `I have compiled a professional-grade prompt to engineer a custom **${pageType}** layout.
 
-By evaluating the elements you requested, the local RAG engine retrieved relevant visual layouts to create a seamless component structure.
+By evaluating the specifications you requested, the prompt builder mapped relevant layout guidelines to construct a production-ready component structure.
 
 ### Layout Details:
 - **Active Grid**: Designed specifically as a structured canvas.
 - **Selected Components**: ${componentList.join(', ')}.
-- **Semantic RAG Terms Injected**:
+- **Design Tokens Injected**:
 ${termsText}
 
 Here is your copyable page prompt:`;
@@ -359,7 +365,7 @@ ${componentList.map(c => `  - **${c}**: Positioned with optimal responsive spaci
 ### 2. Design System and Visual Quality
 - Implement a highly polished visual hierarchy using standard elevation shadows.
 - Frost card elements with backdrop-filter blur effects.
-- **Injected RAG Elements**:
+- **Design Tokens Injected**:
 ${retrievedTerms.map(t => `  - **${t.name}**: ${t.description}. CSS hint: \`${t.snippet.split('\n')[0]}\``).join('\n')}
 
 ### 3. Motion & Micro-interactions
@@ -375,7 +381,7 @@ This prompt is optimized to generate reusable component assets adhering strictly
 ### Component Features:
 - **Target**: Reusable react component.
 - **Aesthetic**: Integrated **${themeName}** guidelines.
-- **Semantic RAG Terms Injected**:
+- **Design Tokens Injected**:
 ${termsText}
 
 Here is your copyable prompt:`;
@@ -389,7 +395,7 @@ Here is your copyable prompt:`;
 ### 2. Custom Visual Styling
 - Use HSL custom variables to handle theme adaptability.
 - Implement glassmorphism overlays and ambient border highlights.
-- **Injected RAG Details**:
+- **Design Tokens Injected**:
 ${retrievedTerms.map(t => `  - **${t.name}**: ${t.description}. Property rule: \`${t.snippet.split('\n')[0]}\``).join('\n')}
 
 ### 3. Dynamic Motion & Feedback
@@ -406,7 +412,7 @@ I analyzed your raw input: *""${query}""* and enriched it with professional desi
 ### Enhancement Summary:
 - **Language Level**: Upgraded from standard raw description to a Professional Frontend Prompt.
 - **Design Elements**: Added layout structural grid instructions, custom transition definitions, and structural HSL color tokens.
-- **Semantic RAG Terms Injected**:
+- **Design Tokens Injected**:
 ${termsText}
 
 Here is your copyable enhanced prompt:`;
