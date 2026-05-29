@@ -567,13 +567,14 @@ const configWorkspacePanel = {
 
 const configSplitLeft = {
   flex: 1.1,
-  padding: '2.5rem',
+  padding: '2rem 2.5rem',
   borderRight: '1px solid var(--border)',
   display: 'flex',
   flexDirection: 'column',
-  justifyContent: 'center',
+  justifyContent: 'flex-start',
   gap: '1.5rem',
   overflowY: 'auto',
+  height: '100%',
 };
 
 const configBadge = {
@@ -658,12 +659,13 @@ const exampleText = {
 
 const configSplitRight = {
   flex: 0.9,
-  padding: '2.5rem',
+  padding: '2rem 2.5rem',
   display: 'flex',
   flexDirection: 'column',
   gap: '1.5rem',
   overflowY: 'auto',
   background: 'rgba(0,0,0,0.12)',
+  height: '100%',
 };
 
 const themeHeaderBox = {

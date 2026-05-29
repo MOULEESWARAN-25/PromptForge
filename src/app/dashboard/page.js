@@ -372,105 +372,45 @@ export default function DashboardPage() {
 
   return (
     <div style={{ position: 'relative', zIndex: 2, width: '100%' }}>
-      {/* ── Hero ──────────────────────────────────────────────── */}
+      {/* ── Welcome Guided HUD ── */}
       <motion.section
-        style={heroSection}
+        style={welcomeHUD}
         variants={stagger}
         initial="hidden"
         animate="show"
       >
         <motion.div variants={fadeUp}>
-          <div className="premium-badge animate-pulse-slow" style={{ marginBottom: '1.5rem' }}>
+          <div className="premium-badge animate-pulse-slow" style={{ marginBottom: '1.25rem' }}>
             <Sparkles size={11} className="text-purple-400" />
             <span>Prompt Architect v2.0</span>
           </div>
         </motion.div>
 
-        <motion.h1 variants={fadeUp} className="hero-headline" style={{ marginBottom: '1.25rem', maxWidth: '820px' }}>
-          Build anything.{' '}
-          <span className="hero-gradient">Refined for AI.</span>
+        <motion.h1 variants={fadeUp} style={welcomeHeadline}>
+          Welcome back, <span className="hero-gradient">{user.username}</span>.
         </motion.h1>
 
-        <motion.p variants={fadeUp} style={heroParagraph}>
-          Vague ideas yield generic code. Inject layout grids, color systems,
-          motion physics, and component specs that AI tools actually understand.
+        <motion.p variants={fadeUp} style={welcomeSub}>
+          Select a blueprint pipeline below to start compiling structural grids, theme tokens, and dynamic interactions for your project.
         </motion.p>
-
-        {/* Prompt Console */}
-        <motion.form
-          variants={fadeUp}
-          onSubmit={handleQuickForge}
-          style={consoleForm(inputFocused)}
-          className="glass-panel dashboard-console-form"
-          role="search"
-          aria-label="Quick forge input"
-        >
-          <Sparkles size={18} style={{ color: 'var(--accent)', flexShrink: 0, opacity: 0.8 }} />
-          <input
-            type="text"
-            placeholder={ROTATING_PLACEHOLDERS[placeholderIdx]}
-            value={quickInput}
-            onChange={e => setQuickInput(e.target.value)}
-            onFocus={() => setInputFocused(true)}
-            onBlur={() => setInputFocused(false)}
-            style={consoleInput}
-            autoComplete="off"
-            aria-label="Describe what you want to build"
-          />
-          <motion.button
-            type="submit"
-            className="btn-accent shine-effect"
-            style={forgeBtn}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.96 }}
-            disabled={!quickInput.trim()}
-          >
-            Forge
-            <CornerDownLeft size={13} />
-          </motion.button>
-        </motion.form>
-
-        {/* Suggestions */}
-        <motion.div variants={fadeUp} style={suggestRow}>
-          <span style={suggestLabel}>Try:</span>
-          {SUGGESTIONS.map((s, i) => (
-            <motion.button
-              key={i}
-              style={suggestChip}
-              onClick={() => setQuickInput(`A premium ${s} with modern dark glassmorphic aesthetics and responsive layout.`)}
-              whileHover={{ scale: 1.04, y: -1, borderColor: 'rgba(255,255,255,0.15)', color: 'var(--foreground)' }}
-              whileTap={{ scale: 0.96 }}
-            >
-              {s}
-            </motion.button>
-          ))}
-        </motion.div>
       </motion.section>
 
-      {/* Onboarding Checklist Widget */}
-      <OnboardingChecklist history={history} favorites={favorites} />
-
-      {/* ── Bento Grid ────────────────────────────────────────── */}
+      {/* ── Primary Workflows Bento Grid ── */}
       <motion.section
         variants={stagger}
         initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, margin: '-100px' }}
-        style={{ marginBottom: '4rem' }}
+        animate="show"
+        style={{ marginBottom: '4.5rem', marginTop: '1rem' }}
       >
-        <motion.div variants={fadeUp} style={sectionHeader}>
-          <div>
-            <p className="section-label" style={{ marginBottom: '0.4rem' }}>Architectural Pipelines</p>
-            <h2 style={sectionTitle}>Choose your workflow</h2>
-          </div>
-        </motion.div>
-
         <div style={bentoGrid} className="workflow-bento-grid">
           {WORKFLOWS.map((w, i) => (
             <BentoCard key={i} workflow={w} onIntercept={(action) => handleNewWorkspaceIntent(action)} />
           ))}
         </div>
       </motion.section>
+
+      {/* Onboarding Checklist Widget */}
+      <OnboardingChecklist history={history} favorites={favorites} />
 
       {/* ── History ───────────────────────────────────────────── */}
       <motion.section
@@ -784,6 +724,72 @@ export default function DashboardPage() {
         })()}
       </motion.section>
 
+      {/* ── Secondary Sandbox Console (Manual Prompt Enhancer) ── */}
+      <motion.section
+        variants={stagger}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, margin: '-60px' }}
+        style={sandboxConsoleContainer}
+        className="glass-panel"
+      >
+        <div style={sandboxHeaderRow}>
+          <div style={sandboxTitleBox}>
+            <div style={sandboxIconWrap}>
+              <Sparkles size={15} style={{ color: 'var(--accent)' }} />
+            </div>
+            <div>
+              <h3 style={sandboxTitleText}>Quick Sandbox Enhancer</h3>
+              <p style={sandboxSubtitleText}>Already have a draft idea? Paste it below to manually enhance layout and color configurations.</p>
+            </div>
+          </div>
+        </div>
+
+        <motion.form
+          onSubmit={handleQuickForge}
+          style={sandboxConsoleForm(inputFocused)}
+          className="dashboard-console-form"
+        >
+          <input
+            type="text"
+            placeholder={ROTATING_PLACEHOLDERS[placeholderIdx]}
+            value={quickInput}
+            onChange={e => setQuickInput(e.target.value)}
+            onFocus={() => setInputFocused(true)}
+            onBlur={() => setInputFocused(false)}
+            style={consoleInput}
+            autoComplete="off"
+            aria-label="Describe what you want to build"
+          />
+          <motion.button
+            type="submit"
+            className="btn-accent shine-effect"
+            style={forgeBtn}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            disabled={!quickInput.trim()}
+          >
+            Forge Specs
+            <CornerDownLeft size={13} />
+          </motion.button>
+        </motion.form>
+
+        {/* Suggestions */}
+        <div style={sandboxSuggestRow}>
+          <span style={suggestLabel}>Try sandbox examples:</span>
+          {SUGGESTIONS.map((s, i) => (
+            <button
+              key={i}
+              type="button"
+              style={suggestChip}
+              onClick={() => setQuickInput(`A premium ${s} with modern dark glassmorphic aesthetics and responsive layout.`)}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      </motion.section>
+
       {/* ── Template Library ───────────────────────────────────── */}
       <motion.section
         initial={{ opacity: 0, y: 15 }}
@@ -888,43 +894,106 @@ function BentoCard({ workflow, onIntercept }) {
 
 // ─── Styles ───────────────────────────────────────────────────
 
-const heroSection = {
+const welcomeHUD = {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   textAlign: 'center',
-  paddingTop: '4rem',
-  paddingBottom: '5rem',
+  paddingTop: '3.5rem',
+  paddingBottom: '2rem',
   maxWidth: '900px',
   margin: '0 auto',
 };
 
-const heroParagraph = {
-  fontSize: '1.05rem',
-  color: 'var(--muted-foreground)',
-  lineHeight: '1.7',
-  maxWidth: '580px',
-  marginBottom: '2.5rem',
+const welcomeHeadline = {
+  fontSize: '2.2rem',
+  fontWeight: '800',
+  letterSpacing: '-0.035em',
+  color: 'var(--foreground)',
+  fontFamily: 'var(--font-display)',
+  marginBottom: '0.75rem',
 };
 
-const consoleForm = (focused) => ({
+const welcomeSub = {
+  fontSize: '0.94rem',
+  color: 'var(--muted-foreground)',
+  lineHeight: '1.65',
+  maxWidth: '540px',
+  marginBottom: '1rem',
+};
+
+const sandboxConsoleContainer = {
+  background: 'rgba(5, 5, 8, 0.25)',
+  border: '1px solid rgba(255,255,255,0.04)',
+  borderRadius: '16px',
+  padding: '1.75rem 2rem',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1.25rem',
+  marginBottom: '3rem',
+  boxShadow: '0 4px 20px rgba(0,0,0,0.2), inset 0 1px 0 0 rgba(255,255,255,0.02)',
+};
+
+const sandboxHeaderRow = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+};
+
+const sandboxTitleBox = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.85rem',
+};
+
+const sandboxIconWrap = {
+  width: '32px',
+  height: '32px',
+  borderRadius: '8px',
+  background: 'rgba(251, 191, 36, 0.08)',
+  border: '1px solid rgba(251, 191, 36, 0.15)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
+const sandboxTitleText = {
+  fontSize: '0.96rem',
+  fontWeight: '700',
+  color: 'var(--foreground)',
+  fontFamily: 'var(--font-display)',
+  margin: 0,
+};
+
+const sandboxSubtitleText = {
+  fontSize: '0.78rem',
+  color: 'var(--muted-foreground)',
+  margin: '0.15rem 0 0 0',
+  lineHeight: '1.4',
+};
+
+const sandboxConsoleForm = (focused) => ({
   width: '100%',
-  maxWidth: '560px',
-  height: '56px',
+  height: '50px',
   display: 'flex',
   alignItems: 'center',
   gap: '0.75rem',
-  padding: '0 0.5rem 0 1.15rem',
-  background: 'rgba(10, 10, 12, 0.4)',
-  border: `1px solid ${focused ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`,
-  borderRadius: '12px',
-  backdropFilter: 'blur(20px)',
+  padding: '0 0.4rem 0 1rem',
+  background: 'rgba(10, 10, 12, 0.6)',
+  border: `1px solid ${focused ? 'var(--accent)' : 'rgba(255,255,255,0.05)'}`,
+  borderRadius: '10px',
   boxShadow: focused
-    ? '0 0 0 1px var(--accent), 0 8px 32px rgba(124,58,237,0.15), inset 0 1px 0 0 rgba(255,255,255,0.1)'
-    : '0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 0 rgba(255,255,255,0.05)',
-  transition: 'all var(--duration-fast) var(--ease-spring)',
-  marginBottom: '1.5rem',
+    ? '0 0 0 1px var(--accent), 0 4px 24px rgba(124,58,237,0.1), inset 0 1px 0 0 rgba(255,255,255,0.08)'
+    : 'inset 0 1px 0 0 rgba(255,255,255,0.03)',
+  transition: 'all 0.2s ease',
 });
+
+const sandboxSuggestRow = {
+  display: 'flex',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: '0.5rem',
+};
 
 const consoleInput = {
   flex: 1,

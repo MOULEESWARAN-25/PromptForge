@@ -195,30 +195,7 @@ export default function SettingsDrawer({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* ── API Key ── */}
-              <div style={sectionCard(isDark)}>
-                <div style={cardHeaderRow}>
-                  <Key size={15} style={{ color: 'var(--accent)' }} />
-                  <span style={sectionTitle}>Gemini API Key</span>
-                </div>
-                <p style={planDesc}>Use your own API key for live generation (optional).</p>
-                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                  <input
-                    type={showApiKey ? 'text' : 'password'}
-                    placeholder="AIza..."
-                    value={apiKeyInput}
-                    onChange={e => setApiKeyInput(e.target.value)}
-                    style={apiKeyInput_style(isDark)}
-                    aria-label="Gemini API Key"
-                  />
-                  <button style={showBtn(isDark)} onClick={() => setShowApiKey(!showApiKey)} aria-label={showApiKey ? 'Hide key' : 'Show key'}>
-                    {showApiKey ? 'Hide' : 'Show'}
-                  </button>
-                </div>
-                <button style={saveKeyBtn(apiKeySaved)} onClick={handleSaveApiKey}>
-                  {apiKeySaved ? <><CheckCircle size={13} /> Saved!</> : 'Save Key'}
-                </button>
-              </div>
+
 
               {/* ── DB Status ── */}
               <div style={sectionCard(isDark)}>
