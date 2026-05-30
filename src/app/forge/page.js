@@ -55,17 +55,6 @@ function ForgeWizardContent() {
     : ['Input', 'Analyze', 'Enhance', 'Generate'];
 
   // Visual layouts styles
-  const containerStyle = {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '1.25rem 1.5rem 3rem 1.5rem',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem',
-    minHeight: '100vh',
-    position: 'relative'
-  };
-
   const backBtn = {
     alignSelf: 'auto',
     display: 'flex',
@@ -118,9 +107,9 @@ function ForgeWizardContent() {
   };
 
   const wizardIconWrap = {
-    width: '36px',
-    height: '36px',
-    borderRadius: '10px',
+    width: '44px',
+    height: '44px',
+    borderRadius: '12px',
     background: 'rgba(255, 255, 255, 0.02)',
     border: '1px solid rgba(255, 255, 255, 0.06)',
     display: 'flex',
@@ -130,7 +119,7 @@ function ForgeWizardContent() {
   };
 
   const mainTitle = {
-    fontSize: '1.15rem',
+    fontSize: '1.75rem',
     fontWeight: '800',
     fontFamily: 'var(--font-display)',
     color: 'var(--foreground)',
@@ -139,22 +128,23 @@ function ForgeWizardContent() {
   };
 
   const mainSub = {
-    fontSize: '0.75rem',
+    fontSize: '0.9rem',
     color: 'var(--muted-foreground)',
-    lineHeight: '1.3',
-    margin: 0
+    lineHeight: '1.4',
+    margin: '0.25rem 0 0 0'
   };
 
   const wizardContentBody = {
     display: 'flex',
     flexDirection: 'column',
-    gap: '1.25rem',
-    marginTop: '0.25rem'
+    gap: '1.5rem',
+    marginTop: '0.5rem'
   };
 
   return (
-    <div style={containerStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.75rem', flexWrap: 'wrap' }}>
+    <div className="forge-main-container">
+      {/* Row 1: Back to Dashboard button */}
+      <div style={{ display: 'flex', width: '100%', marginBottom: '0.75rem' }}>
         <button 
           style={backBtn} 
           onClick={() => {
@@ -165,32 +155,41 @@ function ForgeWizardContent() {
           <ArrowLeft size={15} />
           Back to Dashboard
         </button>
-
-        {activeMode && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={wizardIconWrap}>
-              {activeMode === 'application' && <Monitor size={18} style={{ color: '#7c3aed' }} />}
-              {activeMode === 'page' && <Layout size={18} style={{ color: '#0891b2' }} />}
-              {activeMode === 'component' && <Code2 size={18} style={{ color: '#ec4899' }} />}
-              {activeMode === 'enhance' && <Wand2 size={18} style={{ color: '#059669' }} />}
-            </div>
-            <div>
-              <h1 style={mainTitle}>
-                {activeMode === 'application' && "Full-Stack Application Architect"}
-                {activeMode === 'page' && "Web Page Design"}
-                {activeMode === 'component' && "Modular Component Architect"}
-                {activeMode === 'enhance' && "Technical Design Prompt Enhancer"}
-              </h1>
-              <p style={mainSub}>
-                {activeMode === 'application' && "Build a full multi-page application blueprint."}
-                {activeMode === 'page' && "Design custom web pages with themes & components."}
-                {activeMode === 'component' && "Configure premium modular interface controls."}
-                {activeMode === 'enhance' && "Inject layout tokens & motions to prompt drafts."}
-              </p>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Row 2: Page Title & Description */}
+      {activeMode && (
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '1rem', 
+          width: '100%', 
+          borderBottom: '1px solid rgba(255,255,255,0.06)', 
+          paddingBottom: '1.25rem',
+          marginBottom: '0.5rem'
+        }}>
+          <div style={wizardIconWrap}>
+            {activeMode === 'application' && <Monitor size={22} style={{ color: '#7c3aed' }} />}
+            {activeMode === 'page' && <Layout size={22} style={{ color: '#0891b2' }} />}
+            {activeMode === 'component' && <Code2 size={22} style={{ color: '#ec4899' }} />}
+            {activeMode === 'enhance' && <Wand2 size={22} style={{ color: '#059669' }} />}
+          </div>
+          <div>
+            <h1 style={mainTitle}>
+              {activeMode === 'application' && "Full-Stack Application Architect"}
+              {activeMode === 'page' && "Web Page Design"}
+              {activeMode === 'component' && "Modular Component Architect"}
+              {activeMode === 'enhance' && "Technical Design Prompt Enhancer"}
+            </h1>
+            <p style={mainSub}>
+              {activeMode === 'application' && "Build a full multi-page application blueprint."}
+              {activeMode === 'page' && "Design custom web pages with themes & components."}
+              {activeMode === 'component' && "Configure premium modular interface controls."}
+              {activeMode === 'enhance' && "Inject layout tokens & motions to prompt drafts."}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Draft Recovery Banner */}
       {showDraftBanner && (
@@ -240,6 +239,25 @@ function ForgeWizardContent() {
           />
         )}
       </div>
+
+      <style>{`
+        .forge-main-container {
+          width: 95%;
+          max-width: 1600px;
+          margin: 0 auto;
+          padding: 1.25rem 1.5rem 3rem 1.5rem;
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          min-height: 100vh;
+          position: relative;
+        }
+        @media (min-width: 1920px) {
+          .forge-main-container {
+            max-width: 1800px;
+          }
+        }
+      `}</style>
     </div>
   );
 }

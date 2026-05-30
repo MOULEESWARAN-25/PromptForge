@@ -13,11 +13,17 @@ export function ThemeSelector({
   componentType,
   customCategory,
   customComponentType,
-  hidePreview = false
+  hidePreview = false,
+  compact = false
 }) {
-  const themeCardGrid = {
+  const themeCardGrid = compact ? {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.4rem',
+    marginTop: '0.5rem'
+  } : {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
     gap: '1rem',
     marginTop: '0.75rem'
   };
@@ -30,7 +36,7 @@ export function ThemeSelector({
   };
 
   const themeCardName = {
-    fontSize: '0.95rem',
+    fontSize: compact ? '0.78rem' : '0.95rem',
     letterSpacing: '-0.01em'
   };
 
@@ -40,14 +46,24 @@ export function ThemeSelector({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? '0.5rem' : '1rem' }}>
       <div style={themeCardGrid}>
         {Object.keys(themeStyles).map((themeName) => {
           const isSelected = selectedTheme === themeName;
+          const baseStyles = getThemeCardDynamicStyles(themeName, isSelected);
+          const cardStyles = {
+            ...baseStyles,
+            ...(compact ? {
+              padding: '0.5rem 0.75rem',
+              borderRadius: '8px',
+              boxShadow: 'none',
+              minHeight: '0',
+            } : {})
+          };
           return (
             <div
               key={themeName}
-              style={getThemeCardDynamicStyles(themeName, isSelected)}
+              style={cardStyles}
               onClick={() => setSelectedTheme(themeName)}
               className="bento-card-premium glow-card-spotlight active-scale-95 animate-fade-up"
             >
@@ -55,11 +71,13 @@ export function ThemeSelector({
                 <span style={{ ...themeCardName, color: isSelected ? 'inherit' : 'var(--foreground)', fontWeight: '750' }}>
                   {themeName}
                 </span>
-                {isSelected && <CheckCircle2 size={16} style={{ color: '#fbbf24' }} />}
+                {isSelected && <CheckCircle2 size={14} style={{ color: '#fbbf24' }} />}
               </div>
-              <p style={{ ...themeCardDescText, color: isSelected ? 'inherit' : 'var(--muted-foreground)', opacity: 0.8 }}>
-                {themeStyles[themeName].description}
-              </p>
+              {!compact && (
+                <p style={{ ...themeCardDescText, color: isSelected ? 'inherit' : 'var(--muted-foreground)', opacity: 0.8 }}>
+                  {themeStyles[themeName].description}
+                </p>
+              )}
             </div>
           );
         })}

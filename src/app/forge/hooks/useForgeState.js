@@ -39,6 +39,17 @@ export function useForgeState(user, router) {
   const [ideSyncPromptCopied, setIdeSyncPromptCopied] = useState(false);
   const [ideResponseContext, setIdeResponseContext] = useState('');
 
+  // 5b. Detailed Project Setup States (Wizard pagination)
+  const [projectName, setProjectName] = useState('my-awesome-project');
+  const [projectDescription, setProjectDescription] = useState('A premium SaaS application.');
+  const [projectType, setProjectType] = useState('SaaS Platform');
+  const [frontendStack, setFrontendStack] = useState('Next.js (App Router)');
+  const [backendStack, setBackendStack] = useState('Next.js Serverless');
+  const [database, setDatabase] = useState('PostgreSQL');
+  const [authOption, setAuthOption] = useState('NextAuth.js / Auth.js');
+  const [deployment, setDeployment] = useState('Vercel');
+  const [additionalFeatures, setAdditionalFeatures] = useState(['TypeScript', 'Tailwind CSS']);
+
   // 6. Clarification Layer States
   const [clarificationActive, setClarificationActive] = useState(false);
   const [clarifiedAudience, setClarifiedAudience] = useState('');
@@ -65,6 +76,16 @@ export function useForgeState(user, router) {
       if (draft.selectedComponents) setSelectedComponents(draft.selectedComponents);
       if (draft.componentType) setComponentType(draft.componentType);
       if (draft.projectIntegration) setProjectIntegration(draft.projectIntegration);
+      if (draft.framework) setFramework(draft.framework);
+      if (draft.projectName) setProjectName(draft.projectName);
+      if (draft.projectDescription) setProjectDescription(draft.projectDescription);
+      if (draft.projectType) setProjectType(draft.projectType);
+      if (draft.frontendStack) setFrontendStack(draft.frontendStack);
+      if (draft.backendStack) setBackendStack(draft.backendStack);
+      if (draft.database) setDatabase(draft.database);
+      if (draft.authOption) setAuthOption(draft.authOption);
+      if (draft.deployment) setDeployment(draft.deployment);
+      if (draft.additionalFeatures) setAdditionalFeatures(draft.additionalFeatures);
       setShowDraftBanner(false);
       setDraftRecovered(true);
       toast.success('Draft restored!', { description: 'Your previous selections have been loaded.' });
@@ -133,11 +154,23 @@ export function useForgeState(user, router) {
         componentType,
         projectIntegration,
         framework,
+        projectName,
+        projectDescription,
+        projectType,
+        frontendStack,
+        backendStack,
+        database,
+        authOption,
+        deployment,
+        additionalFeatures,
         savedAt: Date.now(),
       };
       localStorage.setItem('promptforge_draft', JSON.stringify(draft));
     }
-  }, [activeMode, appCategory, selectedFeatures, selectedTheme, selectedTypography, pageType, selectedComponents, componentType, projectIntegration, framework]);
+  }, [
+    activeMode, appCategory, selectedFeatures, selectedTheme, selectedTypography, pageType, selectedComponents, componentType, projectIntegration, framework,
+    projectName, projectDescription, projectType, frontendStack, backendStack, database, authOption, deployment, additionalFeatures
+  ]);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -263,6 +296,15 @@ export function useForgeState(user, router) {
     codebaseContext, setCodebaseContext,
     ideSyncPromptCopied, setIdeSyncPromptCopied,
     ideResponseContext, setIdeResponseContext,
+    projectName, setProjectName,
+    projectDescription, setProjectDescription,
+    projectType, setProjectType,
+    frontendStack, setFrontendStack,
+    backendStack, setBackendStack,
+    database, setDatabase,
+    authOption, setAuthOption,
+    deployment, setDeployment,
+    additionalFeatures, setAdditionalFeatures,
     clarificationActive, setClarificationActive,
     clarifiedAudience, setClarifiedAudience,
     clarifiedDensity, setClarifiedDensity,

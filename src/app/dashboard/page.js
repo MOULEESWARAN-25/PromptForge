@@ -14,7 +14,6 @@ import {
 import Link from 'next/link';
 import { track, EVENTS } from '@/lib/analytics';
 import HelpKeyboardOverlay from '@/components/HelpKeyboardOverlay';
-import FirstBlueprintSuccessScreen from '@/components/FirstBlueprintSuccessScreen';
 import ShadcnDropdown from '@/components/ShadcnDropdown';
 import WelcomeBotMessage from '@/components/WelcomeBotMessage';
 import ActivityTracker from '@/components/ActivityTracker';
@@ -255,7 +254,7 @@ export default function DashboardPage() {
   // Compute vault lifetime stats
   const vaultStats = {
     blueprints: history.length,
-    collections: JSON.parse(localStorage.getItem('pf_collections') || '[]').length,
+    collections: typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('pf_collections') || '[]').length : 0,
     refinements: history.reduce((acc, h) => acc + (h.chatMessages || []).filter(m => m.role === 'user').length, 0),
     hoursSaved: Math.round((history.length * 12) / 60 * 10) / 10, // 12min per blueprint
   };
@@ -413,8 +412,6 @@ export default function DashboardPage() {
 
   return (
     <div style={{ position: 'relative', zIndex: 2, width: '100%' }}>
-      {/* P0: First Blueprint Success Screen (renders as overlay) */}
-      <FirstBlueprintSuccessScreen />
 
       {/* ── Intent-Driven Re-engagement Nudge ── */}
       <AnimatePresence>

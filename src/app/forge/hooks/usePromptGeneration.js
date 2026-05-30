@@ -143,6 +143,15 @@ export function usePromptGeneration({
         clarifiedAudience: forgeState.clarifiedAudience,
         clarifiedDensity: forgeState.clarifiedDensity,
         clarifiedViewport: forgeState.clarifiedViewport,
+        projectName: forgeState.projectName,
+        projectDescription: forgeState.projectDescription,
+        projectType: forgeState.projectType,
+        frontendStack: forgeState.frontendStack,
+        backendStack: forgeState.backendStack,
+        database: forgeState.database,
+        authOption: forgeState.authOption,
+        deployment: forgeState.deployment,
+        additionalFeatures: forgeState.additionalFeatures,
         apiKey
       });
 

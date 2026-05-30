@@ -1,32 +1,6 @@
 import React from 'react';
 import { getThemeCardDynamicStyles } from '../utils/themeStyles';
-
-const CA = {
-  'SaaS Dashboard Admin Panel':  { p: '#7c3aed', s: '#a78bfa' },
-  'E-Commerce Marketplace':       { p: '#2563eb', s: '#60a5fa' },
-  'Student Management Hub':       { p: '#0891b2', s: '#38bdf8' },
-  'Freelancer Billing Platform':  { p: '#059669', s: '#34d399' },
-  'Digital Creative Portfolio':   { p: '#db2777', s: '#f472b6' },
-  'Healthcare Tracker':           { p: '#0d9488', s: '#2dd4bf' },
-  'Fitness Planner':              { p: '#ea580c', s: '#fb923c' },
-  'Real Estate Portal':           { p: '#ca8a04', s: '#fbbf24' },
-};
-
-const LIGHT_THEMES = new Set([
-  'Wes Anderson',
-  'Wes Anderson Retro',
-  'Minimalist Typography',
-  'Stripe Inspired',
-  'Notion Style',
-  'Apple Inspired',
-  'Material Design',
-  'Neo Brutalism',
-  'Healthcare Clean',
-  'Education Classic',
-  'Enterprise Slate',
-  'Sunset Warmth',
-  'Ocean Breeze'
-]);
+import { themeStyles } from '@/data/designVocabulary';
 
 const FONT_MAP = {
   'Inter':    "'Inter', sans-serif",
@@ -161,73 +135,90 @@ const DOMAIN_DATA = {
   }
 };
 
-// ── Older Static Component Mappings (For standalone component preview mode) ──
-function CommandPreview({ p, font, isLight }) {
+// ── Theme-aware Component Previews ──
+function CommandPreview({ theme, font }) {
+  const borderStyle = `1px solid ${theme.textSecondary}33`;
   return (
-    <div style={{ fontFamily:font, display:'flex', flexDirection:'column', gap:'0.25rem' }}>
-      <div style={{ background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.07)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.35rem 0.5rem', display: 'flex', alignItems: 'center' }}>
-        <span style={{ fontSize:'0.65rem', opacity:.5, color: isLight?'#000':'#fff' }}>⌘</span>
-        <span style={{ fontSize:'0.55rem', marginLeft:'6px', color: 'var(--muted-foreground)', flex:1 }}>Search commands...</span>
-        <span style={{ fontSize:'0.45rem', padding: '1px 5px', borderRadius: '4px', background: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)', color: 'var(--muted-foreground)' }}>ESC</span>
+    <div style={{ fontFamily: font, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+      <div style={{ background: theme.surface, border: borderStyle, borderRadius: '6px', padding: '0.35rem 0.5rem', display: 'flex', alignItems: 'center' }}>
+        <span style={{ fontSize: '0.65rem', opacity: 0.6, color: theme.textPrimary }}>⌘</span>
+        <span style={{ fontSize: '0.55rem', marginLeft: '6px', color: theme.textSecondary, flex: 1 }}>Search commands...</span>
+        <span style={{ fontSize: '0.45rem', padding: '1px 5px', borderRadius: '4px', background: `${theme.textSecondary}22`, color: theme.textSecondary }}>ESC</span>
       </div>
-      {[['⬡','New Project','⌘N',true],['↗','Dashboard','⌘D',false],['⚙','Settings','⌘,',false],['?','Help','⌘?',false]].map(([ic,cmd,sc,act])=>(
-        <div key={cmd} style={{ display:'flex', alignItems:'center', padding:'0.25rem 0.5rem', borderRadius:'6px', background: act?`${p}18`:'transparent' }}>
-          <span style={{ fontSize:'0.58rem', width:'14px', textAlign:'center', color: act?p:'var(--muted-foreground)' }}>{ic}</span>
-          <span style={{ flex:1, fontSize:'0.56rem', fontWeight: act?700:500, color: act?(isLight?'#000':'#fff'):'var(--muted-foreground)', marginLeft:'8px' }}>{cmd}</span>
-          <span style={{ fontSize:'0.48rem', color:'var(--muted-foreground)', fontFamily:'monospace' }}>{sc}</span>
+      {[
+        ['⬡', 'New Project', '⌘N', true],
+        ['↗', 'Dashboard', '⌘D', false],
+        ['⚙', 'Settings', '⌘,', false],
+        ['?', 'Help', '⌘?', false]
+      ].map(([ic, cmd, sc, act]) => (
+        <div key={cmd} style={{ display: 'flex', alignItems: 'center', padding: '0.25rem 0.5rem', borderRadius: '6px', background: act ? `${theme.primary}22` : 'transparent' }}>
+          <span style={{ fontSize: '0.58rem', width: '14px', textAlign: 'center', color: act ? theme.primary : theme.textSecondary }}>{ic}</span>
+          <span style={{ flex: 1, fontSize: '0.56rem', fontWeight: act ? 700 : 500, color: act ? theme.textPrimary : theme.textSecondary, marginLeft: '8px' }}>{cmd}</span>
+          <span style={{ fontSize: '0.48rem', color: theme.textSecondary, fontFamily: 'monospace' }}>{sc}</span>
         </div>
       ))}
     </div>
   );
 }
 
-function ModalPreview({ font, isLight }) {
+function ModalPreview({ theme, font }) {
+  const borderStyle = `1px solid ${theme.textSecondary}33`;
   return (
-    <div style={{ fontFamily:font, padding:'0.2rem' }}>
-      <div style={{ background: isLight ? '#ffffff' : 'rgba(12,12,18,0.92)', backdropFilter:'blur(16px)', borderRadius:'12px', padding:'0.9rem', border: isLight ? '1px solid #e2e8f0' : '1px solid rgba(255,255,255,0.12)', boxShadow:'0 10px 30px rgba(0,0,0,0.15)' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'0.4rem' }}>
-          <span style={{ fontSize:'0.62rem', fontWeight:800, color: isLight?'#0f172a':'#fff' }}>Confirm Delete Action</span>
-          <span style={{ fontSize:'0.58rem', color:'var(--muted-foreground)', cursor:'pointer' }}>✕</span>
+    <div style={{ fontFamily: font, padding: '0.2rem' }}>
+      <div style={{ background: theme.surface, borderRadius: '12px', padding: '0.9rem', border: borderStyle, boxShadow: '0 10px 30px rgba(0,0,0,0.15)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+          <span style={{ fontSize: '0.62rem', fontWeight: 800, color: theme.textPrimary }}>Confirm Delete Action</span>
+          <span style={{ fontSize: '0.58rem', color: theme.textSecondary, cursor: 'pointer' }}>✕</span>
         </div>
-        <div style={{ fontSize:'0.52rem', color:'var(--muted-foreground)', lineHeight:1.6, marginBottom:'0.6rem' }}>This action cannot be undone. All project blueprint files will be permanently deleted from the registry.</div>
-        <div style={{ display:'flex', gap:'0.5rem' }}>
-          <div style={{ flex:1, padding:'0.32rem', background:'rgba(239,68,68,0.15)', border:'1px solid rgba(239,68,68,0.3)', borderRadius:'6px', fontSize:'0.52rem', fontWeight:700, color:'#ef4444', textAlign:'center', cursor:'pointer' }}>Delete</div>
-          <div style={{ flex:1, padding:'0.32rem', background: isLight ? '#f1f5f9' : 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius:'6px', fontSize:'0.52rem', fontWeight:600, color:'var(--foreground)', textAlign:'center', cursor:'pointer' }}>Cancel</div>
+        <div style={{ fontSize: '0.52rem', color: theme.textSecondary, lineHeight: 1.6, marginBottom: '0.6rem' }}>This action cannot be undone. All project blueprint files will be permanently deleted from the registry.</div>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ flex: 1, padding: '0.32rem', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '6px', fontSize: '0.52rem', fontWeight: 700, color: '#ef4444', textAlign: 'center', cursor: 'pointer' }}>Delete</div>
+          <div style={{ flex: 1, padding: '0.32rem', background: theme.background, border: borderStyle, borderRadius: '6px', fontSize: '0.52rem', fontWeight: 600, color: theme.textPrimary, textAlign: 'center', cursor: 'pointer' }}>Cancel</div>
         </div>
       </div>
     </div>
   );
 }
 
-function PricingPreview({ p, font, isLight }) {
+function PricingPreview({ theme, font }) {
+  const borderStyle = `1px solid ${theme.textSecondary}33`;
   return (
-    <div style={{ fontFamily:font, display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'0.25rem' }}>
-      {[['Starter','$0',false],['Pro ✦','$19',true],['Team','$49',false]].map(([tier,price,hot])=>(
-        <div key={tier} style={{ padding:'0.5rem', borderRadius:'8px', border: hot?`1.5px solid ${p}`:'1px solid var(--border)', background: hot?`${p}12`: (isLight?'#ffffff':'rgba(255,255,255,0.02)'), boxShadow: hot?'0 4px 12px rgba(0,0,0,0.05)':'none' }}>
-          <div style={{ fontSize:'0.52rem', fontWeight:700, color: hot?p:'var(--muted-foreground)' }}>{tier}</div>
-          <div style={{ fontSize:'0.72rem', fontWeight:800, color: isLight?'#0f172a':'#fff', marginTop:'2px' }}>{price}<span style={{ fontSize:'0.45rem', fontWeight:500, color:'var(--muted-foreground)' }}>/mo</span></div>
-          <div style={{ display:'flex', flexDirection:'column', gap:'0.18rem', marginTop:'0.3rem' }}>
-            {[1,2,3].map(i=><div key={i} style={{ height:'3px', borderRadius:'2px', background: hot?`${p}60`:'var(--border)' }} />)}
+    <div style={{ fontFamily: font, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.25rem' }}>
+      {[
+        ['Starter', '$0', false],
+        ['Pro ✦', '$19', true],
+        ['Team', '$49', false]
+      ].map(([tier, price, hot]) => (
+        <div key={tier} style={{ padding: '0.5rem', borderRadius: '8px', border: hot ? `1.5px solid ${theme.primary}` : borderStyle, background: hot ? `${theme.primary}12` : theme.surface, boxShadow: hot ? '0 4px 12px rgba(0,0,0,0.05)' : 'none' }}>
+          <div style={{ fontSize: '0.52rem', fontWeight: 700, color: hot ? theme.primary : theme.textSecondary }}>{tier}</div>
+          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: theme.textPrimary, marginTop: '2px' }}>{price}<span style={{ fontSize: '0.45rem', fontWeight: 500, color: theme.textSecondary }}>/mo</span></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.18rem', marginTop: '0.3rem' }}>
+            {[1, 2, 3].map(i => <div key={i} style={{ height: '3px', borderRadius: '2px', background: hot ? `${theme.primary}60` : `${theme.textSecondary}33` }} />)}
           </div>
-          <div style={{ fontSize:'0.5rem', fontWeight:700, color: hot?'#fff': 'var(--foreground)', background: hot?p:'var(--border)', padding:'0.22rem', borderRadius:'5px', textAlign:'center', marginTop:'0.35rem', cursor:'pointer' }}>Subscribe</div>
+          <div style={{ fontSize: '0.5rem', fontWeight: 700, color: '#ffffff', background: hot ? theme.primary : `${theme.textSecondary}66`, padding: '0.22rem', borderRadius: '5px', textAlign: 'center', marginTop: '0.35rem', cursor: 'pointer' }}>Subscribe</div>
         </div>
       ))}
     </div>
   );
 }
 
-function SidebarPreview({ p, font, isLight }) {
+function SidebarPreview({ theme, font }) {
+  const borderStyle = `1px solid ${theme.textSecondary}33`;
   return (
-    <div style={{ fontFamily:font, display:'flex', gap:'0.3rem', height:'5.5rem' }}>
-      <div style={{ width:'36px', background: isLight?'#f1f5f9':'rgba(0,0,0,0.25)', borderRight:'1px solid var(--border)', padding:'0.4rem 0.25rem', display:'flex', flexDirection:'column', gap:'0.35rem', alignItems:'center', flexShrink:0 }}>
-        <div style={{ width:'16px', height:'16px', borderRadius:'4px', background:p }} />
-        {[1,0,0,0].map((a,i)=><div key={i} style={{ width:'16px', height:'16px', borderRadius:'4px', background: a?`${p}30`:'rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'center' }} />)}
+    <div style={{ fontFamily: font, display: 'flex', gap: '0.3rem', height: '5.5rem' }}>
+      <div style={{ width: '36px', background: theme.surface, borderRight: borderStyle, padding: '0.4rem 0.25rem', display: 'flex', flexDirection: 'column', gap: '0.35rem', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ width: '16px', height: '16px', borderRadius: '4px', background: theme.primary }} />
+        {[1, 0, 0, 0].map((a, i) => (
+          <div key={i} style={{ width: '16px', height: '16px', borderRadius: '4px', background: a ? `${theme.primary}30` : `${theme.textSecondary}11`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '6px', height: '2px', background: a ? theme.primary : theme.textSecondary }} />
+          </div>
+        ))}
       </div>
-      <div style={{ flex:1, padding:'0.5rem 0.4rem', display:'flex', flexDirection:'column', gap:'0.25rem' }}>
-        {['Dashboard','Analytics','Projects','Settings'].map((l,i)=>(
-          <div key={l} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'0.2rem 0.35rem', borderRadius:'5px', background: i===0?`${p}18`:'transparent' }}>
-            <div style={{ width:'6px', height:'6px', borderRadius:'50%', background: i===0?p:'var(--muted-foreground)', flexShrink:0 }} />
-            <span style={{ fontSize:'0.52rem', fontWeight: i===0?700:500, color: i===0?(isLight?'#000':'#fff'):'var(--muted-foreground)' }}>{l}</span>
+      <div style={{ flex: 1, padding: '0.5rem 0.4rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        {['Dashboard', 'Analytics', 'Projects', 'Settings'].map((l, i) => (
+          <div key={l} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.2rem 0.35rem', borderRadius: '5px', background: i === 0 ? `${theme.primary}18` : 'transparent' }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: i === 0 ? theme.primary : theme.textSecondary, flexShrink: 0 }} />
+            <span style={{ fontSize: '0.52rem', fontWeight: i === 0 ? 700 : 500, color: i === 0 ? theme.textPrimary : theme.textSecondary }}>{l}</span>
           </div>
         ))}
       </div>
@@ -256,12 +247,19 @@ export function ThemePreview({
 }) {
   if (!selectedTheme) return null;
 
+  // Resolve theme object (Single Source of Truth)
+  const theme = themeStyles[selectedTheme] || {
+    background: "rgba(10, 5, 22, 0.95)",
+    surface: "rgba(255, 255, 255, 0.05)",
+    primary: "#7c3aed",
+    secondary: "#a78bfa",
+    textPrimary: "#ffffff",
+    textSecondary: "#a1a1aa"
+  };
+
   const previewStyles = getThemeCardDynamicStyles(selectedTheme, true);
   const font = FONT_MAP[selectedTypography] || FONT_MAP['Inter'];
-  const isLight = LIGHT_THEMES.has(selectedTheme);
-  
-  // Resolve core primary/secondary accent colors
-  const catAccent = CA[appCategory] || { p: '#7c3aed', s: '#a78bfa' };
+  const borderStyle = `1px solid ${theme.textSecondary}33`;
 
   // Parse active selection components list
   const activeComponents = activeMode === 'application' ? selectedFeatures : selectedComponents;
@@ -304,27 +302,27 @@ export function ThemePreview({
     const mainContentArea = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', flex: 1, minWidth: 0 }}>
         {/* Row 1: Header + Search Bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.35rem' }}>
-          <div style={{ fontSize: '0.6rem', fontWeight: 800, color: isLight ? '#0f172a' : '#ffffff' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', borderBottom: borderStyle, paddingBottom: '0.35rem' }}>
+          <div style={{ fontSize: '0.6rem', fontWeight: 800, color: theme.textPrimary }}>
             {title}
           </div>
           {hasSearch && (
-            <div style={{ display: 'flex', alignItems: 'center', background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '4px', padding: '1px 6px', width: '90px' }}>
-              <span style={{ fontSize: '0.45rem', color: 'var(--muted-foreground)' }}>Search...</span>
+            <div style={{ display: 'flex', alignItems: 'center', background: theme.surface, border: borderStyle, borderRadius: '4px', padding: '1px 6px', width: '90px' }}>
+              <span style={{ fontSize: '0.45rem', color: theme.textSecondary }}>Search...</span>
             </div>
           )}
         </div>
 
-        {/* Row 2: Form Interface (if selected, e.g. login pages/settings forms take priority layout) */}
+        {/* Row 2: Form Interface */}
         {hasForm && (
-          <div style={{ padding: '0.5rem', background: isLight ? '#f8fafc' : 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: '6px' }}>
-            <div style={{ fontSize: '0.52rem', fontWeight: 700, color: isLight ? '#0f172a' : '#ffffff', marginBottom: '0.3rem' }}>Information Form</div>
+          <div style={{ padding: '0.5rem', background: theme.surface, border: borderStyle, borderRadius: '6px' }}>
+            <div style={{ fontSize: '0.52rem', fontWeight: 700, color: theme.textPrimary, marginBottom: '0.3rem' }}>Information Form</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              <div style={{ height: '10px', background: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.06)', borderRadius: '2px', width: '40%' }} />
-              <div style={{ height: '14px', background: 'transparent', border: '1px solid var(--border)', borderRadius: '3px' }} />
-              <div style={{ height: '10px', background: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.06)', borderRadius: '2px', width: '30%' }} />
-              <div style={{ height: '14px', background: 'transparent', border: '1px solid var(--border)', borderRadius: '3px' }} />
-              <div style={{ height: '16px', background: catAccent.p, borderRadius: '4px', color: '#fff', fontSize: '0.48rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '0.2rem' }}>Save Settings</div>
+              <div style={{ height: '10px', background: `${theme.textSecondary}22`, borderRadius: '2px', width: '40%' }} />
+              <div style={{ height: '14px', background: 'transparent', border: borderStyle, borderRadius: '3px' }} />
+              <div style={{ height: '10px', background: `${theme.textSecondary}22`, borderRadius: '2px', width: '30%' }} />
+              <div style={{ height: '14px', background: 'transparent', border: borderStyle, borderRadius: '3px' }} />
+              <div style={{ height: '16px', background: theme.primary, borderRadius: '4px', color: '#ffffff', fontSize: '0.48rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '0.2rem' }}>Save Settings</div>
             </div>
           </div>
         )}
@@ -333,9 +331,9 @@ export function ThemePreview({
         {hasKpi && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.35rem' }}>
             {mockData.metrics.map((m, idx) => (
-              <div key={idx} style={{ padding: '0.35rem 0.5rem', background: isLight ? '#ffffff' : 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', borderRadius: '6px' }}>
-                <div style={{ fontSize: '0.45rem', color: 'var(--muted-foreground)', fontWeight: 500 }}>{m.label}</div>
-                <div style={{ fontSize: '0.62rem', fontWeight: 800, color: isLight ? '#0f172a' : '#ffffff', marginTop: '1px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div key={idx} style={{ padding: '0.35rem 0.5rem', background: theme.surface, border: borderStyle, borderRadius: '6px' }}>
+                <div style={{ fontSize: '0.45rem', color: theme.textSecondary, fontWeight: 500 }}>{m.label}</div>
+                <div style={{ fontSize: '0.62rem', fontWeight: 800, color: theme.textPrimary, marginTop: '1px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span>{m.value}</span>
                   <span style={{ fontSize: '0.42rem', color: m.up ? '#10b981' : '#f43f5e' }}>{m.change}</span>
                 </div>
@@ -346,11 +344,11 @@ export function ThemePreview({
 
         {/* Row 4: Chart panel */}
         {hasChart && (
-          <div style={{ padding: '0.4rem 0.5rem', background: isLight ? '#ffffff' : 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', borderRadius: '6px' }}>
-            <div style={{ fontSize: '0.45rem', color: 'var(--muted-foreground)', fontWeight: 600 }}>{mockData.chartTitle}</div>
+          <div style={{ padding: '0.4rem 0.5rem', background: theme.surface, border: borderStyle, borderRadius: '6px' }}>
+            <div style={{ fontSize: '0.45rem', color: theme.textSecondary, fontWeight: 600 }}>{mockData.chartTitle}</div>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '1.4rem', marginTop: '0.25rem' }}>
               {mockData.chartValues.map((h, i) => (
-                <div key={i} style={{ flex: 1, height: `${h}%`, borderRadius: '2px 2px 0 0', background: i === 5 ? catAccent.p : `${catAccent.p}35` }} />
+                <div key={i} style={{ flex: 1, height: `${h}%`, borderRadius: '2px 2px 0 0', background: i === 5 ? theme.primary : `${theme.primary}35` }} />
               ))}
             </div>
           </div>
@@ -360,11 +358,11 @@ export function ThemePreview({
         {hasPricing && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.3rem' }}>
             {[['Starter', '$0'], ['Pro', '$29'], ['Premium', '$99']].map(([name, price], idx) => (
-              <div key={idx} style={{ padding: '0.4rem', border: idx === 1 ? `1px solid ${catAccent.p}` : '1px solid var(--border)', borderRadius: '6px', background: idx === 1 ? `${catAccent.p}10` : 'transparent', textAlign: 'center' }}>
-                <div style={{ fontSize: '0.46rem', fontWeight: 700, color: idx === 1 ? catAccent.p : 'var(--muted-foreground)' }}>{name}</div>
-                <div style={{ fontSize: '0.58rem', fontWeight: 800, color: isLight ? '#0f172a' : '#ffffff', marginTop: '1px' }}>{price}</div>
-                <div style={{ height: '2px', background: 'var(--border)', margin: '4px 0' }} />
-                <div style={{ fontSize: '0.4rem', padding: '2px', background: idx === 1 ? catAccent.p : 'var(--border)', color: '#fff', borderRadius: '3px', marginTop: '4px' }}>Select</div>
+              <div key={idx} style={{ padding: '0.4rem', border: idx === 1 ? `1px solid ${theme.primary}` : borderStyle, borderRadius: '6px', background: idx === 1 ? `${theme.primary}10` : 'transparent', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.46rem', fontWeight: 700, color: idx === 1 ? theme.primary : theme.textSecondary }}>{name}</div>
+                <div style={{ fontSize: '0.58rem', fontWeight: 800, color: theme.textPrimary, marginTop: '1px' }}>{price}</div>
+                <div style={{ height: '2px', background: `${theme.textSecondary}33`, margin: '4px 0' }} />
+                <div style={{ fontSize: '0.4rem', padding: '2px', background: idx === 1 ? theme.primary : `${theme.textSecondary}44`, color: '#ffffff', borderRadius: '3px', marginTop: '4px' }}>Select</div>
               </div>
             ))}
           </div>
@@ -372,20 +370,20 @@ export function ThemePreview({
 
         {/* Row 6: Data Table */}
         {hasTable && (
-          <div style={{ overflow: 'hidden', border: '1px solid var(--border)', borderRadius: '6px' }}>
+          <div style={{ overflow: 'hidden', border: borderStyle, borderRadius: '6px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.48rem', textAlign: 'left' }}>
               <thead>
-                <tr style={{ background: isLight ? '#f1f5f9' : 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border)' }}>
+                <tr style={{ background: theme.surface, borderBottom: borderStyle }}>
                   {mockData.tableHeaders.map((h, i) => (
-                    <th key={i} style={{ padding: '3px 6px', fontWeight: 700, color: 'var(--muted-foreground)' }}>{h}</th>
+                    <th key={i} style={{ padding: '3px 6px', fontWeight: 700, color: theme.textSecondary }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {mockData.tableRows.map((row, rIdx) => (
-                  <tr key={rIdx} style={{ borderBottom: rIdx < 2 ? '1px solid var(--border)' : 'none' }}>
+                  <tr key={rIdx} style={{ borderBottom: rIdx < 2 ? borderStyle : 'none' }}>
                     {row.map((cell, cIdx) => (
-                      <td key={cIdx} style={{ padding: '4px 6px', color: cIdx === 0 ? (isLight ? '#0f172a' : '#ffffff') : 'var(--muted-foreground)' }}>{cell}</td>
+                      <td key={cIdx} style={{ padding: '4px 6px', color: cIdx === 0 ? theme.textPrimary : theme.textSecondary }}>{cell}</td>
                     ))}
                   </tr>
                 ))}
@@ -396,7 +394,7 @@ export function ThemePreview({
 
         {/* Fallback if no components are selected yet */}
         {!hasKpi && !hasTable && !hasChart && !hasForm && !hasPricing && (
-          <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: '0.52rem', border: '1px dashed var(--border)', borderRadius: '6px' }}>
+          <div style={{ padding: '2rem 1rem', textAlign: 'center', color: theme.textSecondary, fontSize: '0.52rem', border: `1px dashed ${theme.textSecondary}55`, borderRadius: '6px' }}>
             No components toggled. Add features or layout elements in the left panel to compose the preview.
           </div>
         )}
@@ -407,11 +405,11 @@ export function ThemePreview({
       return (
         <div style={{ display: 'flex', gap: '0.45rem', width: '100%', height: '100%' }}>
           {/* Left Mini Sidebar Column */}
-          <div style={{ width: '38px', background: isLight ? '#f1f5f9' : 'rgba(0,0,0,0.18)', borderRight: '1px solid var(--border)', borderRadius: '6px', padding: '0.4rem 0.2rem', display: 'flex', flexDirection: 'column', gap: '0.35rem', alignItems: 'center', flexShrink: 0 }}>
-            <div style={{ width: '16px', height: '16px', borderRadius: '4px', background: catAccent.p }} />
+          <div style={{ width: '38px', background: theme.surface, borderRight: borderStyle, borderRadius: '6px', padding: '0.4rem 0.2rem', display: 'flex', flexDirection: 'column', gap: '0.35rem', alignItems: 'center', flexShrink: 0 }}>
+            <div style={{ width: '16px', height: '16px', borderRadius: '4px', background: theme.primary }} />
             {[1, 2, 3, 4].map(i => (
-              <div key={i} style={{ width: '14px', height: '14px', borderRadius: '3px', background: i === 1 ? `${catAccent.p}30` : 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ width: '6px', height: '2px', background: i === 1 ? catAccent.p : 'var(--muted-foreground)' }} />
+              <div key={i} style={{ width: '14px', height: '14px', borderRadius: '3px', background: i === 1 ? `${theme.primary}30` : `${theme.textSecondary}11`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '6px', height: '2px', background: i === 1 ? theme.primary : theme.textSecondary }} />
               </div>
             ))}
           </div>
@@ -433,31 +431,31 @@ export function ThemePreview({
   return (
     <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }} className="animate-fade-up">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h4 style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--accent)', margin: 0 }}>Live Preview Config</h4>
-        {selectedTypography && <span style={{ fontSize: '0.62rem', color: 'var(--muted-foreground)', fontStyle: 'italic' }}>{selectedTypography} · {selectedTheme}</span>}
+        <h4 style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: theme.primary, margin: 0 }}>Live Preview Config</h4>
+        {selectedTypography && <span style={{ fontSize: '0.62rem', color: theme.textSecondary, fontStyle: 'italic' }}>{selectedTypography} · {selectedTheme}</span>}
       </div>
 
-      <div style={{ ...previewStyles, cursor: 'default', padding: '0.8rem', minHeight: '10rem', filter: isLight ? 'brightness(0.98)' : 'none', fontFamily: font }} className="noise-overlay">
+      <div style={{ ...previewStyles, background: theme.background, color: theme.textPrimary, border: borderStyle, cursor: 'default', padding: '0.8rem', minHeight: '10rem', fontFamily: font }} className="noise-overlay">
         {/* Top bar indicators */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', borderBottom: borderStyle, paddingBottom: '0.2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444' }} />
             <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f59e0b' }} />
             <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
           </div>
-          <span style={{ fontSize: '0.5rem', color: 'var(--muted-foreground)', fontStyle: 'italic' }}>{selectedTheme} style preview</span>
+          <span style={{ fontSize: '0.5rem', color: theme.textSecondary, fontStyle: 'italic' }}>{selectedTheme} style preview</span>
         </div>
 
         {activeMode === 'component' ? (
           StandalonePreview ? (
-            <StandalonePreview p={catAccent.p} font={font} isLight={isLight} />
+            <StandalonePreview theme={theme} font={font} />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <div style={{ fontSize: '0.58rem', fontWeight: 700, color: isLight ? '#0f172a' : '#ffffff' }}>
+              <div style={{ fontSize: '0.58rem', fontWeight: 700, color: theme.textPrimary }}>
                 {customComponentType || 'Custom Component Layout'}
               </div>
               {[1, 2].map(i => (
-                <div key={i} style={{ height: '1.2rem', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: '6px' }} />
+                <div key={i} style={{ height: '1.2rem', background: theme.surface, border: borderStyle, borderRadius: '6px' }} />
               ))}
             </div>
           )

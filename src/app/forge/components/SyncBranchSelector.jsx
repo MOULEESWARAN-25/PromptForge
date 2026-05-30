@@ -1,7 +1,73 @@
-import React from 'react';
-import { RotateCcw, Sparkles, CheckCircle2, RotateCw } from 'lucide-react';
+import React, { useState } from 'react';
+import { 
+  Laptop, Database as DbIcon, ShieldCheck, Terminal, ShoppingBag, Sparkles, 
+  Smartphone, Code, CheckCircle2, Layers, Cpu, Server, Globe, ArrowLeft, ArrowRight, Info, RotateCcw
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { track } from '@/lib/analytics';
+
+const PROJECT_TYPES = [
+  { id: 'SaaS Platform', label: 'SaaS Platform', icon: <Layers size={16} /> },
+  { id: 'E-commerce Store', label: 'E-commerce Store', icon: <ShoppingBag size={16} /> },
+  { id: 'Developer Tool / API', label: 'Developer Tool / API', icon: <Cpu size={16} /> },
+  { id: 'Portfolio / Marketing', label: 'Portfolio / Marketing', icon: <Laptop size={16} /> },
+  { id: 'Mobile Application', label: 'Mobile Application', icon: <Smartphone size={16} /> },
+  { id: 'Custom Setup', label: 'Custom Setup', icon: <Terminal size={16} /> }
+];
+
+const FRONTEND_STACKS = [
+  { id: 'Next.js (App Router)', label: 'Next.js (App)', icon: <Globe size={16} /> },
+  { id: 'React SPA (Vite)', label: 'React SPA', icon: <Code size={16} /> },
+  { id: 'Vue.js (Nuxt)', label: 'Vue.js (Nuxt)', icon: <Code size={16} /> },
+  { id: 'Angular', label: 'Angular', icon: <Code size={16} /> },
+  { id: 'Svelte / SvelteKit', label: 'SvelteKit', icon: <Code size={16} /> },
+  { id: 'SolidJS', label: 'SolidJS', icon: <Code size={16} /> }
+];
+
+const BACKEND_STACKS = [
+  { id: 'Next.js Serverless', label: 'Next.js API', icon: <Server size={16} /> },
+  { id: 'Node.js (Express)', label: 'Express.js', icon: <Server size={16} /> },
+  { id: 'Python (FastAPI)', label: 'FastAPI', icon: <Server size={16} /> },
+  { id: 'Go (Fiber)', label: 'Go Fiber', icon: <Server size={16} /> },
+  { id: 'Ruby on Rails', label: 'Rails', icon: <Server size={16} /> },
+  { id: 'Serverless / Edge', label: 'Edge / Cloudflare', icon: <Server size={16} /> }
+];
+
+const DATABASES = [
+  { id: 'PostgreSQL', label: 'PostgreSQL', icon: <DbIcon size={16} /> },
+  { id: 'Supabase (Postgres)', label: 'Supabase', icon: <DbIcon size={16} /> },
+  { id: 'MongoDB', label: 'MongoDB', icon: <DbIcon size={16} /> },
+  { id: 'MySQL', label: 'MySQL', icon: <DbIcon size={16} /> },
+  { id: 'SQLite', label: 'SQLite', icon: <DbIcon size={16} /> },
+  { id: 'Redis', label: 'Redis Cache', icon: <DbIcon size={16} /> }
+];
+
+const AUTH_OPTIONS = [
+  { id: 'NextAuth.js / Auth.js', label: 'NextAuth / Auth.js', icon: <ShieldCheck size={16} /> },
+  { id: 'Supabase Auth', label: 'Supabase Auth', icon: <ShieldCheck size={16} /> },
+  { id: 'Clerk', label: 'Clerk Auth', icon: <ShieldCheck size={16} /> },
+  { id: 'Auth0 / Firebase', label: 'Auth0 / Firebase', icon: <ShieldCheck size={16} /> },
+  { id: 'Custom JWT / Sessions', label: 'JWT Tokens', icon: <ShieldCheck size={16} /> },
+  { id: 'No Auth Required', label: 'No Auth', icon: <ShieldCheck size={16} /> }
+];
+
+const DEPLOYMENT_TARGETS = [
+  { id: 'Vercel', label: 'Vercel', icon: <Globe size={16} /> },
+  { id: 'Netlify', label: 'Netlify', icon: <Globe size={16} /> },
+  { id: 'Railway / Render', label: 'Railway / Render', icon: <Server size={16} /> },
+  { id: 'AWS / GCP', label: 'AWS / GCP', icon: <Server size={16} /> },
+  { id: 'Docker / VPS', label: 'Docker / VPS', icon: <Terminal size={16} /> },
+  { id: 'Custom / On-Prem', label: 'On-Prem / Edge', icon: <Terminal size={16} /> }
+];
+
+const STACK_FEATURES = [
+  { id: 'TypeScript', label: 'TypeScript', icon: <Code size={16} /> },
+  { id: 'Tailwind CSS', label: 'Tailwind CSS', icon: <Code size={16} /> },
+  { id: 'ESLint & Prettier', label: 'ESLint & Prettier', icon: <Terminal size={16} /> },
+  { id: 'Vitest / Jest Testing', label: 'Testing (Jest)', icon: <Cpu size={16} /> },
+  { id: 'Storybook', label: 'Storybook', icon: <Layers size={16} /> },
+  { id: 'GitHub Actions CI/CD', label: 'CI/CD Pipelines', icon: <Terminal size={16} /> }
+];
 
 export function SyncBranchSelector({
   activeMode,
@@ -14,47 +80,45 @@ export function SyncBranchSelector({
   ideSyncPromptCopied,
   setIdeSyncPromptCopied,
   ideResponseContext,
-  setIdeResponseContext
+  setIdeResponseContext,
+
+  // Paginated setup parameters
+  projectName,
+  setProjectName,
+  projectDescription,
+  setProjectDescription,
+  projectType,
+  setProjectType,
+  frontendStack,
+  setFrontendStack,
+  backendStack,
+  setBackendStack,
+  database,
+  setDatabase,
+  authOption,
+  setAuthOption,
+  deployment,
+  setDeployment,
+  additionalFeatures,
+  setAdditionalFeatures,
+
+  isStepWizard = false,
+  goBack,
+  goNext
 }) {
-  const stepSection = {
-    padding: '2rem',
-    background: 'rgba(255, 255, 255, 0.01)',
-    backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.04)',
-    borderRadius: '24px',
+  const [setupPage, setSetupPage] = useState(1);
+  const activeIntegration = projectIntegration || 'new';
+
+  // Dynamic colors based on active wizard mode
+  const accentColor = activeMode === 'page' ? '#0891b2' : activeMode === 'component' ? '#ec4899' : '#7c3aed';
+  const activeBg = activeMode === 'page' ? 'rgba(8, 145, 178, 0.06)' : activeMode === 'component' ? 'rgba(236, 72, 153, 0.06)' : 'rgba(124, 58, 237, 0.06)';
+  const focusBorderShadow = activeMode === 'page' ? 'rgba(8, 145, 178, 0.15)' : activeMode === 'component' ? 'rgba(236, 72, 153, 0.15)' : 'rgba(124, 58, 237, 0.15)';
+
+  const containerStyle = {
     display: 'flex',
     flexDirection: 'column',
-    gap: '1.5rem',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
-  };
-
-  const stepHeader = {
-    display: 'flex',
-    gap: '1rem',
-    alignItems: 'flex-start'
-  };
-
-  const stepNum = {
-    fontSize: '2rem',
-    fontWeight: '900',
-    color: 'var(--accent)',
-    lineHeight: '1',
-    opacity: '0.85',
-    fontFamily: 'var(--font-mono)'
-  };
-
-  const stepTitle = {
-    fontSize: '1.25rem',
-    fontWeight: '800',
-    color: 'var(--foreground)',
-    letterSpacing: '-0.02em'
-  };
-
-  const stepDesc = {
-    fontSize: '0.88rem',
-    color: 'var(--muted-foreground)',
-    marginTop: '0.35rem',
-    lineHeight: '1.4'
+    gap: '1.25rem',
+    width: '100%'
   };
 
   const getSyncPromptText = () => {
@@ -62,163 +126,498 @@ export function SyncBranchSelector({
     return `Generate project structure context for PromptForge.\nTarget component/layout: ${target}.\nOutput folder tree, tailwind config details, and styling themes inside a concise list without raw code snippets.`;
   };
 
+  const handleFeatureToggle = (featureId) => {
+    if (additionalFeatures.includes(featureId)) {
+      setAdditionalFeatures(additionalFeatures.filter(f => f !== featureId));
+    } else {
+      setAdditionalFeatures([...additionalFeatures, featureId]);
+    }
+  };
+
+  const handleNextSubPage = () => {
+    if (setupPage < 3) {
+      setSetupPage(prev => prev + 1);
+    } else if (isStepWizard && goNext) {
+      goNext();
+    }
+  };
+
+  const handlePrevSubPage = () => {
+    if (setupPage > 1) {
+      setSetupPage(prev => prev - 1);
+    } else if (isStepWizard && goBack) {
+      goBack();
+    }
+  };
+
   return (
-    <div style={stepSection} className="animate-fade-up">
-      <div style={stepHeader}>
-        <span style={stepNum}>
-          {activeMode === 'page' ? '04' : '03'}
-        </span>
-        <div>
-          <h3 style={stepTitle}>Existing Project Workspace Integration</h3>
-          <p style={stepDesc}>Sync the compiled prompt with your active codebase properties, styling guidelines, and folder hierarchy.</p>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginTop: '0.5rem' }}>
-        {[
-          {
-            id: 'new',
-            label: 'Standalone / New Project',
-            desc: 'Generate a standalone, clean prompt blueprint from scratch without importing external project directories.',
-            icon: <Sparkles size={20} />
-          },
-          {
-            id: 'existing',
-            label: 'Existing Project Integration',
-            desc: 'Import your active workspace configuration, styling assets, and directory hierarchy for optimal code reuse.',
-            icon: <RotateCcw size={20} />
+    <div style={containerStyle}>
+      {/* Dynamic inline styles */}
+      <style>{`
+        .pf-setup-mode-tabs {
+          display: flex;
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.06);
+          border-radius: 12px;
+          padding: 4px;
+          gap: 4px;
+          margin-bottom: 0.5rem;
+        }
+        .pf-setup-tab-btn {
+          flex: 1;
+          padding: 0.5rem;
+          border-radius: 8px;
+          border: none;
+          background: transparent;
+          color: var(--muted-foreground);
+          font-size: 0.8rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+        }
+        .pf-setup-tab-btn.active {
+          background: ${activeBg};
+          border: 1px solid ${accentColor};
+          color: #fff;
+        }
+        
+        .pf-setup-grid-3cols {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1rem;
+        }
+        @media (max-width: 900px) {
+          .pf-setup-grid-3cols {
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
           }
-        ].map((opt) => {
-          const isSelected = projectIntegration === opt.id;
-          return (
-            <div
-              key={opt.id}
-              onClick={() => {
-                setProjectIntegration(opt.id);
-                track('sync_branch_selected', { branch: opt.id });
-              }}
-              className="bento-card-premium glow-card-spotlight active-scale-95"
-              style={{
-                background: isSelected ? 'rgba(124, 58, 237, 0.04)' : 'rgba(255, 255, 255, 0.01)',
-                border: isSelected ? '2px solid #7c3aed' : '1px solid rgba(255,255,255,0.06)',
-                borderRadius: '16px',
-                padding: '1.5rem',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ color: isSelected ? '#7c3aed' : 'var(--muted-foreground)' }}>{opt.icon}</div>
-                {isSelected && <CheckCircle2 size={16} style={{ color: '#fbbf24' }} />}
-              </div>
-              <div>
-                <h4 style={{ fontSize: '1rem', fontWeight: '750', color: 'var(--foreground)' }}>{opt.label}</h4>
-                <p style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', marginTop: '0.35rem', lineHeight: '1.5' }}>{opt.desc}</p>
-              </div>
-            </div>
-          );
-        })}
+        }
+
+        .pf-setup-grid-2cols-split {
+          display: grid;
+          grid-template-columns: 1.2fr 1.8fr;
+          gap: 1rem;
+        }
+        @media (max-width: 900px) {
+          .pf-setup-grid-2cols-split {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+          }
+        }
+
+        .pf-setup-grid-options {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0.5rem;
+        }
+        @media (max-width: 768px) {
+          .pf-setup-grid-options {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        @media (max-width: 480px) {
+          .pf-setup-grid-options {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .pf-setup-card {
+          display: flex;
+          align-items: center;
+          gap: 0.6rem;
+          padding: 0.55rem 0.7rem;
+          border-radius: 10px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          background: rgba(255, 255, 255, 0.01);
+          border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .pf-setup-card:hover {
+          background: rgba(255, 255, 255, 0.02);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .pf-setup-card.active {
+          background: ${activeBg};
+          border: 1px solid ${accentColor};
+          box-shadow: 0 0 12px ${focusBorderShadow};
+        }
+
+        .pf-setup-input {
+          width: 100%;
+          background: var(--input);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 0.5rem 0.65rem;
+          font-size: 0.8rem;
+          color: var(--foreground);
+          outline: none;
+          transition: all 0.2s ease;
+          box-sizing: border-box;
+          font-family: inherit;
+        }
+        .pf-setup-input:focus {
+          border-color: ${accentColor};
+          box-shadow: 0 0 0 2px ${focusBorderShadow};
+        }
+        
+        .pf-setup-col-title {
+          font-size: 0.72rem;
+          font-weight: 750;
+          color: var(--muted-foreground);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 0.5rem;
+        }
+
+        .pf-substep-indicator {
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: var(--muted-foreground);
+          font-family: var(--font-mono);
+          background: rgba(255,255,255,0.03);
+          padding: 2px 8px;
+          border-radius: 12px;
+          border: 1px solid rgba(255,255,255,0.04);
+        }
+      `}</style>
+
+      {/* Integration Mode Switcher */}
+      <div className="pf-setup-mode-tabs">
+        <button 
+          onClick={() => {
+            setProjectIntegration('new');
+            track('sync_branch_selected', { branch: 'new' });
+          }}
+          className={`pf-setup-tab-btn ${activeIntegration === 'new' ? 'active' : ''}`}
+        >
+          <Sparkles size={14} /> Standalone / New Project
+        </button>
+        <button 
+          onClick={() => {
+            setProjectIntegration('existing');
+            track('sync_branch_selected', { branch: 'existing' });
+          }}
+          className={`pf-setup-tab-btn ${activeIntegration === 'existing' ? 'active' : ''}`}
+        >
+          <RotateCcw size={14} /> Existing Project Sync
+        </button>
       </div>
 
-      {projectIntegration === 'existing' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '1.5rem' }} className="animate-fade-up">
-          <div>
-            <label style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--foreground)', display: 'block', marginBottom: '0.5rem' }}>
-              Select Active UI Stack / CSS Framework
-            </label>
-            <select
-              value={framework}
-              onChange={(e) => setFramework(e.target.value)}
-              style={{
-                width: '100%',
-                background: 'var(--input)',
-                border: '1px solid var(--border)',
-                borderRadius: '8px',
-                padding: '0.65rem 0.75rem',
-                fontSize: '0.9rem',
-                color: 'var(--foreground)',
-                outline: 'none'
-              }}
-            >
-              {['Shadcn/UI', 'Tailwind CSS', 'DaisyUI', 'React Bootstrap', 'Material UI', 'Chakra UI', 'Vanilla CSS Modules'].map((fw) => (
-                <option key={fw} value={fw}>{fw}</option>
-              ))}
-            </select>
-          </div>
+      {/* Subpage Header with Indicator */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '0.5rem' }}>
+        <span style={{ fontSize: '0.8rem', fontWeight: '800', color: 'var(--foreground)' }}>
+          {setupPage === 1 && "Step 1: General Parameters"}
+          {setupPage === 2 && (activeIntegration === 'new' ? "Step 2: Technology Stacks" : "Step 2: IDE Environment Sync")}
+          {setupPage === 3 && "Step 3: Integration & Features"}
+        </span>
+        <span className="pf-substep-indicator">{setupPage} / 3</span>
+      </div>
 
-          <div>
-            <label style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--foreground)', display: 'block', marginBottom: '0.5rem' }}>
-              IDE Metadata Sync Prompter
-            </label>
-            <p style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', marginBottom: '0.75rem', lineHeight: '1.4' }}>
-              Copy the instruction below, paste it into your editor chat (Cursor, Copilot, or terminal), then copy its structural response back here.
-            </p>
-            
-            <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '10px', padding: '1rem', position: 'relative' }}>
-              <pre style={{ margin: 0, fontSize: '0.8rem', color: '#c0c0c0', whiteSpace: 'pre-wrap', fontFamily: 'var(--font-mono)', lineHeight: '1.5' }}>
-                {getSyncPromptText()}
-              </pre>
-              
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(getSyncPromptText());
-                  setIdeSyncPromptCopied(true);
-                  toast.success("IDE Sync Prompt Copied!", { description: "Paste it in Cursor/Copilot to generate directory schemas." });
-                  setTimeout(() => setIdeSyncPromptCopied(false), 3000);
-                }}
-                style={{
-                  position: 'absolute',
-                  top: '0.5rem',
-                  right: '0.5rem',
-                  background: 'rgba(255,255,255,0.06)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '6px',
-                  padding: '4px 10px',
-                  fontSize: '0.72rem',
-                  color: '#ffffff',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  transition: 'all 0.2s ease'
-                }}
-                className="active-scale-95"
-              >
-                {ideSyncPromptCopied ? <CheckCircle2 size={12} style={{ color: '#fbbf24' }} /> : <Sparkles size={12} />}
-                {ideSyncPromptCopied ? 'Copied!' : 'Copy Prompt'}
-              </button>
+      {/* PAGE 1: GENERAL PARAMETERS */}
+      {setupPage === 1 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }} className="animate-fade-up">
+          {/* Inputs Row */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
+            <div>
+              <label style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--foreground)', display: 'block', marginBottom: '0.35rem' }}>
+                Project Name
+              </label>
+              <input 
+                type="text" 
+                className="pf-setup-input"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                placeholder="my-awesome-saas"
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--foreground)', display: 'block', marginBottom: '0.35rem' }}>
+                Project Description
+              </label>
+              <input 
+                type="text" 
+                className="pf-setup-input"
+                value={projectDescription}
+                onChange={(e) => setProjectDescription(e.target.value)}
+                placeholder="A developer-focused API hub platform."
+              />
             </div>
           </div>
 
+          {/* Project Type Grid */}
           <div>
-            <label style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--foreground)', display: 'block', marginBottom: '0.5rem' }}>
+            <label style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--foreground)', display: 'block', marginBottom: '0.5rem' }}>
+              Project Type
+            </label>
+            <div className="pf-setup-grid-options">
+              {PROJECT_TYPES.map(opt => {
+                const isSelected = projectType === opt.id;
+                return (
+                  <div 
+                    key={opt.id}
+                    onClick={() => setProjectType(opt.id)}
+                    className={`pf-setup-card ${isSelected ? 'active' : ''}`}
+                  >
+                    {opt.icon}
+                    <span style={{ fontSize: '0.75rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? '#fff' : 'var(--foreground)' }}>
+                      {opt.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PAGE 2: TECH STACKS (NEW PROJECT) */}
+      {setupPage === 2 && activeIntegration === 'new' && (
+        <div className="pf-setup-grid-3cols animate-fade-up">
+          {/* Frontend Column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <div className="pf-setup-col-title">Frontend Stack</div>
+            {FRONTEND_STACKS.map(opt => {
+              const isSelected = frontendStack === opt.id;
+              return (
+                <div 
+                  key={opt.id}
+                  onClick={() => setFrontendStack(opt.id)}
+                  className={`pf-setup-card ${isSelected ? 'active' : ''}`}
+                >
+                  {opt.icon}
+                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? '#fff' : 'var(--foreground)' }}>
+                    {opt.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Backend Column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <div className="pf-setup-col-title">Backend Stack</div>
+            {BACKEND_STACKS.map(opt => {
+              const isSelected = backendStack === opt.id;
+              return (
+                <div 
+                  key={opt.id}
+                  onClick={() => setBackendStack(opt.id)}
+                  className={`pf-setup-card ${isSelected ? 'active' : ''}`}
+                >
+                  {opt.icon}
+                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? '#fff' : 'var(--foreground)' }}>
+                    {opt.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Database Column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <div className="pf-setup-col-title">Database</div>
+            {DATABASES.map(opt => {
+              const isSelected = database === opt.id;
+              return (
+                <div 
+                  key={opt.id}
+                  onClick={() => setDatabase(opt.id)}
+                  className={`pf-setup-card ${isSelected ? 'active' : ''}`}
+                >
+                  {opt.icon}
+                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? '#fff' : 'var(--foreground)' }}>
+                    {opt.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* PAGE 2: IDE SYNC ENVIRONMENT (EXISTING PROJECT) */}
+      {setupPage === 2 && activeIntegration === 'existing' && (
+        <div className="pf-setup-grid-2cols-split animate-fade-up">
+          {/* Left panel: Framework & prompter */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            <div>
+              <label style={{ fontSize: '0.75rem', fontWeight: '750', color: 'var(--foreground)', display: 'block', marginBottom: '0.35rem' }}>
+                Active UI Framework
+              </label>
+              <select
+                value={framework}
+                onChange={(e) => setFramework(e.target.value)}
+                className="pf-setup-input"
+                style={{ background: 'var(--input)', cursor: 'pointer' }}
+              >
+                {['Shadcn/UI', 'Tailwind CSS', 'DaisyUI', 'React Bootstrap', 'Material UI', 'Chakra UI', 'Vanilla CSS Modules'].map((fw) => (
+                  <option key={fw} value={fw}>{fw}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '0.75rem', fontWeight: '750', color: 'var(--foreground)', display: 'block', marginBottom: '0.2rem' }}>
+                IDE Sync Instruction Prompter
+              </label>
+              <p style={{ fontSize: '0.68rem', color: 'var(--muted-foreground)', marginBottom: '0.5rem', lineHeight: '1.3' }}>
+                Copy the instruction below, paste it into your editor chat (Cursor, Copilot, or terminal), then copy its structural response back here.
+              </p>
+              
+              <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '8px', padding: '0.65rem', position: 'relative' }}>
+                <pre style={{ margin: 0, fontSize: '0.68rem', color: '#c0c0c0', whiteSpace: 'pre-wrap', fontFamily: 'var(--font-mono)', lineHeight: '1.4' }}>
+                  {getSyncPromptText()}
+                </pre>
+                
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(getSyncPromptText());
+                    setIdeSyncPromptCopied(true);
+                    toast.success("IDE Sync Prompt Copied!", { description: "Paste it in Cursor/Copilot to generate directory schemas." });
+                    setTimeout(() => setIdeSyncPromptCopied(false), 3000);
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '0.4rem',
+                    right: '0.4rem',
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '5px',
+                    padding: '3px 8px',
+                    fontSize: '0.62rem',
+                    color: '#ffffff',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    transition: 'all 0.2s ease'
+                  }}
+                  className="active-scale-95"
+                >
+                  {ideSyncPromptCopied ? <CheckCircle2 size={10} style={{ color: '#fbbf24' }} /> : <Sparkles size={10} />}
+                  {ideSyncPromptCopied ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right panel: textarea */}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <label style={{ fontSize: '0.75rem', fontWeight: '750', color: 'var(--foreground)', display: 'block', marginBottom: '0.35rem' }}>
               Paste IDE Workspace File Context Output
             </label>
             <textarea
               placeholder="Paste the directory structures or visual settings output from your IDE here..."
               value={ideResponseContext}
               onChange={(e) => setIdeResponseContext(e.target.value)}
+              className="pf-setup-input"
               style={{
-                width: '100%',
-                minHeight: '100px',
-                background: 'var(--input)',
-                border: '1px solid var(--border)',
-                borderRadius: '10px',
-                padding: '0.75rem',
-                fontSize: '0.85rem',
-                color: 'var(--foreground)',
-                outline: 'none',
+                flex: 1,
+                minHeight: '120px',
                 fontFamily: 'var(--font-mono)',
-                lineHeight: '1.5'
+                lineHeight: '1.4',
+                resize: 'none'
               }}
-              className="glass-input"
             />
           </div>
         </div>
       )}
+
+      {/* PAGE 3: INTEGRATION & SERVICES */}
+      {setupPage === 3 && (
+        <div className="pf-setup-grid-3cols animate-fade-up">
+          {/* Authentication Column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <div className="pf-setup-col-title">Authentication</div>
+            {AUTH_OPTIONS.map(opt => {
+              const isSelected = authOption === opt.id;
+              return (
+                <div 
+                  key={opt.id}
+                  onClick={() => setAuthOption(opt.id)}
+                  className={`pf-setup-card ${isSelected ? 'active' : ''}`}
+                >
+                  {opt.icon}
+                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? '#fff' : 'var(--foreground)' }}>
+                    {opt.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Deployment Column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <div className="pf-setup-col-title">Deployment Target</div>
+            {DEPLOYMENT_TARGETS.map(opt => {
+              const isSelected = deployment === opt.id;
+              return (
+                <div 
+                  key={opt.id}
+                  onClick={() => setDeployment(opt.id)}
+                  className={`pf-setup-card ${isSelected ? 'active' : ''}`}
+                >
+                  {opt.icon}
+                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? '#fff' : 'var(--foreground)' }}>
+                    {opt.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Stack Additions Column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <div className="pf-setup-col-title">Stack Additions</div>
+            {STACK_FEATURES.map(opt => {
+              const isSelected = additionalFeatures.includes(opt.id);
+              return (
+                <div 
+                  key={opt.id}
+                  onClick={() => handleFeatureToggle(opt.id)}
+                  className={`pf-setup-card ${isSelected ? 'active' : ''}`}
+                >
+                  <CheckCircle2 size={13} style={{ color: isSelected ? accentColor : 'rgba(255,255,255,0.1)', flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? '#fff' : 'var(--foreground)' }}>
+                    {opt.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Navigation Buttons inside Setup Wizard */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginTop: '0.5rem' }}>
+        <button
+          onClick={handlePrevSubPage}
+          className="pf-setup-nav-btn active-scale-95"
+          style={{
+            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'rgba(255,255,255,0.02)',
+            color: 'var(--muted-foreground)'
+          }}
+        >
+          <ArrowLeft size={14} /> Back
+        </button>
+
+        <button
+          onClick={handleNextSubPage}
+          className="pf-setup-nav-btn active-scale-95"
+          style={{
+            border: 'none',
+            background: accentColor,
+            color: '#fff'
+          }}
+        >
+          {setupPage === 3 ? (isStepWizard ? 'Review' : 'Done') : 'Continue'} <ArrowRight size={14} />
+        </button>
+      </div>
     </div>
   );
 }

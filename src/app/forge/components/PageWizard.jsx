@@ -41,6 +41,15 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
     ideSyncPromptCopied, setIdeSyncPromptCopied,
     ideResponseContext, setIdeResponseContext,
     handleComponentToggle, handleAddCustomComponent,
+    projectName, setProjectName,
+    projectDescription, setProjectDescription,
+    projectType, setProjectType,
+    frontendStack, setFrontendStack,
+    backendStack, setBackendStack,
+    database, setDatabase,
+    authOption, setAuthOption,
+    deployment, setDeployment,
+    additionalFeatures, setAdditionalFeatures
   } = forgeState;
 
   const { isGenerating, handleForgeSubmit } = promptGeneration;
@@ -58,9 +67,8 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
   const goNext = () => { if (canAdvance()) { setDirection(1); setStep(s => Math.min(s + 1, 7)); } };
   const goBack = () => { setDirection(-1); setStep(s => Math.max(s - 1, 1)); };
 
-  const categoryGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' };
   const categoryCard = (isSelected) => ({
-    position: 'relative', height: '85px', borderRadius: '14px',
+    position: 'relative', borderRadius: '12px',
     border: isSelected ? '2px solid #0891b2' : '1px solid rgba(255,255,255,0.06)',
     background: isSelected ? 'rgba(8,145,178,0.06)' : 'rgba(255,255,255,0.01)',
     overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s ease',
@@ -104,17 +112,17 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
             {step === 1 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div><h3 style={stepTitle}>Select Page Type</h3><p style={stepDesc}>What interface layout are you structuring?</p></div>
-                <div style={categoryGrid}>
+                <div className="category-grid" style={{ gap: '1rem' }}>
                   {PAGE_TYPES.map((page) => {
                     const isSelected = pageType === page.id;
                     return (
-                      <div key={page.id} style={categoryCard(isSelected)} onClick={() => setPageType(page.id)} className="bento-card-premium glow-card-spotlight active-scale-95">
-                        {page.image && <img src={page.image} alt={page.label} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.25 }} />}
-                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '65%', background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)', zIndex: 1 }} />
-                        {isSelected && <div style={{ position: 'absolute', top: '0.4rem', right: '0.4rem', zIndex: 3 }}><CheckCircle2 size={13} style={{ color: '#fbbf24' }} /></div>}
-                        <div style={{ padding: '0.6rem', zIndex: 2 }}>
-                          <span style={{ fontSize: '0.8rem', fontWeight: '800', color: '#fff' }}>{page.label}</span>
-                          <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', marginTop: '1px', lineHeight: '1.3' }}>{page.desc}</p>
+                      <div key={page.id} style={categoryCard(isSelected)} onClick={() => setPageType(page.id)} className="category-card bento-card-premium glow-card-spotlight active-scale-95">
+                        {page.image && <img src={page.image} alt={page.label} className="card-artwork" />}
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '75%', background: 'linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.4), transparent)', zIndex: 1 }} />
+                        {isSelected && <div style={{ position: 'absolute', top: '0.6rem', right: '0.6rem', zIndex: 3 }}><CheckCircle2 size={15} style={{ color: '#fbbf24' }} /></div>}
+                        <div style={{ padding: '0.85rem', zIndex: 2 }}>
+                          <span style={{ fontSize: '0.95rem', fontWeight: '800', color: '#fff', display: 'block', textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>{page.label}</span>
+                          <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.75)', marginTop: '0.25rem', lineHeight: '1.4', textShadow: '0 1px 2px rgba(0,0,0,0.6)', margin: 0 }}>{page.desc}</p>
                         </div>
                       </div>
                     );
@@ -127,7 +135,7 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
             {step === 2 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div><h3 style={stepTitle}>Select Components</h3><p style={stepDesc}>Choose the modular blocks for this page.</p></div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '0.5rem' }}>
                   {(PAGE_COMPONENTS[pageType] || []).map((comp, idx) => {
                     const isChecked = selectedComponents.includes(comp);
                     return (
@@ -178,8 +186,40 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
             {/* Step 6 */}
             {step === 6 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div><h3 style={stepTitle}>Project Setup</h3><p style={stepDesc}>New project or existing codebase integration?</p></div>
-                <SyncBranchSelector activeMode="page" pageType={pageType} projectIntegration={projectIntegration} setProjectIntegration={setProjectIntegration} framework={framework} setFramework={setFramework} ideSyncPromptCopied={ideSyncPromptCopied} setIdeSyncPromptCopied={setIdeSyncPromptCopied} ideResponseContext={ideResponseContext} setIdeResponseContext={setIdeResponseContext} />
+                <div><h3 style={stepTitle}>Project Setup</h3><p style={stepDesc}>Configure project metadata and developer ecosystem choices.</p></div>
+                <SyncBranchSelector
+                  activeMode="page"
+                  pageType={pageType}
+                  projectIntegration={projectIntegration}
+                  setProjectIntegration={setProjectIntegration}
+                  framework={framework}
+                  setFramework={setFramework}
+                  ideSyncPromptCopied={ideSyncPromptCopied}
+                  setIdeSyncPromptCopied={setIdeSyncPromptCopied}
+                  ideResponseContext={ideResponseContext}
+                  setIdeResponseContext={setIdeResponseContext}
+                  projectName={projectName}
+                  setProjectName={setProjectName}
+                  projectDescription={projectDescription}
+                  setProjectDescription={setProjectDescription}
+                  projectType={projectType}
+                  setProjectType={setProjectType}
+                  frontendStack={frontendStack}
+                  setFrontendStack={setFrontendStack}
+                  backendStack={backendStack}
+                  setBackendStack={setBackendStack}
+                  database={database}
+                  setDatabase={setDatabase}
+                  authOption={authOption}
+                  setAuthOption={setAuthOption}
+                  deployment={deployment}
+                  setDeployment={setDeployment}
+                  additionalFeatures={additionalFeatures}
+                  setAdditionalFeatures={setAdditionalFeatures}
+                  goBack={goBack}
+                  goNext={goNext}
+                  isStepWizard={true}
+                />
               </div>
             )}
 
@@ -203,7 +243,7 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
       </div>
 
       {/* Navigation */}
-      {step < 7 && (
+      {step < 7 && step !== 6 && (
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <button onClick={goBack} disabled={step === 1} className="active-scale-95" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.25rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)', color: step === 1 ? 'rgba(255,255,255,0.2)' : 'var(--muted-foreground)', fontSize: '0.85rem', fontWeight: '600', cursor: step === 1 ? 'default' : 'pointer', transition: 'all 0.2s ease' }}>
             <ArrowLeft size={15} />Back
@@ -213,6 +253,67 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
           </button>
         </div>
       )}
+
+      <style>{`
+        .category-grid {
+          display: grid;
+        }
+        .category-card {
+          position: relative;
+          overflow: hidden;
+          cursor: pointer;
+          transition: all 0.25s ease;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+        }
+        .card-artwork {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+          opacity: 0.50;
+          transition: transform 0.4s ease;
+        }
+        .category-card:hover .card-artwork {
+          transform: scale(1.06);
+        }
+        @media (min-width: 1401px) {
+          .category-grid {
+            grid-template-columns: repeat(3, 1fr);
+          }
+          .category-card {
+            height: 150px;
+          }
+        }
+        @media (min-width: 1101px) and (max-width: 1400px) {
+          .category-grid {
+            grid-template-columns: repeat(3, 1fr);
+          }
+          .category-card {
+            height: 140px;
+          }
+        }
+        @media (min-width: 601px) and (max-width: 1100px) {
+          .category-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+          .category-card {
+            height: 130px;
+          }
+        }
+        @media (max-width: 600px) {
+          .category-grid {
+            grid-template-columns: 1fr;
+          }
+          .category-card {
+            height: auto;
+            min-height: 120px;
+          }
+        }
+      `}</style>
     </div>
   );
 }

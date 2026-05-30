@@ -286,126 +286,276 @@ export const themeStyles = {
   "Sleek Dark Glassmorphic": {
     name: "Sleek Dark Glassmorphic",
     description: "Deep obsidian backdrops, frosted semi-transparent containers, neon-violet glow highlights, and minimal card borders.",
-    keywords: "glassmorphism, dark obsidian background, backdrop-filter blur, subtle neon border glow, premium dark mode, rich transparency effects"
+    keywords: "glassmorphism, dark obsidian background, backdrop-filter blur, subtle neon border glow, premium dark mode, rich transparency effects",
+    background: "rgba(10, 5, 22, 0.95)",
+    surface: "rgba(255, 255, 255, 0.05)",
+    primary: "#7c3aed",
+    secondary: "#a78bfa",
+    textPrimary: "#ffffff",
+    textSecondary: "#a1a1aa"
   },
   "Wes Anderson": {
     name: "Wes Anderson Retro",
     description: "Warm pastel palettes, centered compositions, distinctive retro typography (Futura-like bold), warm muted margins, and vintage illustrations.",
-    keywords: "wes anderson theme, vintage pastel colors, symmetrical layout, sharp borders, warm organic background, retro serif typography, high-character aesthetic"
+    keywords: "wes anderson theme, vintage pastel colors, symmetrical layout, sharp borders, warm organic background, retro serif typography, high-character aesthetic",
+    background: "#ffedd5",
+    surface: "#fed7aa",
+    primary: "#ea580c",
+    secondary: "#fdba74",
+    textPrimary: "#431407",
+    textSecondary: "#854d0e"
   },
   "Cyberpunk Neon": {
     name: "Cyberpunk Neon",
     description: "Pitch black layouts contrast with highly illuminated cybernetic cyan and hot pink glow highlights, dark tech grid lines, and glitch active states.",
-    keywords: "cyberpunk neon style, high-saturation magenta and cyan accents, dark synthwave grid overlays, high-energy glow, laser line borders, tech font details"
+    keywords: "cyberpunk neon style, high-saturation magenta and cyan accents, dark synthwave grid overlays, high-energy glow, laser line borders, tech font details",
+    background: "#05050a",
+    surface: "#0d0d1a",
+    primary: "#00ffff",
+    secondary: "#ff00ff",
+    textPrimary: "#00ffff",
+    textSecondary: "#ff00ff"
   },
   "Brutalist Bold": {
     name: "Brutalist Bold",
     description: "Aggressive thick black borders, stark white or high-contrast primary backdrops, solid offset block drop shadows, and heavy monospace fonts.",
-    keywords: "brutalist design, thick black solid borders, offset block drop shadows, high contrast flat palette, monospace typography, raw unpolished grids"
+    keywords: "brutalist design, thick black solid borders, offset block drop shadows, high contrast flat palette, monospace typography, raw unpolished grids",
+    background: "#18181b",
+    surface: "#fbbf24",
+    primary: "#fbbf24",
+    secondary: "#000000",
+    textPrimary: "#ffffff",
+    textSecondary: "#d4d4d8"
   },
   "Minimalist Typography": {
     name: "Minimalist Typography",
     description: "Stark whitespace, refined line heights, neutral shades of sand and slate, zero drop shadows, and extremely clear visual grids.",
-    keywords: "minimalist flat design, clean whitespace, neutral sans-serif typography, subtle thin lines, elegant spacing, sleek sand/slate hues, zero clutter"
+    keywords: "minimalist flat design, clean whitespace, neutral sans-serif typography, subtle thin lines, elegant spacing, sleek sand/slate hues, zero clutter",
+    background: "#fafaf9",
+    surface: "#f5f5f4",
+    primary: "#18181b",
+    secondary: "#78716c",
+    textPrimary: "#1c1917",
+    textSecondary: "#78716c"
   },
   "Luxury Gold": {
     name: "Luxury Gold",
     description: "Deep charcoal surfaces layered with brass and gold accent trims, premium dark drop shadows, and serif brand headings.",
-    keywords: "luxury gold design, dark brass, gold accents, premium drop shadows, dark mode, sophisticated layouts"
+    keywords: "luxury gold design, dark brass, gold accents, premium drop shadows, dark mode, sophisticated layouts",
+    background: "#0a0a0a",
+    surface: "#121212",
+    primary: "#d4af37",
+    secondary: "#aa7c11",
+    textPrimary: "#f5f5f0",
+    textSecondary: "#a1a1aa"
   },
   "Modern Dashboard": {
     name: "Modern Dashboard",
     description: "Deep indigo and dark slate surfaces, subtle grid systems, clean border outlines, and energetic corporate blue highlight elements.",
-    keywords: "navy slate dashboard, tech borders, corporate blue details, dynamic widgets, sleek interface"
+    keywords: "navy slate dashboard, tech borders, corporate blue details, dynamic widgets, sleek interface",
+    background: "#0f172a",
+    surface: "#1e293b",
+    primary: "#3b82f6",
+    secondary: "#60a5fa",
+    textPrimary: "#f8fafc",
+    textSecondary: "#94a3b8"
   },
   "Analytics Platform": {
     name: "Analytics Platform",
     description: "Graphite backgrounds, card components with fine border lines, emerald green activity indicators, and compact layout elements.",
-    keywords: "analytics interface, emerald green details, graphite card layout, dense grid display"
+    keywords: "analytics interface, emerald green details, graphite card layout, dense grid display",
+    background: "#111827",
+    surface: "#1f2937",
+    primary: "#10b981",
+    secondary: "#34d399",
+    textPrimary: "#f9fafb",
+    textSecondary: "#9ca3af"
   },
   "Stripe Inspired": {
     name: "Stripe Inspired",
     description: "Pure white surface layers, elegant gradient banners, indigo accent highlights, and soft layered canvas drop elevations.",
-    keywords: "stripe design, indigo accents, soft gradients, drop elevations, floating cards, clean light theme"
+    keywords: "stripe design, indigo accents, soft gradients, drop elevations, floating cards, clean light theme",
+    background: "#f8fafc",
+    surface: "#ffffff",
+    primary: "#6366f1",
+    secondary: "#818cf8",
+    textPrimary: "#0f172a",
+    textSecondary: "#475569"
   },
   "Terminal": {
     name: "Terminal Workspace",
     description: "Monospaced green or amber glowing text on deep black, simulated terminal scan lines, and thin retro command window frames.",
-    keywords: "command line, terminal screen, retro green glow, monospace, hacker console, scanlines"
+    keywords: "command line, terminal screen, retro green glow, monospace, hacker console, scanlines",
+    background: "#000000",
+    surface: "#09090b",
+    primary: "#22c55e",
+    secondary: "#15803d",
+    textPrimary: "#22c55e",
+    textSecondary: "#4ade80"
   },
   "Gaming Console": {
     name: "Gaming Console",
     description: "High-density charcoal surfaces, sharp angular cards, energetic crimson/neon-orange tags, and clean HUD badges.",
-    keywords: "gaming hud, orange tags, angular cards, carbon texture style, dark dashboard"
+    keywords: "gaming hud, orange tags, angular cards, carbon texture style, dark dashboard",
+    background: "#18181b",
+    surface: "#27272a",
+    primary: "#ea580c",
+    secondary: "#f97316",
+    textPrimary: "#f4f4f5",
+    textSecondary: "#a1a1aa"
   },
   "Data Visualization": {
     name: "Data Visualization",
-    description: "Deep midnight backdrops, high-contrast neon chart bars, cyan status alerts, and structured tabular grids.",
-    keywords: "data tables, cyan details, chart bars, data visualization panels, high contrast"
+    description: "Deep midnight backdrops, highly-contrast neon chart bars, cyan status alerts, and structured tabular grids.",
+    keywords: "data tables, cyan details, chart bars, data visualization panels, high contrast",
+    background: "#0f172a",
+    surface: "#1e1b4b",
+    primary: "#f43f5e",
+    secondary: "#fb7185",
+    textPrimary: "#f8fafc",
+    textSecondary: "#94a3b8"
   },
   "Notion Style": {
     name: "Notion Style",
     description: "Light gray flat surfaces, thin solid borders, simple system typography, and clean yellow folder badge accents.",
-    keywords: "notion flat design, grey borders, minimal structure, yellow accents, document canvas"
+    keywords: "notion flat design, grey borders, minimal structure, yellow accents, document canvas",
+    background: "#ffffff",
+    surface: "#f1f1ef",
+    primary: "#37352f",
+    secondary: "#acaba9",
+    textPrimary: "#37352f",
+    textSecondary: "#6b6a67"
   },
   "Linear Style": {
     name: "Linear Style",
     description: "Dark carbon grids, fine border details, glowing purple timeline lines, and ultra-crisp responsive tabs.",
-    keywords: "linear layout, purple glow timeline, dark carbon grids, ultra-crisp tabs"
+    keywords: "linear layout, purple glow timeline, dark carbon grids, ultra-crisp tabs",
+    background: "#0c0c0d",
+    surface: "#161618",
+    primary: "#5b21b6",
+    secondary: "#8b5cf6",
+    textPrimary: "#f3f4f6",
+    textSecondary: "#9ca3af"
   },
   "Apple Inspired": {
     name: "Apple Inspired",
     description: "Frosted glass header bars, pure white canvas layers, extremely soft elevations, and clean SF Pro-style lettering.",
-    keywords: "apple layout, SF Pro style, frosted glass, soft elevations, minimalist light theme"
+    keywords: "apple layout, SF Pro style, frosted glass, soft elevations, minimalist light theme",
+    background: "rgba(255, 255, 255, 0.5)",
+    surface: "rgba(255, 255, 255, 0.8)",
+    primary: "#0071e3",
+    secondary: "#86868b",
+    textPrimary: "#1d1d1f",
+    textSecondary: "#86868b"
   },
   "Material Design": {
     name: "Material Design",
-    description: "Pastel purple and indigo base layers, raised card surfaces, rounded action buttons, and clear google-inspired components.",
-    keywords: "material design 3, elevated card shadows, ripple buttons, purple accents, clean spacing"
+    description: "Pastel purple and indigo base layers, raised card surfaces, rounded action buttons, and clean google-inspired components.",
+    keywords: "material design 3, elevated card shadows, ripple buttons, purple accents, clean spacing",
+    background: "#f3f4f6",
+    surface: "#e0e7ff",
+    primary: "#1e1b4b",
+    secondary: "#6366f1",
+    textPrimary: "#1e1b4b",
+    textSecondary: "#4b5563"
   },
   "Neo Brutalism": {
     name: "Neo Brutalism",
     description: "Playful high-saturation pastel yellow and sky blue containers, bold black outlines, and hard block shadows.",
-    keywords: "neo brutalism, sky blue yellow accents, black outlines, block shadows, fun interface"
+    keywords: "neo brutalism, sky blue yellow accents, black outlines, block shadows, fun interface",
+    background: "#67e8f9",
+    surface: "#facc15",
+    primary: "#000000",
+    secondary: "#374151",
+    textPrimary: "#000000",
+    textSecondary: "#374151"
   },
   "Healthcare Clean": {
     name: "Healthcare Clean",
     description: "Sleek teal and mint accents, pristine white card surfaces, soft pill shapes, and a highly accessible layout structure.",
-    keywords: "clinical healthcare, clean teal, mint green tags, pill buttons, soft layout"
+    keywords: "clinical healthcare, clean teal, mint green tags, pill buttons, soft layout",
+    background: "#f0f9ff",
+    surface: "#ffffff",
+    primary: "#0284c7",
+    secondary: "#bae6fd",
+    textPrimary: "#0f172a",
+    textSecondary: "#475569"
   },
   "Education Classic": {
     name: "Education Classic",
     description: "Ivy league forest green and crimson highlights, soft paper-white surfaces, and classical serif headers.",
-    keywords: "academic education, serif headers, warm beige backdrop, forest green details"
+    keywords: "academic education, serif headers, warm beige backdrop, forest green details",
+    background: "#fafaf9",
+    surface: "#fffbeb",
+    primary: "#991b1b",
+    secondary: "#f59e0b",
+    textPrimary: "#1c1917",
+    textSecondary: "#57534e"
   },
   "Enterprise Slate": {
     name: "Enterprise Slate",
     description: "Professional slate gray containers, deep steel blue text headings, and high density grid spreadsheets.",
-    keywords: "corporate slate, steel blue accents, high density grids, professional charts"
+    keywords: "corporate slate, steel blue accents, high density grids, professional charts",
+    background: "#ffffff",
+    surface: "#f1f5f9",
+    primary: "#475569",
+    secondary: "#64748b",
+    textPrimary: "#0f172a",
+    textSecondary: "#475569"
   },
   "Cyberpunk Red": {
     name: "Cyberpunk Red",
     description: "Pitch black layouts styled with neon crimson accents, cybernetic grid alignments, and red command terminal indicators.",
-    keywords: "cyberpunk red theme, neon crimson highlights, dark synthwave grids, red glows"
+    keywords: "cyberpunk red theme, neon crimson highlights, dark synthwave grids, red glows",
+    background: "#050000",
+    surface: "#1a0505",
+    primary: "#ef4444",
+    secondary: "#b91c1c",
+    textPrimary: "#ef4444",
+    textSecondary: "#b91c1c"
   },
   "Nordic Forest": {
     name: "Nordic Forest",
     description: "Deep pine green surfaces, soft sage green metrics cards, and warm golden amber status alerts.",
-    keywords: "nordic forest, sage green, pine green backdrops, warm amber badges"
+    keywords: "nordic forest, sage green, pine green backdrops, warm amber badges",
+    background: "#022c22",
+    surface: "#064e3b",
+    primary: "#34d399",
+    secondary: "#6ee7b7",
+    textPrimary: "#ecfdf5",
+    textSecondary: "#a7f3d0"
   },
   "Sunset Warmth": {
     name: "Sunset Warmth",
     description: "Warm peach and coral gradient backgrounds, amber orange CTA highlights, and soft card shadows.",
-    keywords: "peach coral, sunset warmth, orange gradients, warm light mode"
+    keywords: "peach coral, sunset warmth, orange gradients, warm light mode",
+    background: "#fff7ed",
+    surface: "#ffedd5",
+    primary: "#ea580c",
+    secondary: "#f97316",
+    textPrimary: "#431407",
+    textSecondary: "#7c2d12"
   },
   "Ocean Breeze": {
     name: "Ocean Breeze",
     description: "Soothing sky blue and aquamarine gradients, floating white container cards, and deep navy text details.",
-    keywords: "aquamarine, sky blue breeze, floating cards, oceanic design"
+    keywords: "aquamarine, sky blue breeze, floating cards, oceanic design",
+    background: "#f0f9ff",
+    surface: "#e0f2fe",
+    primary: "#0284c7",
+    secondary: "#bae6fd",
+    textPrimary: "#0369a1",
+    textSecondary: "#075985"
   },
   "Cyber Grid": {
     name: "Cyber Grid",
     description: "Tech terminal style featuring dark gray backgrounds, grid overlay patterns, and neon cyan border rules.",
-    keywords: "cyber grid, cyan details, tech terminal, grid patterns"
+    keywords: "cyber grid, cyan details, tech terminal, grid patterns",
+    background: "#020617",
+    surface: "#0f172a",
+    primary: "#06b6d4",
+    secondary: "#22d3ee",
+    textPrimary: "#06b6d4",
+    textSecondary: "#0891b2"
   }
 };
