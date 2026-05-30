@@ -6,8 +6,9 @@ import { PAGE_TYPES, PAGE_COMPONENTS } from '../constants/pageTemplates';
 import { ThemeSelector } from './ThemeSelector';
 import { TypographyPicker } from './TypographyPicker';
 import { SyncBranchSelector } from './SyncBranchSelector';
+import { ThemePreview } from './ThemePreview';
 
-const STEPS = ['Page Type', 'Components', 'Theme', 'Typography', 'Project Setup', 'Generate'];
+const STEPS = ['Page Type', 'Components', 'Theme', 'Typography', 'Live Preview', 'Project Setup', 'Generate'];
 
 const slideVariants = {
   enter: (dir) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
@@ -49,16 +50,17 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
     if (step === 2) return selectedComponents.length > 0;
     if (step === 3) return !!selectedTheme;
     if (step === 4) return !!selectedTypography;
-    if (step === 5) return !!projectIntegration;
+    if (step === 5) return true; // Live Preview step can always advance
+    if (step === 6) return !!projectIntegration;
     return true;
   };
 
-  const goNext = () => { if (canAdvance()) { setDirection(1); setStep(s => Math.min(s + 1, 6)); } };
+  const goNext = () => { if (canAdvance()) { setDirection(1); setStep(s => Math.min(s + 1, 7)); } };
   const goBack = () => { setDirection(-1); setStep(s => Math.max(s - 1, 1)); };
 
   const categoryGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' };
   const categoryCard = (isSelected) => ({
-    position: 'relative', height: '110px', borderRadius: '14px',
+    position: 'relative', height: '85px', borderRadius: '14px',
     border: isSelected ? '2px solid #0891b2' : '1px solid rgba(255,255,255,0.06)',
     background: isSelected ? 'rgba(8,145,178,0.06)' : 'rgba(255,255,255,0.01)',
     overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s ease',
@@ -66,14 +68,14 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
     boxShadow: isSelected ? '0 0 16px rgba(8,145,178,0.2)' : 'none',
   });
   const checkboxCard = (isChecked) => ({
-    display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem',
+    display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.65rem 0.85rem',
     borderRadius: '10px', border: isChecked ? '1px solid #0891b2' : '1px solid rgba(255,255,255,0.04)',
     background: isChecked ? 'rgba(8,145,178,0.05)' : 'rgba(255,255,255,0.01)',
     cursor: 'pointer', transition: 'all 0.2s ease',
   });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', width: '100%' }}>
       {/* Step progress */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
         {STEPS.map((label, i) => {
@@ -94,13 +96,13 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
       </div>
 
       {/* Animated panel */}
-      <div style={{ ...sectionWrap, overflow: 'hidden', minHeight: '300px' }}>
+      <div style={{ ...sectionWrap, overflow: 'hidden', minHeight: '260px', padding: '1.25rem' }}>
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div key={step} custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}>
 
             {/* Step 1 */}
             {step === 1 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div><h3 style={stepTitle}>Select Page Type</h3><p style={stepDesc}>What interface layout are you structuring?</p></div>
                 <div style={categoryGrid}>
                   {PAGE_TYPES.map((page) => {
@@ -109,10 +111,10 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
                       <div key={page.id} style={categoryCard(isSelected)} onClick={() => setPageType(page.id)} className="bento-card-premium glow-card-spotlight active-scale-95">
                         {page.image && <img src={page.image} alt={page.label} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.25 }} />}
                         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '65%', background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)', zIndex: 1 }} />
-                        {isSelected && <div style={{ position: 'absolute', top: '0.6rem', right: '0.6rem', zIndex: 3 }}><CheckCircle2 size={15} style={{ color: '#fbbf24' }} /></div>}
-                        <div style={{ padding: '0.75rem', zIndex: 2 }}>
-                          <span style={{ fontSize: '0.88rem', fontWeight: '800', color: '#fff' }}>{page.label}</span>
-                          <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginTop: '2px', lineHeight: '1.3' }}>{page.desc}</p>
+                        {isSelected && <div style={{ position: 'absolute', top: '0.4rem', right: '0.4rem', zIndex: 3 }}><CheckCircle2 size={13} style={{ color: '#fbbf24' }} /></div>}
+                        <div style={{ padding: '0.6rem', zIndex: 2 }}>
+                          <span style={{ fontSize: '0.8rem', fontWeight: '800', color: '#fff' }}>{page.label}</span>
+                          <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', marginTop: '1px', lineHeight: '1.3' }}>{page.desc}</p>
                         </div>
                       </div>
                     );
@@ -123,21 +125,21 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
 
             {/* Step 2 */}
             {step === 2 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div><h3 style={stepTitle}>Select Components</h3><p style={stepDesc}>Choose the modular blocks for this page.</p></div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '0.65rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem' }}>
                   {(PAGE_COMPONENTS[pageType] || []).map((comp, idx) => {
                     const isChecked = selectedComponents.includes(comp);
                     return (
                       <div key={idx} style={checkboxCard(isChecked)} onClick={() => handleComponentToggle(comp)} className="active-scale-95">
-                        <CheckCircle2 size={15} style={{ color: isChecked ? '#0891b2' : 'rgba(255,255,255,0.1)', flexShrink: 0 }} />
-                        <span style={{ fontSize: '0.85rem', color: 'var(--foreground)', fontWeight: '500' }}>{comp}</span>
+                        <CheckCircle2 size={13} style={{ color: isChecked ? '#0891b2' : 'rgba(255,255,255,0.1)', flexShrink: 0 }} />
+                        <span style={{ fontSize: '0.8rem', color: 'var(--foreground)', fontWeight: '500' }}>{comp}</span>
                       </div>
                     );
                   })}
                 </div>
-                <form onSubmit={handleAddCustomComponent} style={{ display: 'flex', gap: '0.75rem' }}>
-                  <input type="text" placeholder="Add custom component..." value={customComponentInput} onChange={(e) => setCustomComponentInput(e.target.value)} style={{ flex: 1, background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.5rem 0.75rem', fontSize: '0.85rem', color: 'var(--foreground)', outline: 'none' }} className="glass-input" />
+                <form onSubmit={handleAddCustomComponent} style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                  <input type="text" placeholder="Add custom component..." value={customComponentInput} onChange={(e) => setCustomComponentInput(e.target.value)} style={{ flex: 1, background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.4rem 0.65rem', fontSize: '0.8rem', color: 'var(--foreground)', outline: 'none' }} className="glass-input" />
                   <button type="submit" style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }} className="btn-secondary btn-sm"><Plus size={14} />Add</button>
                 </form>
               </div>
@@ -145,15 +147,15 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
 
             {/* Step 3 */}
             {step === 3 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div><h3 style={stepTitle}>Choose Theme</h3><p style={stepDesc}>Apply visual design tokens and HSL profiles.</p></div>
-                <ThemeSelector selectedTheme={selectedTheme} setSelectedTheme={setSelectedTheme} activeMode="page" pageType={pageType} selectedTypography={selectedTypography} />
+                <ThemeSelector selectedTheme={selectedTheme} setSelectedTheme={setSelectedTheme} activeMode="page" pageType={pageType} selectedTypography={selectedTypography} hidePreview={true} />
               </div>
             )}
 
             {/* Step 4 */}
             {step === 4 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div><h3 style={stepTitle}>Typography System</h3><p style={stepDesc}>Your font choice signals intent to the AI generator.</p></div>
                 <TypographyPicker selectedTypography={selectedTypography} setSelectedTypography={setSelectedTypography} />
               </div>
@@ -161,15 +163,29 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
 
             {/* Step 5 */}
             {step === 5 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <div><h3 style={stepTitle}>Project Setup</h3><p style={stepDesc}>New project or existing codebase integration?</p></div>
-                <SyncBranchSelector activeMode="page" pageType={pageType} projectIntegration={projectIntegration} setProjectIntegration={setProjectIntegration} framework={framework} setFramework={setFramework} ideSyncPromptCopied={ideSyncPromptCopied} setIdeSyncPromptCopied={setIdeSyncPromptCopied} ideResponseContext={ideResponseContext} setIdeResponseContext={setIdeResponseContext} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div><h3 style={stepTitle}>Live Preview</h3><p style={stepDesc}>Review how your selected components, theme, and typography integrate into a cohesive mockup.</p></div>
+                <ThemePreview 
+                  selectedTheme={selectedTheme} 
+                  activeMode="page" 
+                  pageType={pageType} 
+                  selectedTypography={selectedTypography} 
+                  selectedComponents={selectedComponents} 
+                />
               </div>
             )}
 
             {/* Step 6 */}
             {step === 6 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div><h3 style={stepTitle}>Project Setup</h3><p style={stepDesc}>New project or existing codebase integration?</p></div>
+                <SyncBranchSelector activeMode="page" pageType={pageType} projectIntegration={projectIntegration} setProjectIntegration={setProjectIntegration} framework={framework} setFramework={setFramework} ideSyncPromptCopied={ideSyncPromptCopied} setIdeSyncPromptCopied={setIdeSyncPromptCopied} ideResponseContext={ideResponseContext} setIdeResponseContext={setIdeResponseContext} />
+              </div>
+            )}
+
+            {/* Step 7 */}
+            {step === 7 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div><h3 style={stepTitle}>Ready to Compile</h3><p style={stepDesc}>Review your selections and generate the prompt.</p></div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   {[{ label: 'Page', value: pageType }, { label: 'Components', value: `${selectedComponents.length} selected` }, { label: 'Theme', value: selectedTheme }, { label: 'Font', value: selectedTypography }, { label: 'Project', value: projectIntegration === 'existing' ? `Existing · ${framework}` : 'New' }].map(({ label, value }) => value && (
@@ -187,13 +203,13 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
       </div>
 
       {/* Navigation */}
-      {step < 6 && (
+      {step < 7 && (
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <button onClick={goBack} disabled={step === 1} className="active-scale-95" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.25rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)', color: step === 1 ? 'rgba(255,255,255,0.2)' : 'var(--muted-foreground)', fontSize: '0.85rem', fontWeight: '600', cursor: step === 1 ? 'default' : 'pointer', transition: 'all 0.2s ease' }}>
             <ArrowLeft size={15} />Back
           </button>
           <button onClick={goNext} disabled={!canAdvance()} className="active-scale-95" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.5rem', borderRadius: '10px', border: 'none', background: canAdvance() ? '#0891b2' : 'rgba(255,255,255,0.05)', color: canAdvance() ? '#fff' : 'rgba(255,255,255,0.2)', fontSize: '0.85rem', fontWeight: '700', cursor: canAdvance() ? 'pointer' : 'default', transition: 'all 0.2s ease' }}>
-            {step === 5 ? 'Review' : 'Continue'}<ArrowRight size={15} />
+            {step === 6 ? 'Review' : 'Continue'}<ArrowRight size={15} />
           </button>
         </div>
       )}

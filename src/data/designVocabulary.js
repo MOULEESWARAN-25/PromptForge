@@ -307,5 +307,105 @@ export const themeStyles = {
     name: "Minimalist Typography",
     description: "Stark whitespace, refined line heights, neutral shades of sand and slate, zero drop shadows, and extremely clear visual grids.",
     keywords: "minimalist flat design, clean whitespace, neutral sans-serif typography, subtle thin lines, elegant spacing, sleek sand/slate hues, zero clutter"
+  },
+  "Luxury Gold": {
+    name: "Luxury Gold",
+    description: "Deep charcoal surfaces layered with brass and gold accent trims, premium dark drop shadows, and serif brand headings.",
+    keywords: "luxury gold design, dark brass, gold accents, premium drop shadows, dark mode, sophisticated layouts"
+  },
+  "Modern Dashboard": {
+    name: "Modern Dashboard",
+    description: "Deep indigo and dark slate surfaces, subtle grid systems, clean border outlines, and energetic corporate blue highlight elements.",
+    keywords: "navy slate dashboard, tech borders, corporate blue details, dynamic widgets, sleek interface"
+  },
+  "Analytics Platform": {
+    name: "Analytics Platform",
+    description: "Graphite backgrounds, card components with fine border lines, emerald green activity indicators, and compact layout elements.",
+    keywords: "analytics interface, emerald green details, graphite card layout, dense grid display"
+  },
+  "Stripe Inspired": {
+    name: "Stripe Inspired",
+    description: "Pure white surface layers, elegant gradient banners, indigo accent highlights, and soft layered canvas drop elevations.",
+    keywords: "stripe design, indigo accents, soft gradients, drop elevations, floating cards, clean light theme"
+  },
+  "Terminal": {
+    name: "Terminal Workspace",
+    description: "Monospaced green or amber glowing text on deep black, simulated terminal scan lines, and thin retro command window frames.",
+    keywords: "command line, terminal screen, retro green glow, monospace, hacker console, scanlines"
+  },
+  "Gaming Console": {
+    name: "Gaming Console",
+    description: "High-density charcoal surfaces, sharp angular cards, energetic crimson/neon-orange tags, and clean HUD badges.",
+    keywords: "gaming hud, orange tags, angular cards, carbon texture style, dark dashboard"
+  },
+  "Data Visualization": {
+    name: "Data Visualization",
+    description: "Deep midnight backdrops, high-contrast neon chart bars, cyan status alerts, and structured tabular grids.",
+    keywords: "data tables, cyan details, chart bars, data visualization panels, high contrast"
+  },
+  "Notion Style": {
+    name: "Notion Style",
+    description: "Light gray flat surfaces, thin solid borders, simple system typography, and clean yellow folder badge accents.",
+    keywords: "notion flat design, grey borders, minimal structure, yellow accents, document canvas"
+  },
+  "Linear Style": {
+    name: "Linear Style",
+    description: "Dark carbon grids, fine border details, glowing purple timeline lines, and ultra-crisp responsive tabs.",
+    keywords: "linear layout, purple glow timeline, dark carbon grids, ultra-crisp tabs"
+  },
+  "Apple Inspired": {
+    name: "Apple Inspired",
+    description: "Frosted glass header bars, pure white canvas layers, extremely soft elevations, and clean SF Pro-style lettering.",
+    keywords: "apple layout, SF Pro style, frosted glass, soft elevations, minimalist light theme"
+  },
+  "Material Design": {
+    name: "Material Design",
+    description: "Pastel purple and indigo base layers, raised card surfaces, rounded action buttons, and clear google-inspired components.",
+    keywords: "material design 3, elevated card shadows, ripple buttons, purple accents, clean spacing"
+  },
+  "Neo Brutalism": {
+    name: "Neo Brutalism",
+    description: "Playful high-saturation pastel yellow and sky blue containers, bold black outlines, and hard block shadows.",
+    keywords: "neo brutalism, sky blue yellow accents, black outlines, block shadows, fun interface"
+  },
+  "Healthcare Clean": {
+    name: "Healthcare Clean",
+    description: "Sleek teal and mint accents, pristine white card surfaces, soft pill shapes, and a highly accessible layout structure.",
+    keywords: "clinical healthcare, clean teal, mint green tags, pill buttons, soft layout"
+  },
+  "Education Classic": {
+    name: "Education Classic",
+    description: "Ivy league forest green and crimson highlights, soft paper-white surfaces, and classical serif headers.",
+    keywords: "academic education, serif headers, warm beige backdrop, forest green details"
+  },
+  "Enterprise Slate": {
+    name: "Enterprise Slate",
+    description: "Professional slate gray containers, deep steel blue text headings, and high density grid spreadsheets.",
+    keywords: "corporate slate, steel blue accents, high density grids, professional charts"
+  },
+  "Cyberpunk Red": {
+    name: "Cyberpunk Red",
+    description: "Pitch black layouts styled with neon crimson accents, cybernetic grid alignments, and red command terminal indicators.",
+    keywords: "cyberpunk red theme, neon crimson highlights, dark synthwave grids, red glows"
+  },
+  "Nordic Forest": {
+    name: "Nordic Forest",
+    description: "Deep pine green surfaces, soft sage green metrics cards, and warm golden amber status alerts.",
+    keywords: "nordic forest, sage green, pine green backdrops, warm amber badges"
+  },
+  "Sunset Warmth": {
+    name: "Sunset Warmth",
+    description: "Warm peach and coral gradient backgrounds, amber orange CTA highlights, and soft card shadows.",
+    keywords: "peach coral, sunset warmth, orange gradients, warm light mode"
+  },
+  "Ocean Breeze": {
+    name: "Ocean Breeze",
+    description: "Soothing sky blue and aquamarine gradients, floating white container cards, and deep navy text details.",
+    keywords: "aquamarine, sky blue breeze, floating cards, oceanic design"
+  },
+  "Cyber Grid": {
+    name: "Cyber Grid",
+    description: "Tech terminal style featuring dark gray backgrounds, grid overlay patterns, and neon cyan border rules.",
+    keywords: "cyber grid, cyan details, tech terminal, grid patterns"
   }
 };

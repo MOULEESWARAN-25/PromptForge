@@ -14,13 +14,10 @@ import {
 import Link from 'next/link';
 import { track, EVENTS } from '@/lib/analytics';
 import HelpKeyboardOverlay from '@/components/HelpKeyboardOverlay';
-import OnboardingChecklist from '@/components/OnboardingChecklist';
+import FirstBlueprintSuccessScreen from '@/components/FirstBlueprintSuccessScreen';
 import ShadcnDropdown from '@/components/ShadcnDropdown';
 import WelcomeBotMessage from '@/components/WelcomeBotMessage';
 import ActivityTracker from '@/components/ActivityTracker';
-import MasteryScore from '@/components/MasteryScore';
-import BlueprintGallery from '@/components/BlueprintGallery';
-import FirstBlueprintSuccessScreen from '@/components/FirstBlueprintSuccessScreen';
 
 // ─── Animation Variants ────────────────────────────────────────
 const fadeUp = {
@@ -503,8 +500,6 @@ export default function DashboardPage() {
         </motion.div>
       )}
 
-      {/* ── Builder Mastery Score ── */}
-      <MasteryScore collections={collections} />
 
       {/* ── Primary Workflows Bento Grid ── */}
       <motion.section
@@ -523,11 +518,7 @@ export default function DashboardPage() {
       {/* Welcome Bot — empty state only */}
       {history.length === 0 && <WelcomeBotMessage />}
 
-      {/* Blueprint Gallery — starter templates */}
-      <BlueprintGallery />
 
-      {/* Onboarding Checklist Widget */}
-      <OnboardingChecklist history={history} favorites={favorites} />
 
       {/* ── History ───────────────────────────────────────────── */}
       <motion.section

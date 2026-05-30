@@ -12,7 +12,8 @@ export function ThemeSelector({
   pageType,
   componentType,
   customCategory,
-  customComponentType
+  customComponentType,
+  hidePreview = false
 }) {
   const themeCardGrid = {
     display: 'grid',
@@ -64,15 +65,17 @@ export function ThemeSelector({
         })}
       </div>
 
-      <ThemePreview
-        selectedTheme={selectedTheme}
-        activeMode={activeMode}
-        appCategory={appCategory}
-        pageType={pageType}
-        componentType={componentType}
-        customCategory={customCategory}
-        customComponentType={customComponentType}
-      />
+      {!hidePreview && (
+        <ThemePreview
+          selectedTheme={selectedTheme}
+          activeMode={activeMode}
+          appCategory={appCategory}
+          pageType={pageType}
+          componentType={componentType}
+          customCategory={customCategory}
+          customComponentType={customComponentType}
+        />
+      )}
     </div>
   );
 }

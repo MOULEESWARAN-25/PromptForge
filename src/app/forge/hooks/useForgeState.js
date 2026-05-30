@@ -76,6 +76,9 @@ export function useForgeState(user, router) {
     localStorage.removeItem('promptforge_draft');
     setShowDraftBanner(false);
     track(EVENTS.FORGE_DRAFT_DISCARDED);
+    if (!activeMode) {
+      router.push('/dashboard');
+    }
   };
 
   // Syncing prefill recovery & active intents queue on mount
@@ -95,21 +98,26 @@ export function useForgeState(user, router) {
       const mode = searchParams.get('mode') || localStorage.getItem('promptforge_wmode');
       if (mode === 'application' || mode === 'page' || mode === 'component' || mode === 'enhance') {
         setActiveMode(mode);
-      }
-      
-      // Check for passive draft recovery (Priority 2)
-      const draftRaw = localStorage.getItem('promptforge_draft');
-      if (draftRaw) {
-        try {
-          const draft = JSON.parse(draftRaw);
-          const age = Date.now() - (draft.savedAt || 0);
-          if (age < 24 * 60 * 60 * 1000) { // < 24h old
-            setShowDraftBanner(true);
-          }
-        } catch {}
+      } else {
+        // No valid mode in query/cache. Check for draft recovery first.
+        const draftRaw = localStorage.getItem('promptforge_draft');
+        let hasDraft = false;
+        if (draftRaw) {
+          try {
+            const draft = JSON.parse(draftRaw);
+            const age = Date.now() - (draft.savedAt || 0);
+            if (age < 24 * 60 * 60 * 1000 && draft.mode) {
+              hasDraft = true;
+              setShowDraftBanner(true);
+            }
+          } catch {}
+        }
+        if (!hasDraft) {
+          router.push('/dashboard');
+        }
       }
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   // Draft autosave whenever key state changes
   useEffect(() => {
