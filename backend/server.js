@@ -10,8 +10,13 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// Enable CORS and JSON parsing
-app.use(cors());
+// Enable CORS for the Next.js frontend (localhost:3000) and JSON parsing
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
 app.use(express.json());
 
 // Visual styles catalog for prompt references
@@ -121,6 +126,6 @@ app.listen(PORT, () => {
   console.log(`================================================================`);
   console.log(` PromptForge Decoupled RAG Backend running on http://localhost:${PORT}`);
   console.log(` Database: Connecting to Supabase Vector DB (pgvector)`);
-  console.log(` AI Orchestration: LangChain + Google Gemini 3.5 Flash API`);
+  console.log(` AI Orchestration: LangChain + Google Gemini 2.5 Flash API`);
   console.log(`================================================================`);
 });

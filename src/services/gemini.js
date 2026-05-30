@@ -35,9 +35,13 @@ export async function generateEnhancedPrompt({
   // 1. TRY CALLING DECOUPLED LANGCHAIN & SUPABASE BACKEND
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    // Timeout driven by env var — set NEXT_PUBLIC_API_TIMEOUT_MS in .env.local
+    // Dev default: 60s (pipeline cold starts can take 20-50s on free tier)
+    const timeout = Number(process.env.NEXT_PUBLIC_API_TIMEOUT_MS || 60000);
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-    const backendResponse = await fetch("http://localhost:8000/api/forge", {
+    const backendUrl = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_BACKEND_URL) || 'http://localhost:8000';
+    const backendResponse = await fetch(`${backendUrl}/api/forge`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -228,9 +232,9 @@ Stitch in premium effects, UX characteristics, micro-interactions, responsive ta
   });
 
   // Call official Gemini Beta API
-  // Using gemini-3.5-flash as the standard fast free-tier model
+  // Using gemini-2.5-flash: current free-tier model (gemini-2.0-flash deprecated June 2026)
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: {

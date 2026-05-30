@@ -5,9 +5,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Initialize ChatGoogleGenerativeAI Model via LangChain
+// NOTE: Use 'model' not 'modelName' — 'modelName' is deprecated in @langchain/google-genai
+// Using gemini-2.5-flash: current free-tier Flash model (gemini-2.0-flash deprecated June 2026)
 const model = new ChatGoogleGenerativeAI({
   apiKey: process.env.GEMINI_API_KEY,
-  modelName: "gemini-3.5-flash",
+  model: "gemini-2.5-flash",
   temperature: 0.7,
   maxOutputTokens: 2048,
 });

@@ -5,9 +5,12 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Initialize LangChain Google Generative AI Embeddings
+// NOTE: Use 'model' not 'modelName' — 'modelName' is deprecated in @langchain/google-genai
+// CRITICAL: The Supabase pgvector table was seeded with 3072-dimension vectors from
+// gemini-embedding-001. Do NOT change model or add outputDimensionality — must match DB.
 const embeddings = new GoogleGenerativeAIEmbeddings({
   apiKey: process.env.GEMINI_API_KEY,
-  modelName: "gemini-embedding-001", // 768 dimensions supported in v1beta
+  model: "gemini-embedding-001", // 3072 dims — matches seeded DB vectors
 });
 
 /**
