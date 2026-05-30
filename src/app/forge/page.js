@@ -39,16 +39,29 @@ function ForgeWizardContent() {
     forgeState
   });
 
+  // ── Progressive Disclosure: Beginner / Advanced toggle
+  const [isAdvanced, setIsAdvanced] = React.useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('pf_forge_mode_advanced') === 'true';
+  });
+
+  const toggleAdvanced = () => {
+    const next = !isAdvanced;
+    setIsAdvanced(next);
+    localStorage.setItem('pf_forge_mode_advanced', String(next));
+    track(next ? 'advanced_mode_unlocked' : 'beginner_mode_active');
+  };
+
   if (!user) return null;
 
   const currentStep = getStep();
 
   const STEP_LABELS = activeMode === 'application'
-    ? ['Purpose', 'Theme', 'Features', 'Generate']
+    ? ['Application', 'Theme', 'Typography', 'Project Setup', 'Generate']
     : activeMode === 'page'
-    ? ['Page Type', 'Components', 'Theme', 'Sync', 'Generate']
+    ? ['Page Type', 'Components', 'Theme', 'Typography', 'Project Setup', 'Generate']
     : activeMode === 'component'
-    ? ['Type', 'Theme', 'Sync', 'Generate']
+    ? ['Type', 'Theme', 'Generate']
     : ['Input', 'Analyze', 'Enhance', 'Generate'];
 
   // Visual layouts styles
@@ -173,6 +186,29 @@ function ForgeWizardContent() {
     marginTop: '0.5rem'
   };
 
+  const modeToggleWrap = {
+    display: 'flex',
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid rgba(255,255,255,0.07)',
+    borderRadius: '10px',
+    padding: '3px',
+    gap: '2px',
+    flexShrink: 0,
+  };
+
+  const modeToggleBtn = (active) => ({
+    padding: '0.35rem 0.85rem',
+    borderRadius: '7px',
+    fontSize: '0.75rem',
+    fontWeight: '700',
+    cursor: 'pointer',
+    border: 'none',
+    background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
+    color: active ? '#fff' : 'var(--muted-foreground)',
+    transition: 'all 0.18s ease',
+    fontFamily: 'var(--font-sans)',
+  });
+
   return (
     <div style={containerStyle}>
       <button 
@@ -189,7 +225,7 @@ function ForgeWizardContent() {
         className="active-scale-95 glow-card-spotlight"
       >
         <ArrowLeft size={16} />
-        {activeMode ? 'Back to Selection' : 'Back to Dashboard'}
+        {activeMode ? 'Back to Dashboard' : 'Back to Dashboard'}
       </button>
 
       {/* Draft Recovery Banner */}
@@ -239,7 +275,7 @@ function ForgeWizardContent() {
               {activeMode === 'component' && <Code2 size={22} style={{ color: '#ec4899' }} />}
               {activeMode === 'enhance' && <Wand2 size={22} style={{ color: '#059669' }} />}
             </div>
-            <div>
+            <div style={{ flex: 1 }}>
               <h1 style={mainTitle}>
                 {activeMode === 'application' && "Full-Stack Application Architect"}
                 {activeMode === 'page' && "Web Page Design"}
@@ -253,6 +289,24 @@ function ForgeWizardContent() {
                 {activeMode === 'enhance' && "Inject spring transitions, layout variables, and HSL tokens into standard prompt drafts."}
               </p>
             </div>
+
+            {/* Beginner / Advanced Mode Toggle */}
+            {activeMode !== 'enhance' && (
+              <div style={modeToggleWrap}>
+                <button
+                  style={modeToggleBtn(!isAdvanced)}
+                  onClick={() => isAdvanced && toggleAdvanced()}
+                >
+                  Beginner
+                </button>
+                <button
+                  style={modeToggleBtn(isAdvanced)}
+                  onClick={() => !isAdvanced && toggleAdvanced()}
+                >
+                  Advanced
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -381,6 +435,7 @@ function ForgeWizardContent() {
             forgeState={forgeState}
             promptGeneration={promptGeneration}
             apiKey={apiKey}
+            isAdvanced={isAdvanced}
           />
         )}
 

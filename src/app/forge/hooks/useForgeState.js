@@ -15,6 +15,7 @@ export function useForgeState(user, router) {
 
   // Universal Wizard States
   const [selectedTheme, setSelectedTheme] = useState(null);
+  const [selectedTypography, setSelectedTypography] = useState('Inter');
 
   // 1. Full-Stack Application State
   const [appCategory, setAppCategory] = useState(null);
@@ -59,6 +60,7 @@ export function useForgeState(user, router) {
       if (draft.appCategory) setAppCategory(draft.appCategory);
       if (draft.selectedFeatures) setSelectedFeatures(draft.selectedFeatures);
       if (draft.selectedTheme) setSelectedTheme(draft.selectedTheme);
+      if (draft.selectedTypography) setSelectedTypography(draft.selectedTypography);
       if (draft.pageType) setPageType(draft.pageType);
       if (draft.selectedComponents) setSelectedComponents(draft.selectedComponents);
       if (draft.componentType) setComponentType(draft.componentType);
@@ -117,6 +119,7 @@ export function useForgeState(user, router) {
         appCategory,
         selectedFeatures,
         selectedTheme,
+        selectedTypography,
         pageType,
         selectedComponents,
         componentType,
@@ -126,7 +129,7 @@ export function useForgeState(user, router) {
       };
       localStorage.setItem('promptforge_draft', JSON.stringify(draft));
     }
-  }, [activeMode, appCategory, selectedFeatures, selectedTheme, pageType, selectedComponents, componentType, projectIntegration, framework]);
+  }, [activeMode, appCategory, selectedFeatures, selectedTheme, selectedTypography, pageType, selectedComponents, componentType, projectIntegration, framework]);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -237,6 +240,7 @@ export function useForgeState(user, router) {
     draftRecovered, setDraftRecovered,
     showDraftBanner, setShowDraftBanner,
     selectedTheme, setSelectedTheme,
+    selectedTypography, setSelectedTypography,
     appCategory, setAppCategory,
     customCategory, setCustomCategory,
     selectedFeatures, setSelectedFeatures,

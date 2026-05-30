@@ -24,6 +24,10 @@ export function AppProvider({ children }) {
   const [dbConnected, setDbConnected] = useState(false);
   // ── Save status: 'idle' | 'saving' | 'saved' | 'error'
   const [saveStatus, setSaveStatus] = useState('idle');
+  // ── Activity tracking (replaces streak — utility tool, not daily habit)
+  const [activityStats, setActivityStats] = useState({ sessionsThisMonth: 0, blueprintsThisMonth: 0, totalSessions: 0 });
+  // ── First blueprint flag (drives aha moment + success screen)
+  const [showFirstBlueprintSuccess, setShowFirstBlueprintSuccess] = useState(false);
 
   // 1. Load persisted states & connect to Supabase database
   useEffect(() => {
@@ -85,6 +89,34 @@ export function AppProvider({ children }) {
         console.error("Error loading local prompt history", e);
       }
     }
+  };
+
+  // ── Record a building activity session (call from dashboard on mount)
+  const recordActivity = () => {
+    try {
+      const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      const stored = JSON.parse(localStorage.getItem('pf_active_days') || '[]');
+      // Add today if not already recorded
+      const updated = stored.includes(today) ? stored : [...stored, today];
+      localStorage.setItem('pf_active_days', JSON.stringify(updated));
+
+      // Compute sessions this month
+      const thisMonth = today.slice(0, 7); // YYYY-MM
+      const sessionsThisMonth = updated.filter(d => d.startsWith(thisMonth)).length;
+      const totalSessions = updated.length;
+
+      setActivityStats(prev => ({ ...prev, sessionsThisMonth, totalSessions }));
+
+      if (!stored.includes(today)) {
+        track(EVENTS.ACTIVITY_SESSION_RECORDED, { sessionsThisMonth });
+      }
+    } catch {}
+  };
+
+  // ── Compute blueprints created this calendar month
+  const getBlueprintsThisMonth = (hist = history) => {
+    const thisMonth = new Date().toISOString().slice(0, 7);
+    return hist.filter(h => new Date(h.timestamp).toISOString().slice(0, 7) === thisMonth).length;
   };
 
   // Sync state & local storage log representation
@@ -202,6 +234,8 @@ export function AppProvider({ children }) {
   const savePromptRecord = async (record) => {
     setSaveStatus('saving');
     try {
+      const isFirstBlueprint = history.length === 0;
+
       const newRecord = {
         id: record.id || Math.random().toString(36).substring(2, 9),
         mode: record.mode,
@@ -230,6 +264,17 @@ export function AppProvider({ children }) {
 
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 3000);
+
+      // ── Aha moment — first ever blueprint
+      if (isFirstBlueprint) {
+        track(EVENTS.AHA_MOMENT_REACHED, { mode: record.mode });
+        track(EVENTS.FIRST_BLUEPRINT_SUCCESS, { mode: record.mode });
+        setShowFirstBlueprintSuccess(true);
+      }
+
+      // Update blueprints this month in activity stats
+      const blueprintsThisMonth = getBlueprintsThisMonth(updatedHistory);
+      setActivityStats(prev => ({ ...prev, blueprintsThisMonth }));
 
       track(EVENTS.PROMPT_GENERATED, { mode: record.mode, theme: record.theme });
       return newRecord;
@@ -356,6 +401,13 @@ export function AppProvider({ children }) {
       clearHistory,
       getUsageStats,
       updatePromptCollection,
+      // ── Activity & Gamification
+      activityStats,
+      recordActivity,
+      getBlueprintsThisMonth,
+      // ── Aha Moment / First Blueprint
+      showFirstBlueprintSuccess,
+      dismissFirstBlueprintSuccess: () => setShowFirstBlueprintSuccess(false),
     }}>
       <div className={`${theme} theme-container`}>
         {children}

@@ -138,6 +138,7 @@ export function usePromptGeneration({
         selectedQualities: forgeState.selectedQualities,
         selectedMotions: forgeState.selectedMotions,
         selectedTheme: forgeState.selectedTheme,
+        selectedTypography: forgeState.selectedTypography,
         clarificationActive: forgeState.clarificationActive,
         clarifiedAudience: forgeState.clarifiedAudience,
         clarifiedDensity: forgeState.clarifiedDensity,

@@ -8,14 +8,19 @@ import { toast } from 'sonner';
 import {
   Sparkles, Monitor, Layout, Code2, Wand2, ArrowRight,
   CornerDownLeft, Trash, Copy, Check, ExternalLink, Clock, Trash2, AlertTriangle,
-  Search, Star, Calendar, ChevronDown, HelpCircle, Compass, Folder, FolderPlus, TrendingUp
+  Search, Star, Calendar, ChevronDown, HelpCircle, Compass, Folder, FolderPlus, TrendingUp,
+  Zap, FileText, Brain, X
 } from 'lucide-react';
 import Link from 'next/link';
 import { track, EVENTS } from '@/lib/analytics';
-import TemplateLibrary from '@/components/TemplateLibrary';
 import HelpKeyboardOverlay from '@/components/HelpKeyboardOverlay';
 import OnboardingChecklist from '@/components/OnboardingChecklist';
 import ShadcnDropdown from '@/components/ShadcnDropdown';
+import WelcomeBotMessage from '@/components/WelcomeBotMessage';
+import ActivityTracker from '@/components/ActivityTracker';
+import MasteryScore from '@/components/MasteryScore';
+import BlueprintGallery from '@/components/BlueprintGallery';
+import FirstBlueprintSuccessScreen from '@/components/FirstBlueprintSuccessScreen';
 
 // ─── Animation Variants ────────────────────────────────────────
 const fadeUp = {
@@ -97,7 +102,7 @@ const ROTATING_PLACEHOLDERS = [
 ];
 
 export default function DashboardPage() {
-  const { user, history, deletePromptRecord, clearHistory, loading, updatePromptCollection, getUsageStats } = useApp();
+  const { user, history, deletePromptRecord, clearHistory, loading, updatePromptCollection, getUsageStats, activityStats, recordActivity } = useApp();
   const router = useRouter();
   const [copiedId, setCopiedId] = useState(null);
   const [quickInput, setQuickInput] = useState('');
@@ -111,6 +116,9 @@ export default function DashboardPage() {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showInterceptModal, setShowInterceptModal] = useState(false);
+  // ── Re-engagement nudge
+  const [reengagementNudge, setReengagementNudge] = useState(null); // { type, message, cta, href }
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
   const usage = getUsageStats ? getUsageStats() : { used: 0, max: 3, isAtLimit: false, isNearLimit: false, percent: 0 };
 
@@ -187,13 +195,73 @@ export default function DashboardPage() {
     return () => clearInterval(t);
   }, []);
 
-  // Track dashboard view
+  // Track dashboard view + record activity session
   useEffect(() => {
     if (user) {
       track(EVENTS.DASHBOARD_VIEWED);
       if (history.length === 0) track(EVENTS.FIRST_FORGE_STARTED);
+      recordActivity();
     }
   }, [user]);
+
+  // Intent-driven re-engagement nudge (highest priority wins)
+  useEffect(() => {
+    if (!user || loading) return;
+    try {
+      // Check if nudge was dismissed within 24h
+      const dismissedAt = localStorage.getItem('pf_nudge_dismissed_at');
+      if (dismissedAt && Date.now() - Number(dismissedAt) < 86400000) {
+        setNudgeDismissed(true);
+        return;
+      }
+
+      // Priority 1: Unfinished draft
+      const draft = localStorage.getItem('promptforge_draft');
+      if (draft) {
+        setReengagementNudge({ type: 'draft', message: "You have an unfinished blueprint draft — pick up where you stopped.", cta: 'Continue Draft', href: '/forge' });
+        track(EVENTS.REENGAGEMENT_NUDGE_SHOWN, { trigger_type: 'draft' });
+        return;
+      }
+
+      // Priority 2: Collection near milestone (4 or 9 = one away from badge)
+      const savedCollections = JSON.parse(localStorage.getItem('pf_collections') || '[]');
+      for (const col of savedCollections) {
+        const count = history.filter(h => h.collection === col).length;
+        if (count === 4 || count === 9) {
+          setReengagementNudge({ type: 'milestone', message: `Your '${col}' collection is 1 blueprint away from the next badge.`, cta: 'Add a Blueprint', href: '/forge' });
+          track(EVENTS.REENGAGEMENT_NUDGE_SHOWN, { trigger_type: 'milestone', collection: col });
+          return;
+        }
+      }
+
+      // Priority 3: Time-based fallback (3+ days away)
+      const lastActive = localStorage.getItem('pf_last_active_date');
+      const today = new Date().toISOString().slice(0, 10);
+      if (lastActive && lastActive !== today) {
+        const daysDiff = Math.floor((Date.now() - new Date(lastActive).getTime()) / 86400000);
+        if (daysDiff >= 3 && history.length > 0) {
+          setReengagementNudge({ type: 'time', message: `Welcome back! Your last blueprint was ${daysDiff} days ago.`, cta: 'Open Last Blueprint', href: history[0] ? `/chat?id=${history[0].id}` : '/forge' });
+          track(EVENTS.REENGAGEMENT_NUDGE_SHOWN, { trigger_type: 'time', daysDiff });
+        }
+      }
+      // Always update last active date
+      localStorage.setItem('pf_last_active_date', today);
+    } catch {}
+  }, [user, history, loading]);
+
+  const handleDismissNudge = () => {
+    setNudgeDismissed(true);
+    localStorage.setItem('pf_nudge_dismissed_at', String(Date.now()));
+    track(EVENTS.REENGAGEMENT_NUDGE_DISMISSED);
+  };
+
+  // Compute vault lifetime stats
+  const vaultStats = {
+    blueprints: history.length,
+    collections: JSON.parse(localStorage.getItem('pf_collections') || '[]').length,
+    refinements: history.reduce((acc, h) => acc + (h.chatMessages || []).filter(m => m.role === 'user').length, 0),
+    hoursSaved: Math.round((history.length * 12) / 60 * 10) / 10, // 12min per blueprint
+  };
 
   // Optimistic UI updates for prompt history using React 19 useOptimistic
   const [optimisticHistory, setOptimisticHistory] = useOptimistic(
@@ -348,6 +416,36 @@ export default function DashboardPage() {
 
   return (
     <div style={{ position: 'relative', zIndex: 2, width: '100%' }}>
+      {/* P0: First Blueprint Success Screen (renders as overlay) */}
+      <FirstBlueprintSuccessScreen />
+
+      {/* ── Intent-Driven Re-engagement Nudge ── */}
+      <AnimatePresence>
+        {reengagementNudge && !nudgeDismissed && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            style={nudgeBanner(reengagementNudge.type)}
+            className="glass-panel"
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flex: 1 }}>
+              <Zap size={14} style={{ color: reengagementNudge.type === 'milestone' ? '#f59e0b' : 'var(--accent)', flexShrink: 0 }} />
+              <span style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.85)' }}>{reengagementNudge.message}</span>
+            </div>
+            <motion.button
+              style={nudgeCta}
+              onClick={() => { track(EVENTS.REENGAGEMENT_NUDGE_CLICKED, { type: reengagementNudge.type }); router.push(reengagementNudge.href); }}
+              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+            >
+              {reengagementNudge.cta} <ArrowRight size={12} />
+            </motion.button>
+            <button onClick={handleDismissNudge} style={nudgeDismissBtn}><X size={13} /></button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Welcome Guided HUD ── */}
       <motion.section
         style={welcomeHUD}
@@ -369,7 +467,44 @@ export default function DashboardPage() {
         <motion.p variants={fadeUp} style={welcomeSub}>
           Select a blueprint pipeline below to start compiling structural grids, theme tokens, and dynamic interactions for your project.
         </motion.p>
+
+        {/* Activity tracker (sessions + blueprints this month) */}
+        <motion.div variants={fadeUp}>
+          <ActivityTracker />
+        </motion.div>
       </motion.section>
+
+      {/* ── Your Vault — Lifetime Stats Strip ── */}
+      {history.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          style={vaultStrip}
+          className="glass-panel"
+        >
+          {[
+            { icon: FileText, label: 'Blueprints Compiled', value: vaultStats.blueprints, color: '#7c3aed' },
+            { icon: Folder, label: 'Collections Organized', value: vaultStats.collections, color: '#0891b2' },
+            { icon: Brain, label: 'AI Refinements Applied', value: vaultStats.refinements, color: '#db2777' },
+            { icon: Zap, label: 'Est. Hours Saved', value: `~${vaultStats.hoursSaved}h`, color: '#f59e0b', isText: true },
+          ].map(stat => {
+            const Icon = stat.icon;
+            return (
+              <div key={stat.label} style={vaultStat}>
+                <div style={vaultStatIcon(stat.color)}><Icon size={14} style={{ color: stat.color }} /></div>
+                <div>
+                  <div style={vaultStatValue}>{stat.value}</div>
+                  <div style={vaultStatLabel}>{stat.label}</div>
+                </div>
+              </div>
+            );
+          })}
+        </motion.div>
+      )}
+
+      {/* ── Builder Mastery Score ── */}
+      <MasteryScore collections={collections} />
 
       {/* ── Primary Workflows Bento Grid ── */}
       <motion.section
@@ -384,6 +519,12 @@ export default function DashboardPage() {
           ))}
         </div>
       </motion.section>
+
+      {/* Welcome Bot — empty state only */}
+      {history.length === 0 && <WelcomeBotMessage />}
+
+      {/* Blueprint Gallery — starter templates */}
+      <BlueprintGallery />
 
       {/* Onboarding Checklist Widget */}
       <OnboardingChecklist history={history} favorites={favorites} />
@@ -424,7 +565,7 @@ export default function DashboardPage() {
           )}
         </motion.div>
 
-        {/* Progress-Based Conversion Upgrade Banner */}
+        {/* Progress-Based Conversion Upgrade Banner — Sunk Cost Reframing */}
         {optimisticHistory.length > 0 && (usage.isNearLimit || usage.isAtLimit) && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -437,24 +578,24 @@ export default function DashboardPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <TrendingUp size={16} style={{ color: usage.isAtLimit ? '#f43f5e' : '#fbbf24' }} />
                 <span style={usageBannerTitle}>
-                  {usage.isAtLimit 
-                    ? `${usage.used} of ${usage.max} workspaces used (Limit Reached)` 
-                    : `${usage.used} of ${usage.max} workspaces used`}
+                  {usage.isAtLimit
+                    ? `${usage.used} of ${usage.max} workspace slots used (Limit Reached)`
+                    : `${usage.used} of ${usage.max} workspace slots used`}
                 </span>
               </div>
               <Link href="/pricing/pro" style={usageBannerUpgradeLink(usage.isAtLimit)}>
                 Upgrade to Pro <ArrowRight size={12} />
               </Link>
             </div>
-            
+
             <div style={usageBannerProgressBg}>
               <div style={usageBannerProgressFill(usage.percent, usage.isAtLimit)} />
             </div>
-            
+
             <p style={usageBannerDesc}>
-              {usage.isAtLimit 
-                ? "Workspace storage full! Upgrade to Pro for unlimited workspaces, priority cloud synchronization, and custom template models." 
-                : "You are close to your workspace limit. Upgrade now to preserve all future generation drafts safely."}
+              {usage.isAtLimit
+                ? `You've built ${usage.used} blueprints here. Upgrade to keep your entire library — unlimited workspaces, never lose your work.`
+                : `You've invested ${usage.used} blueprints into PromptForge. Upgrade now to grow your library without limits.`}
             </p>
           </motion.div>
         )}
@@ -766,14 +907,6 @@ export default function DashboardPage() {
         </div>
       </motion.section>
 
-      {/* ── Template Library ───────────────────────────────────── */}
-      <motion.section
-        initial={{ opacity: 0, y: 15 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-      >
-        <TemplateLibrary onSelectTemplate={handleSelectTemplate} />
-      </motion.section>
 
       {/* Keyboard Shortcuts Help Button */}
       <button
@@ -870,6 +1003,63 @@ function BentoCard({ workflow, onIntercept }) {
 
 // ─── Styles ───────────────────────────────────────────────────
 
+// \u2500\u2500 Re-engagement nudge banner
+const nudgeBanner = (type) => ({
+  display: 'flex', alignItems: 'center', gap: '0.75rem',
+  padding: '0.75rem 1rem',
+  marginBottom: '1.5rem',
+  borderRadius: '12px',
+  background: type === 'milestone' ? 'rgba(245,158,11,0.05)' : 'rgba(124,58,237,0.05)',
+  border: `1px solid ${type === 'milestone' ? 'rgba(245,158,11,0.18)' : 'rgba(124,58,237,0.18)'}`,
+});
+
+const nudgeCta = {
+  display: 'flex', alignItems: 'center', gap: '0.35rem',
+  fontSize: '0.78rem', fontWeight: '700',
+  color: 'var(--accent)', background: 'rgba(124,58,237,0.1)',
+  border: '1px solid rgba(124,58,237,0.2)',
+  borderRadius: '8px', padding: '0.4rem 0.8rem',
+  cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'var(--font-sans)',
+};
+
+const nudgeDismissBtn = {
+  background: 'none', border: 'none', cursor: 'pointer',
+  color: 'var(--muted-foreground)', padding: '4px',
+  display: 'flex', alignItems: 'center', flexShrink: 0,
+};
+
+// \u2500\u2500 Your Vault stats strip
+const vaultStrip = {
+  display: 'flex', flexWrap: 'wrap', gap: '0.5rem',
+  padding: '0.85rem 1.1rem',
+  borderRadius: '14px',
+  marginBottom: '1.25rem',
+  background: 'rgba(255,255,255,0.01)',
+  border: '1px solid rgba(255,255,255,0.05)',
+};
+
+const vaultStat = {
+  display: 'flex', alignItems: 'center', gap: '0.55rem',
+  paddingRight: '1rem',
+  borderRight: '1px solid rgba(255,255,255,0.04)',
+};
+
+const vaultStatIcon = (color) => ({
+  width: 28, height: 28, borderRadius: '7px', flexShrink: 0,
+  background: `${color}12`,
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+});
+
+const vaultStatValue = {
+  fontSize: '1.05rem', fontWeight: '800',
+  fontFamily: 'var(--font-display)',
+  color: '#fff', lineHeight: 1,
+};
+
+const vaultStatLabel = {
+  fontSize: '0.65rem', color: 'var(--muted-foreground)', marginTop: '0.15rem',
+};
+
 const welcomeHUD = {
   display: 'flex',
   flexDirection: 'column',
@@ -882,9 +1072,9 @@ const welcomeHUD = {
 };
 
 const welcomeHeadline = {
-  fontSize: '2.2rem',
+  fontSize: '2.8rem',
   fontWeight: '800',
-  letterSpacing: '-0.035em',
+  letterSpacing: '-0.04em',
   color: 'var(--foreground)',
   fontFamily: 'var(--font-display)',
   marginBottom: '0.75rem',
@@ -1041,15 +1231,15 @@ const sectionTitle = {
 
 const bentoGrid = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-  gap: '1.25rem',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+  gap: '1.5rem',
 };
 
 const bentoCard = (hovered, accent) => ({
   display: 'flex',
   flexDirection: 'column',
   gap: '1rem',
-  padding: '1.5rem',
+  padding: '1.75rem',
   borderRadius: '16px',
   textDecoration: 'none',
   position: 'relative',
@@ -1163,9 +1353,9 @@ const emptyState = {
 };
 
 const emptyIconWrap = {
-  width: '64px',
-  height: '64px',
-  borderRadius: '16px',
+  width: '80px',
+  height: '80px',
+  borderRadius: '20px',
   background: 'rgba(251,191,36,0.06)',
   border: '1px solid rgba(251,191,36,0.15)',
   display: 'flex',
@@ -1222,11 +1412,11 @@ const historyCard = {
   display: 'flex',
   flexDirection: 'column',
   gap: '0.65rem',
-  padding: '1.25rem',
+  padding: '1.35rem',
   background: 'rgba(255,255,255,0.01)',
-  border: '1px solid rgba(255,255,255,0.04)',
-  borderRadius: '14px',
-  boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+  border: '1px solid rgba(255,255,255,0.05)',
+  borderRadius: '16px',
+  boxShadow: '0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 20px rgba(0,0,0,0.2)',
   cursor: 'pointer',
   transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
 };

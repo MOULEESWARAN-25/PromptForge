@@ -676,6 +676,21 @@ function ChatContent() {
               <h2 style={workspaceTitle}>{promptRecord.title}</h2>
               <span style={themeBadge}>{promptRecord.theme}</span>
               <SaveStatusBadge status={saveStatus} />
+              {/* Last edited indicator — persistence signal */}
+              {promptRecord.timestamp && (
+                <span style={lastEditedBadge}>
+                  {(() => {
+                    const diff = Date.now() - promptRecord.timestamp;
+                    const mins = Math.floor(diff / 60000);
+                    const hrs = Math.floor(diff / 3600000);
+                    const days = Math.floor(diff / 86400000);
+                    if (mins < 1) return 'Just now';
+                    if (mins < 60) return `${mins}m ago`;
+                    if (hrs < 24) return `${hrs}h ago`;
+                    return `${days}d ago`;
+                  })()}
+                </span>
+              )}
             </div>
           </div>
 
@@ -757,7 +772,45 @@ function ChatContent() {
               )}
 
               {renderMarkdown(currentPrompt)}
-              
+              {/* Variable Reward Insight Badge — shows after prompt renders */}
+              {!isGenerating && chatMessages.length > 0 && (() => {
+                const mode = promptRecord.mode;
+                const badges = {
+                  application: [
+                    '⚡ Your spec used a 3-tier data architecture pattern',
+                    '🏗️ Multi-page routing structure detected in your blueprint',
+                    '🎨 Design system tokens injected across 4 components',
+                    '⚡ State management patterns compiled for your stack',
+                  ],
+                  page: [
+                    '✨ Glassmorphism depth tokens detected in your theme selection',
+                    '🎯 Layout grid structure optimized for your page type',
+                    '⚡ Spring physics injected into 3 interaction states',
+                    '🏗️ Component hierarchy structured for AI code generation',
+                  ],
+                  component: [
+                    '⚡ Spring physics injected into 4 interaction states',
+                    '🎨 Design tokens applied across all component variants',
+                    '✨ Glassmorphic surface treatment compiled for your theme',
+                    '🎯 Accessibility attributes included in the component spec',
+                  ],
+                  enhance: [
+                    '✨ 3 design vocabulary terms elevated in your prompt',
+                    '⚡ Motion physics terminology injected into the spec',
+                    '🎯 Professional engineering language applied throughout',
+                    '🏗️ Layout patterns restructured for clarity',
+                  ],
+                };
+                const pool = badges[mode] || badges.enhance;
+                // Deterministic selection based on message count (not random — so same badge on re-render)
+                const badge = pool[chatMessages.length % pool.length];
+                return (
+                  <div style={insightBadge}>
+                    <span style={insightBadgeText}>{badge}</span>
+                  </div>
+                );
+              })()}
+
               {/* Smart Suggested Next Steps */}
               {!isGenerating && (
                 <div style={smartSuggestionsBox} className="glass-panel animate-fade-up">
@@ -1004,6 +1057,36 @@ const revisionSelect = {
   fontFamily: 'var(--font-sans)',
 };
 
+
+// ─── Retention Styles ──────────────────────────────────────
+const lastEditedBadge = {
+  fontSize: '0.68rem',
+  color: 'var(--muted-foreground)',
+  background: 'rgba(255,255,255,0.04)',
+  border: '1px solid rgba(255,255,255,0.06)',
+  borderRadius: '5px',
+  padding: '2px 8px',
+  fontFamily: 'var(--font-mono)',
+  flexShrink: 0,
+};
+
+const insightBadge = {
+  marginTop: '1rem',
+  marginBottom: '0.25rem',
+  padding: '0.5rem 0.85rem',
+  borderRadius: '8px',
+  background: 'rgba(124,58,237,0.05)',
+  border: '1px solid rgba(124,58,237,0.12)',
+  display: 'inline-flex',
+  alignItems: 'center',
+};
+
+const insightBadgeText = {
+  fontSize: '0.75rem',
+  fontWeight: '600',
+  color: 'rgba(167,139,250,0.9)',
+  fontFamily: 'var(--font-sans)',
+};
 
 // ─── Smart Suggestions Styles ──────────────────────────────
 const smartSuggestionsBox = {

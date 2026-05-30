@@ -633,6 +633,13 @@ body {
 .animate-float { animation: float 4s ease-in-out infinite; }
 .animate-glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
 .animate-spin-slow { animation: spin-slow 8s linear infinite; }
+.animate-pulse-slow { animation: glow-pulse 2.5s ease-in-out infinite; }
+
+/* Typing dot bounce — WelcomeBotMessage */
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
 
 .delay-100 { animation-delay: 100ms; }
 .delay-200 { animation-delay: 200ms; }

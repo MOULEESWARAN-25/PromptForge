@@ -23,6 +23,7 @@ export async function compileForgePrompt({
   selectedQualities,
   selectedMotions,
   selectedTheme,
+  selectedTypography,
   clarificationActive,
   clarifiedAudience,
   clarifiedDensity,
@@ -32,24 +33,35 @@ export async function compileForgePrompt({
   let finalQuery = '';
   let title = '';
 
+  // Typography system specification injected into all prompt modes
+  const TYPOGRAPHY_SIGNALS = {
+    'Inter':    'Use Inter for all body copy and UI controls. Optimize hierarchy for information-dense, functional interfaces. font-weight 400–600.',
+    'Geist':    'Use Geist for all typography. Apply mono-inspired precision with tight letter-spacing. Ideal for developer-facing SaaS tools.',
+    'Manrope':  'Use Manrope for all typography. Apply geometric, approachable styling with comfortable line-height for readable dashboards.',
+    'Poppins':  'Use Poppins for all typography. Apply rounded, consumer-facing warmth. font-weight 500–700 for headings. Friendly modern SaaS.',
+    'DM Sans':  'Use DM Sans for all typography. Apply compact, information-dense hierarchy. Excellent for data-rich admin panels.',
+    'Outfit':   'Use Outfit for all typography. Apply bold editorial display with high-contrast heading weights. Design-forward, expressive.',
+  };
+  const typographyInstruction = TYPOGRAPHY_SIGNALS[selectedTypography] || TYPOGRAPHY_SIGNALS['Inter'];
+
   if (activeMode === 'application') {
     const finalCategory = appCategory === 'Custom' ? customCategory : appCategory;
     title = `Application: ${finalCategory}`;
-    finalQuery = `Create a premium full-stack ${finalCategory} web application using the theme style "${selectedTheme || 'Sleek Dark Glassmorphic'}". Ensure it incorporates the following features: ${selectedFeatures.join(', ')}.`;
+    finalQuery = `Create a premium full-stack ${finalCategory} web application using the theme style "${selectedTheme || 'Sleek Dark Glassmorphic'}". Typography System: ${typographyInstruction}`;
   } else if (activeMode === 'page') {
     title = `Page: ${pageType}`;
     if (projectIntegration === 'existing') {
-      finalQuery = `Create a highly polished, responsive page for a "${pageType}" that integrates perfectly into an existing project. Style Theme: "${selectedTheme || 'Sleek Dark Glassmorphic'}". Implement these grid components: ${selectedComponents.join(', ')}. Tech Stack / Framework: "${framework}". Codebase Context & Directory guidelines: ${ideResponseContext || 'No details provided'}.`;
+      finalQuery = `Create a highly polished, responsive page for a "${pageType}" that integrates perfectly into an existing project. Style Theme: "${selectedTheme || 'Sleek Dark Glassmorphic'}". Typography System: ${typographyInstruction}. Implement these grid components: ${selectedComponents.join(', ')}. Tech Stack / Framework: "${framework}". Codebase Context & Directory guidelines: ${ideResponseContext || 'No details provided'}.`;
     } else {
-      finalQuery = `Create a standalone, highly polished, responsive page for a "${pageType}" with the theme style "${selectedTheme || 'Sleek Dark Glassmorphic'}". Implement these grid components: ${selectedComponents.join(', ')}.`;
+      finalQuery = `Create a standalone, highly polished, responsive page for a "${pageType}" with the theme style "${selectedTheme || 'Sleek Dark Glassmorphic'}". Typography System: ${typographyInstruction}. Implement these grid components: ${selectedComponents.join(', ')}.`;
     }
   } else if (activeMode === 'component') {
     const finalCompType = componentType === 'Custom Component' ? customComponentType : componentType;
     title = `Component: ${finalCompType}`;
     if (projectIntegration === 'existing') {
-      finalQuery = `Create an interactive, accessible React component for a "${finalCompType}" that integrates perfectly into an existing project. Style Theme: "${selectedTheme || 'Sleek Dark Glassmorphic'}". Tech Stack / Framework: "${framework}". Codebase Context & Directory guidelines: ${ideResponseContext || 'No details provided'}.`;
+      finalQuery = `Create an interactive, accessible React component for a "${finalCompType}" that integrates perfectly into an existing project. Style Theme: "${selectedTheme || 'Sleek Dark Glassmorphic'}". Typography System: ${typographyInstruction}. Tech Stack / Framework: "${framework}". Codebase Context & Directory guidelines: ${ideResponseContext || 'No details provided'}.`;
     } else {
-      finalQuery = `Create a standalone, reusable, accessible React component for a "${finalCompType}" with the theme style "${selectedTheme || 'Sleek Dark Glassmorphic'}". Ensure strict keyboard accessibility and premium transition properties.`;
+      finalQuery = `Create a standalone, reusable, accessible React component for a "${finalCompType}" with the theme style "${selectedTheme || 'Sleek Dark Glassmorphic'}". Typography System: ${typographyInstruction}. Ensure strict keyboard accessibility and premium transition properties.`;
     }
   } else if (activeMode === 'enhance') {
     title = `Enhanced: ${rawDescription.slice(0, 24)}...`;
@@ -57,7 +69,7 @@ export async function compileForgePrompt({
     if (clarificationActive) {
       extraQualitiesText += `\n- Target Audience: ${clarifiedAudience || 'Developer/SaaS Builder'}\n- Layout Density: ${clarifiedDensity}\n- Viewport Layout: ${clarifiedViewport}`;
     }
-    finalQuery = `${rawDescription}\n\n[INJECT TECHNICAL MODIFIERS]:\n- Theme Style: ${selectedTheme || 'Sleek Dark Glassmorphic'}${extraQualitiesText}`;
+    finalQuery = `${rawDescription}\n\n[INJECT TECHNICAL MODIFIERS]:\n- Theme Style: ${selectedTheme || 'Sleek Dark Glassmorphic'}\n- Typography System: ${typographyInstruction}${extraQualitiesText}`;
   }
 
   // CENTRALIZED PHASE 2A RAG RETRIEVAL PIPELINE LOOKUP
