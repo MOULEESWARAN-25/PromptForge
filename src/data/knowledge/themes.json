@@ -1,0 +1,147 @@
+[
+  {
+    "themeName": "Sleek Dark Glassmorphic",
+    "hslTokens": {
+      "background": "240 10% 3.9%",
+      "foreground": "0 0% 98%",
+      "card": "240 10% 3.9%",
+      "cardOpacity": "0.8",
+      "border": "240 5.9% 15%",
+      "accent": "263.4 70% 50.4%",
+      "muted": "240 3.7% 15.9%"
+    },
+    "typographyRules": {
+      "fontFamily": "var(--font-sans)",
+      "baseSize": "14px",
+      "headingWeight": "800",
+      "letterSpacing": "-0.02em"
+    },
+    "layoutSpacing": {
+      "padding": "2rem",
+      "gap": "1.5rem",
+      "borderRadius": "24px"
+    },
+    "borderPhysics": {
+      "borderWidth": "1px",
+      "backdropBlur": "20px",
+      "spotlightGlow": "rgba(124, 58, 237, 0.15)"
+    },
+    "shadowElevations": "0 8px 32px rgba(0, 0, 0, 0.2)"
+  },
+  {
+    "themeName": "Cyberpunk Neon",
+    "hslTokens": {
+      "background": "325 35% 3%",
+      "foreground": "180 100% 50%",
+      "card": "325 35% 5%",
+      "cardOpacity": "0.95",
+      "border": "320 100% 50%",
+      "accent": "320 100% 50%",
+      "muted": "325 35% 10%"
+    },
+    "typographyRules": {
+      "fontFamily": "var(--font-mono)",
+      "baseSize": "13px",
+      "headingWeight": "900",
+      "letterSpacing": "0.04em"
+    },
+    "layoutSpacing": {
+      "padding": "1.75rem",
+      "gap": "1.25rem",
+      "borderRadius": "0px"
+    },
+    "borderPhysics": {
+      "borderWidth": "1px",
+      "backdropBlur": "0px",
+      "spotlightGlow": "rgba(236, 72, 153, 0.2)"
+    },
+    "shadowElevations": "0 0 15px rgba(236, 72, 153, 0.15)"
+  },
+  {
+    "themeName": "Brutalist Bold",
+    "hslTokens": {
+      "background": "0 0% 100%",
+      "foreground": "0 0% 0%",
+      "card": "0 0% 100%",
+      "cardOpacity": "1.0",
+      "border": "0 0% 0%",
+      "accent": "45 100% 50%",
+      "muted": "0 0% 90%"
+    },
+    "typographyRules": {
+      "fontFamily": "var(--font-display)",
+      "baseSize": "15px",
+      "headingWeight": "900",
+      "letterSpacing": "-0.03em"
+    },
+    "layoutSpacing": {
+      "padding": "2.25rem",
+      "gap": "2rem",
+      "borderRadius": "4px"
+    },
+    "borderPhysics": {
+      "borderWidth": "3px",
+      "backdropBlur": "0px",
+      "spotlightGlow": "none"
+    },
+    "shadowElevations": "4px 4px 0px #000000"
+  },
+  {
+    "themeName": "Wes Anderson",
+    "hslTokens": {
+      "background": "35 32% 91%",
+      "foreground": "24 35% 20%",
+      "card": "35 25% 86%",
+      "cardOpacity": "1.0",
+      "border": "24 20% 50%",
+      "accent": "10 65% 55%",
+      "muted": "35 20% 80%"
+    },
+    "typographyRules": {
+      "fontFamily": "Georgia, serif",
+      "baseSize": "14px",
+      "headingWeight": "700",
+      "letterSpacing": "0.01em"
+    },
+    "layoutSpacing": {
+      "padding": "2rem",
+      "gap": "1.75rem",
+      "borderRadius": "12px"
+    },
+    "borderPhysics": {
+      "borderWidth": "1.5px",
+      "backdropBlur": "0px",
+      "spotlightGlow": "none"
+    },
+    "shadowElevations": "0 4px 12px rgba(139, 90, 43, 0.1)"
+  },
+  {
+    "themeName": "Minimalist Typography",
+    "hslTokens": {
+      "background": "0 0% 99%",
+      "foreground": "0 0% 9%",
+      "card": "0 0% 100%",
+      "cardOpacity": "1.0",
+      "border": "0 0% 92%",
+      "accent": "0 0% 0%",
+      "muted": "0 0% 96%"
+    },
+    "typographyRules": {
+      "fontFamily": "var(--font-sans)",
+      "baseSize": "14px",
+      "headingWeight": "600",
+      "letterSpacing": "-0.01em"
+    },
+    "layoutSpacing": {
+      "padding": "1.5rem",
+      "gap": "1rem",
+      "borderRadius": "8px"
+    },
+    "borderPhysics": {
+      "borderWidth": "1px",
+      "backdropBlur": "0px",
+      "spotlightGlow": "none"
+    },
+    "shadowElevations": "none"
+  }
+]

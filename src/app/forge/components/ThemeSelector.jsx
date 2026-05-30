@@ -1,0 +1,78 @@
+import React from 'react';
+import { CheckCircle2 } from 'lucide-react';
+import { themeStyles } from '@/data/designVocabulary';
+import { getThemeCardDynamicStyles } from '../utils/themeStyles';
+import { ThemePreview } from './ThemePreview';
+
+export function ThemeSelector({
+  selectedTheme,
+  setSelectedTheme,
+  activeMode,
+  appCategory,
+  pageType,
+  componentType,
+  customCategory,
+  customComponentType
+}) {
+  const themeCardGrid = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+    gap: '1rem',
+    marginTop: '0.75rem'
+  };
+
+  const themeHeaderRow = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '0.5rem'
+  };
+
+  const themeCardName = {
+    fontSize: '0.95rem',
+    letterSpacing: '-0.01em'
+  };
+
+  const themeCardDescText = {
+    fontSize: '0.8rem',
+    lineHeight: '1.4'
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={themeCardGrid}>
+        {Object.keys(themeStyles).map((themeName) => {
+          const isSelected = selectedTheme === themeName;
+          return (
+            <div
+              key={themeName}
+              style={getThemeCardDynamicStyles(themeName, isSelected)}
+              onClick={() => setSelectedTheme(themeName)}
+              className="bento-card-premium glow-card-spotlight active-scale-95 animate-fade-up"
+            >
+              <div style={themeHeaderRow}>
+                <span style={{ ...themeCardName, color: isSelected ? 'inherit' : 'var(--foreground)', fontWeight: '750' }}>
+                  {themeName}
+                </span>
+                {isSelected && <CheckCircle2 size={16} style={{ color: '#fbbf24' }} />}
+              </div>
+              <p style={{ ...themeCardDescText, color: isSelected ? 'inherit' : 'var(--muted-foreground)', opacity: 0.8 }}>
+                {themeStyles[themeName].description}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+
+      <ThemePreview
+        selectedTheme={selectedTheme}
+        activeMode={activeMode}
+        appCategory={appCategory}
+        pageType={pageType}
+        componentType={componentType}
+        customCategory={customCategory}
+        customComponentType={customComponentType}
+      />
+    </div>
+  );
+}

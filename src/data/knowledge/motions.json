@@ -1,0 +1,43 @@
+[
+  {
+    "motionPreset": "spring animations",
+    "framerMotionCurves": {
+      "type": "spring",
+      "stiffness": 260,
+      "damping": 20,
+      "mass": 0.8
+    },
+    "hoverScaleSpecs": {
+      "scale": 1.02,
+      "transition": {
+        "duration": 0.2
+      }
+    }
+  },
+  {
+    "motionPreset": "micro-interactions",
+    "framerMotionCurves": {
+      "type": "spring",
+      "stiffness": 400,
+      "damping": 15,
+      "mass": 0.5
+    },
+    "hoverScaleSpecs": {
+      "scale": 0.98,
+      "transition": {
+        "duration": 0.15
+      }
+    }
+  },
+  {
+    "motionPreset": "hover feedback",
+    "framerMotionCurves": {
+      "type": "tween",
+      "ease": "easeInOut",
+      "duration": 0.2
+    },
+    "hoverScaleSpecs": {
+      "scale": 1.01
+    }
+  }
+]

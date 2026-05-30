@@ -1,0 +1,151 @@
+[
+  {
+    "pageType": "Dashboard Panel",
+    "requiredSections": [
+      "Collapsible Navigation Sidebar",
+      "Overview Stats Header Row",
+      "Interactive Data Table / Feed Grid",
+      "Recent Notifications / Activity Drawer"
+    ],
+    "commonComponents": [
+      "KPI Metric Card",
+      "Interactive Data Chart Widget",
+      "Sortable Table Row with Actions",
+      "Global Command Search Bar (Cmd+K)"
+    ],
+    "layoutPatterns": [
+      "Responsive Sidebar layout: hidden on mobile, slides in via hamburger menu drawer.",
+      "Multi-column Bento Grid layout for dashboard charts."
+    ],
+    "uxGuidelines": [
+      "Maintain a clear information hierarchy: primary metrics must load at the top of the viewport.",
+      "Incorporate skeletal shimmer loading states to reduce user-perceived fetch latencies."
+    ]
+  },
+  {
+    "pageType": "Landing Homepage",
+    "requiredSections": [
+      "Dynamic Product Hero CTA Section",
+      "Social Proof Client Logo Marquee",
+      "Feature Breakdown Grid / Showcase",
+      "Interactive Pricing Spotlight Card Tier",
+      "Frequently Asked Questions Accordion Grid"
+    ],
+    "commonComponents": [
+      "Shimmer Spotlight CTA Button",
+      "Testimonial Carousel Slider",
+      "Feature Card with micro-hover highlights"
+    ],
+    "layoutPatterns": [
+      "Fluid single-page layout separated by clean high-contrast spacing blocks.",
+      "Alternate visual grids: left-text right-image alternating cards."
+    ],
+    "uxGuidelines": [
+      "Establish immediate visual focal points in the Hero segment with a strong call-to-action.",
+      "Avoid large layout shifts (CLS) on dynamic marquees and sliders."
+    ]
+  },
+  {
+    "pageType": "Login Page",
+    "requiredSections": [
+      "Glassmorphic Authentication Card Container",
+      "Secure Email / Password Input Deck",
+      "OTP Shortcode verification field",
+      "Oauth social integration buttons group"
+    ],
+    "commonComponents": [
+      "Interactive form validation inputs",
+      "Security password visibility toggle eyes",
+      "Dynamic loading state buttons"
+    ],
+    "layoutPatterns": [
+      "Centered modal-style entry card layout with subtle obsidian backdrop-blurs.",
+      "Full-screen ambient neon halo background glow overlay."
+    ],
+    "uxGuidelines": [
+      "Focus user input attention immediately by placing the cursor inside primary inputs upon mount.",
+      "Render descriptive interactive error warning tags directly next to invalid input fields."
+    ]
+  },
+  {
+    "pageType": "Signup Page",
+    "requiredSections": [
+      "Structured Multi-step Registration Wizard",
+      "Profile photo avatar uploader card",
+      "Security terms checkmark inputs"
+    ],
+    "commonComponents": [
+      "Progress step circular tracker dots",
+      "Real-time password strength meter scale",
+      "Interactive success feedback celebrations"
+    ],
+    "layoutPatterns": [
+      "Split-screen layout: left-side brand statement testimonial, right-side registration form wizard."
+    ],
+    "uxGuidelines": [
+      "Divide lengthy input setups into clear progressive disclosure steps to avoid cognitive fatigue.",
+      "Preserve user inputs when navigating backward across step indicators."
+    ]
+  },
+  {
+    "pageType": "Settings Page",
+    "requiredSections": [
+      "Vertical navigation setting menu tabs",
+      "Personal information settings panel",
+      "Security / API Key management deck",
+      "Danger Zone account deletion warning card"
+    ],
+    "commonComponents": [
+      "Slide-toggle active configuration options",
+      "Secure key clipboard copies",
+      "Alert notification switch elements"
+    ],
+    "layoutPatterns": [
+      "Split vertical navigation sidebar structure on desktop, merging into responsive top menus on mobile viewports."
+    ],
+    "uxGuidelines": [
+      "Provide immediate visual toast feedback messages upon configuration state saves.",
+      "Delineate dangerous delete buttons with high-contrast red warning borders."
+    ]
+  },
+  {
+    "pageType": "Profile Page",
+    "requiredSections": [
+      "User Profile Banner & Bio Card Header",
+      "Social connection statistics row",
+      "Grouped uploads media gallery showcase"
+    ],
+    "commonComponents": [
+      "Circular profile avatar masked frames",
+      "User profile metadata tag arrays",
+      "Dynamic upload progress bars"
+    ],
+    "layoutPatterns": [
+      "Asymmetric two-column profile overview grid: narrow details sidebar panel, wide activity feed stream."
+    ],
+    "uxGuidelines": [
+      "Enable instant in-place inline profile editing updates for user fields.",
+      "Apply smooth fading grid transitions on gallery filter category tabs."
+    ]
+  },
+  {
+    "pageType": "SaaS Pricing Matrix",
+    "requiredSections": [
+      "Spotlight tier pricing card grids",
+      "Annual vs. Monthly billing switcher",
+      "Frequently Asked Questions accordion deck"
+    ],
+    "commonComponents": [
+      "Active high-contrast pricing spotlight card",
+      "Feature comparison matrices",
+      "Interactive checkout CTA button triggers"
+    ],
+    "layoutPatterns": [
+      "Three-column subscription tier grid displaying the popular plan in the center column with ambient highlight glows."
+    ],
+    "uxGuidelines": [
+      "Make plan comparison benefits extremely legible by using icons for included vs excluded items.",
+      "Use clear, direct billing terminology without hidden or ambiguous service charges."
+    ]
+  }
+]

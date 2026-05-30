@@ -76,16 +76,262 @@ function SaveStatusBadge({ status }) {
   );
 }
 
-// ─── AI Transparency Panel ────────────────────────────────────
+// ─── Vocabulary Learning Drawer ───────────────────────────────────
+// Inline knowledge base for educational term explanations
+const TERM_KNOWLEDGE = {
+  "Glassmorphism": {
+    explanation: "Semi-transparent layered surface style mimicking physical frosted glass.",
+    visualDescription: "High backdrop blur opacity overlay with fine thin borders and a translucent light reflection.",
+    designTokens: ["backdrop-blur-md", "bg-white/5", "border-white/10", "shadow-xl"],
+    why: "Creates premium depth perception that separates content layers visually.",
+  },
+  "Spotlight Cursor Hook": {
+    explanation: "Interactive cursor tracker highlighting component borders with a radial glowing gradient.",
+    visualDescription: "A colored spotlight following mouse movements over glass borders.",
+    designTokens: ["bg-[radial-gradient(circle_at_var(--mouse-x)_var(--mouse-y),rgba(124,58,237,0.15),transparent_40%)]"],
+    why: "Dramatically increases perceived interactivity and premium feel of cards.",
+  },
+  "Bento Grid Layout": {
+    explanation: "Asymmetric multi-column cell mapping inspired by visual Japanese bento trays.",
+    visualDescription: "Visually grouped grid rows where key elements span wider or taller columns.",
+    designTokens: ["grid", "grid-cols-1", "md:grid-cols-3", "gap-4", "col-span-2", "row-span-1"],
+    why: "Creates visual rhythm and hierarchy without rigid uniform column constraints.",
+  },
+  "Spring Animation Physics": {
+    explanation: "Animation parameters modeled on hookean elastic springs for organic tactile feedback.",
+    visualDescription: "Components scaling or moving with realistic micro-bounce rather than simple linear speeds.",
+    designTokens: ["transition-all", "duration-300", "active:scale-95", "ease-[cubic-bezier(0.34,1.56,0.64,1)]"],
+    why: "Makes UI feel physically responsive and alive, dramatically improving perceived quality.",
+  },
+  "Infinite Marquee Ticker": {
+    explanation: "CSS keyframe slider translating elements continuously for displaying static logos.",
+    visualDescription: "A seamless horizontal line of elements looping endlessly with zero stutter.",
+    designTokens: ["flex", "animate-marquee", "whitespace-nowrap", "will-change-transform"],
+    why: "Communicates social proof and brand trust without static grid placement.",
+  },
+  "Command Palette Search": {
+    explanation: "Keyboard-triggered modal indexing actions and filtering matching queries fuzzy matching.",
+    visualDescription: "A clean center overlay with instantaneous response, shortcuts, and grouped filters.",
+    designTokens: ["absolute", "z-50", "max-w-xl", "overflow-hidden", "rounded-xl", "divide-y"],
+    why: "Power-user shortcut that dramatically reduces navigation friction.",
+  },
+  "Skeleton Shimmer Loader": {
+    explanation: "Grey geometric placeholders pulsing or shimmering to indicate active fetch states.",
+    visualDescription: "Light silver bars carrying a moving light ray gradient overlay.",
+    designTokens: ["animate-pulse", "bg-neutral-800", "before:animate-[shimmer_2s_infinite]", "before:bg-gradient-to-r"],
+    why: "Perceived performance — users feel the app is faster when structure appears immediately.",
+  },
+  "Neo-Brutalist Layout": {
+    explanation: "High-contrast structural panels featuring thick pure black borders and solid non-blurred shadows.",
+    visualDescription: "Vibrant colors outlined with thick dark lines, casting solid offset box blocks.",
+    designTokens: ["border-3", "border-black", "shadow-[4px_4px_0px_#000000]", "hover:shadow-[6px_6px_0px_#000000]"],
+    why: "Anti-minimalism design signal — bold, unapologetically visible structural borders.",
+  },
+  "Ambient Drop Glow": {
+    explanation: "Backdrop colored shadow layers creating depth and premium spatial contrast.",
+    visualDescription: "A soft tinted ambient cloud radiating behind components.",
+    designTokens: ["shadow-[0_0_50px_-12px_var(--accent)]"],
+    why: "Creates a light source illusion that makes dark interfaces feel three-dimensional.",
+  },
+  "Staggered Entrance Animation": {
+    explanation: "Sequential delays applied to list elements to direct user gaze hierarchy.",
+    visualDescription: "Cards or list lines fading up in a micro-delayed chronological wave.",
+    designTokens: ["animate-fade-up", "animation-delay-100", "animation-delay-200", "animation-delay-300"],
+    why: "Guides the user's eye down the page in a natural choreographed reading flow.",
+  },
+  "Frosted Modal Overlay": {
+    explanation: "Overlay dialog positioning crucial settings in focus and dimming other areas.",
+    visualDescription: "A central crisp window floating over a deeply blurred dark background layer.",
+    designTokens: ["fixed", "inset-0", "z-50", "bg-black/60", "backdrop-blur-sm"],
+    why: "Contextually isolates focus-critical tasks without losing screen context.",
+  },
+  "Interactive Accordion Panel": {
+    explanation: "Toggle panel revealing detailed explanations inline and contracting other rows.",
+    visualDescription: "List headers clicking to slide down additional textual lines smoothly.",
+    designTokens: ["overflow-hidden", "transition-all", "duration-200", "ease-out"],
+    why: "Progressively discloses complexity — reduces cognitive load on first render.",
+  },
+  "Dynamic Floating Navbar": {
+    explanation: "A floating header menu morphing or shrinking dynamically during scroll bounds.",
+    visualDescription: "A small pill-shaped frosted menu floating at the top of the viewport.",
+    designTokens: ["sticky", "top-4", "mx-auto", "max-w-fit", "rounded-full", "backdrop-blur-md"],
+    why: "Stays accessible during long scrolls without dominating viewport real estate.",
+  },
+  "Active Tab Slide Switcher": {
+    explanation: "A control where an active highlighted visual pill slides behind selected buttons.",
+    visualDescription: "A pill-shaped button group where a dark background slides smoothly under clicked tabs.",
+    designTokens: ["relative", "flex", "rounded-full", "p-1", "bg-neutral-900", "transition-all"],
+    why: "Makes mode switching immediately readable — no ambiguity about active state.",
+  },
+  "Tactile Form Input Validation": {
+    explanation: "Interactive inputs changing border highlights and rendering animations upon syntax correctness.",
+    visualDescription: "Input boxes glowing amber during typing, snapping green upon valid emails.",
+    designTokens: ["focus:ring-2", "focus:ring-accent", "border-red-500", "border-emerald-500"],
+    why: "Immediate visual feedback eliminates form submission errors and frustration.",
+  },
+  "Toast Status Banner": {
+    explanation: "Temporary floating notifications sliding in near view borders to deliver quick logs.",
+    visualDescription: "A sleek dark floating rectangle sliding from the bottom right with a micro-icon.",
+    designTokens: ["fixed", "bottom-4", "right-4", "z-50", "animate-slide-in", "rounded-lg"],
+    why: "Non-blocking feedback that confirms actions without interrupting the user flow.",
+  },
+  "Avatar Profile Panel": {
+    explanation: "Circular photo mask rendering loading rings and fallback user initials.",
+    visualDescription: "A round profile mask displaying crisp shadows and interactive hover overlays.",
+    designTokens: ["rounded-full", "overflow-hidden", "border-2", "border-white/10"],
+    why: "Immediately humanizes the interface by anchoring user identity to a visual token.",
+  },
+  "AI Spotlight Button": {
+    explanation: "Call-to-action buttons featuring gradient borders, particle sparks, or micro-shimmers.",
+    visualDescription: "A gorgeous accent button with a fine shifting neon line circling its boundaries.",
+    designTokens: ["bg-gradient-to-r", "from-purple-600", "to-pink-600", "active:scale-98"],
+    why: "Primary CTA must demand attention — gradient shimmer outperforms flat color for conversion.",
+  },
+  "Interactive Tag Filter Cloud": {
+    explanation: "Pill-shaped tag indicators toggleable to refine grid search scopes.",
+    visualDescription: "A dense group of rounded capsule badges lighting up active state borders when clicked.",
+    designTokens: ["flex", "flex-wrap", "gap-2", "rounded-full", "px-3", "py-1", "text-xs"],
+    why: "Multi-dimension filtering without page reload — exploratory UX for data-heavy grids.",
+  },
+  "Multi-Step Navigation Wizard": {
+    explanation: "Component dividing comprehensive workflows into numbered sequenced views.",
+    visualDescription: "Progress lines connecting numbered circular dot progress status bubbles.",
+    designTokens: ["flex", "items-center", "justify-between", "step-connector", "step-dot"],
+    why: "Reduces overwhelm on complex forms by chunking input into digestible stages.",
+  },
+};
+
+function TermChip({ term }) {
+  const [expanded, setExpanded] = useState(false);
+  const knowledge = TERM_KNOWLEDGE[term];
+
+  return (
+    <div style={{ width: '100%' }}>
+      <motion.button
+        onClick={() => setExpanded(e => !e)}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+          fontSize: '0.7rem', fontWeight: '600',
+          color: expanded ? '#ffffff' : 'var(--accent)',
+          background: expanded ? 'rgba(124,58,237,0.2)' : 'rgba(124,58,237,0.08)',
+          border: `1px solid ${expanded ? 'rgba(124,58,237,0.5)' : 'rgba(124,58,237,0.2)'}`,
+          borderRadius: '6px', padding: '3px 10px',
+          cursor: 'pointer', fontFamily: 'var(--font-sans)',
+          transition: 'all 0.2s ease',
+        }}
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.97 }}
+        title={knowledge ? 'Click to learn what this term means' : term}
+      >
+        <CheckCircle2 size={10} style={{ color: expanded ? '#a78bfa' : 'var(--accent)' }} />
+        {term}
+        {knowledge && (
+          <span style={{ fontSize: '0.6rem', opacity: 0.6, marginLeft: '2px' }}>
+            {expanded ? '▲' : '▼'}
+          </span>
+        )}
+      </motion.button>
+
+      <AnimatePresence>
+        {expanded && knowledge && (
+          <motion.div
+            initial={{ height: 0, opacity: 0, y: -4 }}
+            animate={{ height: 'auto', opacity: 1, y: 0 }}
+            exit={{ height: 0, opacity: 0, y: -4 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            style={{ overflow: 'hidden', marginTop: '0.4rem' }}
+          >
+            <div style={{
+              background: 'rgba(124,58,237,0.05)',
+              border: '1px solid rgba(124,58,237,0.15)',
+              borderRadius: '8px',
+              padding: '0.75rem',
+              display: 'flex', flexDirection: 'column', gap: '0.5rem',
+            }}>
+              {/* What it is */}
+              <div>
+                <div style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.2rem' }}>
+                  What it is
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.85)', lineHeight: '1.5' }}>
+                  {knowledge.explanation}
+                </div>
+              </div>
+
+              {/* What it looks like */}
+              <div>
+                <div style={{ fontSize: '0.65rem', fontWeight: '700', color: '#c084fc', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.2rem' }}>
+                  What it looks like
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.65)', lineHeight: '1.5', fontStyle: 'italic' }}>
+                  {knowledge.visualDescription}
+                </div>
+              </div>
+
+              {/* Why it was used */}
+              <div>
+                <div style={{ fontSize: '0.65rem', fontWeight: '700', color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.2rem' }}>
+                  Why it was injected
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.75)', lineHeight: '1.5' }}>
+                  {knowledge.why}
+                </div>
+              </div>
+
+              {/* CSS Tokens */}
+              <div>
+                <div style={{ fontSize: '0.65rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.35rem' }}>
+                  Tailwind CSS tokens
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                  {knowledge.designTokens.map((token, i) => (
+                    <code key={i} style={{
+                      fontSize: '0.62rem', fontFamily: 'var(--font-mono)',
+                      color: '#c084fc', background: 'rgba(255,255,255,0.04)',
+                      borderRadius: '4px', padding: '2px 5px',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                    }}>
+                      {token}
+                    </code>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── AI Transparency Panel & Design Tutor Sidebar ─────────────────
 function AITransparencyPanel({ ragDetails, theme, mode }) {
   const [open, setOpen] = useState(false);
   if (!ragDetails) return null;
+
+  const technicalTerms = ragDetails.technicalTerms || [];
+  const designTokens = ragDetails.designTokens || [];
+  const frameworkRules = ragDetails.frameworkRules || [];
+  const promptPatterns = ragDetails.promptPatterns || [];
+
   return (
-    <div style={ragPanel}>
+    <div style={ragPanel} className="animate-fade-up">
       <button style={ragToggleBtn} onClick={() => setOpen(!open)} aria-expanded={open}>
-        <Sparkles size={12} style={{ color: 'var(--accent)' }} />
-        <span>AI Generation Details</span>
-        {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+        <Sparkles size={12} style={{ color: 'var(--accent)', marginRight: '0.25rem' }} />
+        <span>RAG Transparency & Technical Design Tutor</span>
+        <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{
+            fontSize: '0.65rem',
+            background: 'rgba(251,191,36,0.1)',
+            color: 'var(--accent)',
+            border: '1px solid rgba(251,191,36,0.2)',
+            borderRadius: '4px',
+            padding: '1px 6px'
+          }}>
+            Confidence: {Math.round((ragDetails.retrievalConfidence || 0.8) * 100)}%
+          </span>
+          {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+        </span>
       </button>
       <AnimatePresence>
         {open && (
@@ -93,28 +339,99 @@ function AITransparencyPanel({ ragDetails, theme, mode }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             style={{ overflow: 'hidden' }}
           >
             <div style={ragContent}>
-              <div style={ragRow}>
-                <span style={ragLabel}>Theme Applied</span>
-                <span style={ragValue}>{theme}</span>
+              {/* Intent Analysis Summary */}
+              <div style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '0.75rem', marginBottom: '0.75rem' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: '500', marginBottom: '0.2rem' }}>
+                  INFERRED DEVELOPER INTENT
+                </div>
+                <div style={{ fontSize: '0.85rem', color: '#ffffff', fontWeight: '700' }}>
+                  {ragDetails.inferredIntent || "Custom Visual Page Segment"}
+                </div>
               </div>
-              <div style={ragRow}>
-                <span style={ragLabel}>Generation Mode</span>
-                <span style={ragValue}>{mode}</span>
-              </div>
-              {ragDetails.tokensUsed && (
-                <div style={ragRow}>
-                  <span style={ragLabel}>Tokens Used</span>
-                  <span style={ragValue}>{ragDetails.tokensUsed}</span>
+
+              {/* Technical Designer Terms — Vocabulary Learning Drawer */}
+              {technicalTerms.length > 0 && (
+                <div style={{ marginBottom: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: '500' }}>
+                      TECHNICAL TERMS INJECTED
+                    </div>
+                    <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', fontStyle: 'italic' }}>
+                      click any term to learn
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    {technicalTerms.map((term, i) => (
+                      <TermChip key={i} term={term} />
+                    ))}
+                  </div>
                 </div>
               )}
-              {ragDetails.designTokens && (
-                <div style={ragRow}>
-                  <span style={ragLabel}>Design Tokens</span>
-                  <span style={ragValue}>{ragDetails.designTokens} patterns retrieved</span>
+
+              {/* Tailwind CSS Styling Utility Tokens */}
+              {designTokens.length > 0 && (
+                <div style={{ marginBottom: '0.75rem' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: '500', marginBottom: '0.35rem' }}>
+                    COMPILED TAILWIND DESIGN TOKENS
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                    {designTokens.map((token, i) => (
+                      <code key={i} style={{
+                        fontSize: '0.65rem',
+                        fontFamily: 'var(--font-mono)',
+                        color: '#c084fc',
+                        background: 'rgba(255,255,255,0.03)',
+                        borderRadius: '4px',
+                        padding: '2px 6px',
+                        border: '1px solid rgba(255,255,255,0.04)'
+                      }}>
+                        {token}
+                      </code>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Active Framework Rules */}
+              {frameworkRules.length > 0 && (
+                <div style={{ marginBottom: '0.75rem' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: '500', marginBottom: '0.35rem' }}>
+                    ACTIVE FRAMEWORK CONVENTIONS
+                  </div>
+                  <ul style={{ margin: 0, paddingLeft: '1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    {frameworkRules.slice(0, 3).map((rule, i) => (
+                      <li key={i} style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.4' }}>
+                        {rule}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Skeletal Layout Skeletons */}
+              {promptPatterns.length > 0 && (
+                <div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: '500', marginBottom: '0.35rem' }}>
+                    UX & MOTION PHYSICS RESOLUTION
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                    {promptPatterns.slice(0, 2).map((pattern, i) => (
+                      <div key={i} style={{
+                        fontSize: '0.68rem',
+                        color: 'rgba(255,255,255,0.65)',
+                        background: 'rgba(255,255,255,0.01)',
+                        borderLeft: '2px solid var(--accent)',
+                        padding: '0.3rem 0.5rem',
+                        lineHeight: '1.45'
+                      }}>
+                        {pattern}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

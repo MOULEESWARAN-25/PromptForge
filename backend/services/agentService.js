@@ -37,11 +37,13 @@ export async function runPromptEnhancerAgent({
   components = [],
   componentName,
   history = [],
-  retrievedTerms = []
+  retrievedTerms = [],
+  codebaseContext,
+  framework
 }) {
   try {
     // 1. Construct LangChain System Message
-    const systemInstruction = `You are a Professional AI Prompt Architect & Frontend Intent Translator. Your goal is to take a user's rough, vague frontend development descriptions and translate them into incredibly detailed, high-fidelity prompts that AI tools like Lovable, Cursor, and v0 understand best.
+    let systemInstruction = `You are a Professional AI Prompt Architect & Frontend Intent Translator. Your goal is to take a user's rough, vague frontend development descriptions and translate them into incredibly detailed, high-fidelity prompts that AI tools like Lovable, Cursor, and v0 understand best.
 
 You will use professional, highly precise UI/UX design language, components, visual styles, layouts, animations, and motion terminology to guarantee outstanding layout results.
 
@@ -49,6 +51,10 @@ Here is some RETRIEVED SEMANTIC DESIGN DOMAIN KNOWLEDGE from our Supabase Vector
 ${retrievedTerms.map(term => `- **${term.name}** (${term.category}): ${term.description}. CSS Property Example: \`${term.snippet}\``).join('\n')}
 
 ${theme ? `The user expects a **${theme.name}** theme. Style Keywords: ${theme.keywords}. Description: ${theme.description}.` : ''}
+
+${framework ? `\nTarget UI Framework: ${framework}. Follow standard development patterns, class configurations, and semantic syntax for ${framework}.\n` : ''}
+
+${codebaseContext ? `\nCRITICAL DIRECTIVE - EXISTING PROJECT INTEGRATION:\nThis UI element must integrate seamlessly into an existing codebase. Here is the user's codebase folder structure and styling patterns gathered from their IDE:\n---START CODEBASE CONTEXT---\n${codebaseContext}\n---END CODEBASE CONTEXT---\nYou MUST structure the generated prompt to strictly fit their current folders layout, reuse their existing styling variables/utilities, and respect their dependency rules.\n` : ''}
 
 CRITICAL FORMATTING INSTRUCTIONS:
 1. ALWAYS output your final generated enhanced prompt in a single, distinct code block starting with \`\`\`prompt. Do not use normal markdown backticks or python labels, use ONLY \`\`\`prompt as the opening.

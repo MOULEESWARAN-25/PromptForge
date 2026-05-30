@@ -1,0 +1,103 @@
+[
+  {
+    "frameworkName": "Shadcn/UI",
+    "rules": [
+      "Use primitive components from Radix UI and style them using Tailwind CSS class utilities.",
+      "Implement design properties matching standard cn(...) class merge helpers to prevent utility overlap.",
+      "Import standard Lucide-react icons for UI button representations."
+    ],
+    "recommendedPatterns": [
+      "Use Radix slot compositions for flexible link and button layouts.",
+      "Leverage tailwind-merge to clean inline class string conditionals."
+    ],
+    "requiredPackages": [
+      "@radix-ui/react-slot",
+      "clsx",
+      "tailwind-merge",
+      "lucide-react"
+    ],
+    "componentConventions": [
+      "Components should reside in components/ui/ folder structures.",
+      "Export components as standard named ESM exports."
+    ]
+  },
+  {
+    "frameworkName": "Tailwind CSS",
+    "rules": [
+      "Avoid writing complex vanilla custom CSS rules, rely entirely on Tailwind CSS dynamic utility classes.",
+      "Configure HSL style variables inside CSS layers to enable seamless dark mode configuration swaps."
+    ],
+    "recommendedPatterns": [
+      "Centralize core theme colors inside tailwind.config.js using HSL keys.",
+      "Utilize dynamic arbitary values only when precise local offsets are required."
+    ],
+    "requiredPackages": [
+      "tailwindcss",
+      "postcss",
+      "autoprefixer"
+    ],
+    "componentConventions": [
+      "Structure layouts with mobile-first grid columns (e.g. grid grid-cols-1 md:grid-cols-3).",
+      "Use standard viewport units for layout constraints."
+    ]
+  },
+  {
+    "frameworkName": "DaisyUI",
+    "rules": [
+      "Leverage semantic component class names (e.g. btn, card, modal, menu) to reduce Tailwind string length.",
+      "Style layout themes matching standard HTML data-theme configuration guidelines."
+    ],
+    "recommendedPatterns": [
+      "Style responsive sidebars matching daisyui collapsible drawer layout systems.",
+      "Combine daisyUI skeleton elements with local shimmer overrides."
+    ],
+    "requiredPackages": [
+      "daisyui"
+    ],
+    "componentConventions": [
+      "Extend styling variables inside theme attributes of tailwind.config.js.",
+      "Utilize semantic alert tags for notification banners."
+    ]
+  },
+  {
+    "frameworkName": "Material UI (MUI)",
+    "rules": [
+      "Use Material-UI (MUI) components styled using Emotion or styled-components engines.",
+      "Override layout palettes matching standard ThemeProvider configuration profiles."
+    ],
+    "recommendedPatterns": [
+      "Structure forms with MUI grid layouts and secure validator inputs.",
+      "Incorporate responsive Box wrappers for spacing parameters."
+    ],
+    "requiredPackages": [
+      "@mui/material",
+      "@emotion/react",
+      "@emotion/styled"
+    ],
+    "componentConventions": [
+      "Import MUI widgets as separate isolated modules to optimize bundler performance.",
+      "Extend dynamic layouts matching standard grid containers."
+    ]
+  },
+  {
+    "frameworkName": "Chakra UI",
+    "rules": [
+      "Utilize style prop utilities (e.g. px, py, bg, borderRadius) to construct responsive forms.",
+      "Extend core theme constants inside ChakraProvider configs."
+    ],
+    "recommendedPatterns": [
+      "Leverage standard flex containers and layout grid systems.",
+      "Handle modal dialog overlays using standard Chakra hooks."
+    ],
+    "requiredPackages": [
+      "@chakra-ui/react",
+      "@emotion/react",
+      "@emotion/styled",
+      "framer-motion"
+    ],
+    "componentConventions": [
+      "Construct all transitions using simple Chakra animation properties.",
+      "Organize complex components as grouped module files."
+    ]
+  }
+]

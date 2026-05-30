@@ -26,14 +26,16 @@ export async function generateEnhancedPrompt({
   components = [],
   componentName,
   history = [],
-  apiKey
+  apiKey,
+  codebaseContext,
+  framework
 }) {
   const startTime = Date.now();
   
   // 1. TRY CALLING DECOUPLED LANGCHAIN & SUPABASE BACKEND
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 1000);
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
     const backendResponse = await fetch("http://localhost:8000/api/forge", {
       method: "POST",
@@ -49,7 +51,9 @@ export async function generateEnhancedPrompt({
         pageType,
         components,
         componentName,
-        history
+        history,
+        codebaseContext,
+        framework
       })
     });
 
@@ -104,7 +108,9 @@ export async function generateEnhancedPrompt({
         retrievedTerms,
         history,
         apiKey: resolvedApiKey,
-        ragDetails
+        ragDetails,
+        codebaseContext,
+        framework
       });
     } catch (error) {
       console.warn("Gemini API call failed, falling back to Local Prompt Compiler:", error);
@@ -122,7 +128,9 @@ export async function generateEnhancedPrompt({
     components,
     componentName,
     retrievedTerms,
-    history
+    history,
+    codebaseContext,
+    framework
   });
 
   return {
@@ -146,9 +154,11 @@ async function executeGeminiGeneration({
   retrievedTerms,
   history,
   apiKey,
-  ragDetails
+  ragDetails,
+  codebaseContext,
+  framework
 }) {
-  const systemInstruction = `You are a Professional AI Prompt Architect & Frontend Intent Translator. Your goal is to take a user's rough, vague frontend development descriptions and translate them into incredibly detailed, high-fidelity prompts that AI tools like Lovable, Cursor, and v0 understand best.
+  let systemInstruction = `You are a Professional AI Prompt Architect & Frontend Intent Translator. Your goal is to take a user's rough, vague frontend development descriptions and translate them into incredibly detailed, high-fidelity prompts that AI tools like Lovable, Cursor, and v0 understand best.
 
 You will use professional, highly precise UI/UX design language, components, visual styles, layouts, animations, and motion terminology to guarantee outstanding layout results.
 
@@ -156,6 +166,10 @@ Here is some RETRIEVED SEMANTIC DESIGN DOMAIN KNOWLEDGE that you MUST weave into
 ${retrievedTerms.map(term => `- **${term.name}** (${term.category}): ${term.description}. CSS Property Example: \`${term.snippet}\``).join('\n')}
 
 ${theme ? `The user expects a **${theme.name}** theme. Style Keywords: ${theme.keywords}. Description: ${theme.description}.` : ''}
+
+${framework ? `\nTarget UI Framework: ${framework}. Follow standard development patterns, class configurations, and semantic syntax for ${framework}.\n` : ''}
+
+${codebaseContext ? `\nCRITICAL DIRECTIVE - EXISTING PROJECT INTEGRATION:\nThis UI element must integrate seamlessly into an existing codebase. Here is the user's codebase folder structure and styling patterns gathered from their IDE:\n---START CODEBASE CONTEXT---\n${codebaseContext}\n---END CODEBASE CONTEXT---\nYou MUST structure the generated prompt to strictly fit their current folders layout, reuse their existing styling variables/utilities, and respect their dependency rules.\n` : ''}
 
 CRITICAL FORMATTING INSTRUCTIONS:
 1. ALWAYS output your final generated enhanced prompt in a single, distinct code block starting with \`\`\`prompt. Do not use normal markdown backticks or python labels, use ONLY \`\`\`prompt as the opening.
@@ -267,7 +281,9 @@ function compileLocalPrompt({
   components,
   componentName,
   retrievedTerms,
-  history
+  history,
+  codebaseContext,
+  framework
 }) {
   // If we are in interactive chat refinement, simulate a chatbot response
   if (history.length > 0) {
@@ -437,10 +453,18 @@ ${retrievedTerms.map(t => `- **${t.name}**: ${t.description}. Implement using: \
 - Infinite marquee loop ticker for logo lists.`;
   }
 
+  let codebaseInjectText = "";
+  if (framework) {
+    codebaseInjectText += `\n\n### 5. UI Framework Directive\n- Strict Framework target: **${framework}**. Conforms to ${framework}'s component structure, design guidelines, and code conventions.`;
+  }
+  if (codebaseContext) {
+    codebaseInjectText += `\n\n### 6. IDE Codebase Integration guidelines\n- Reuse existing styling properties, file configurations, and folder structure. Folder Sync details:\n\`\`\`\n${codebaseContext}\n\`\`\``;
+  }
+
   return `${preamble}
 
 \`\`\`prompt
-${compiledText}
+${compiledText}${codebaseInjectText}
 \`\`\`
 
 You can continue chatting with me to refine this prompt! Ask me to add features, modify colors, adjust themes, or inject specific animations.`;

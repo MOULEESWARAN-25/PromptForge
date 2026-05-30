@@ -1,0 +1,252 @@
+[
+  {
+    "id": "PROMPT-001",
+    "cohort": "Student",
+    "rawPrompt": "Build a website to organize my class notes"
+  },
+  {
+    "id": "PROMPT-002",
+    "cohort": "Student",
+    "rawPrompt": "Design a study flashcard app with flip animations"
+  },
+  {
+    "id": "PROMPT-003",
+    "cohort": "Student",
+    "rawPrompt": "Create a clean dashboard showing student assignments and grades"
+  },
+  {
+    "id": "PROMPT-004",
+    "cohort": "Student",
+    "rawPrompt": "Build a collaborative study group scheduler portal"
+  },
+  {
+    "id": "PROMPT-005",
+    "cohort": "Student",
+    "rawPrompt": "Make a textbook rental list and book exchange marketplace"
+  },
+  {
+    "id": "PROMPT-006",
+    "cohort": "Student",
+    "rawPrompt": "Design a simple portfolio page showing student achievements and resume"
+  },
+  {
+    "id": "PROMPT-007",
+    "cohort": "Student",
+    "rawPrompt": "Create a task tracker with interactive checkmarks for coursework"
+  },
+  {
+    "id": "PROMPT-008",
+    "cohort": "Student",
+    "rawPrompt": "Build a simple cafeteria menu vote and lunch feedback site"
+  },
+  {
+    "id": "PROMPT-009",
+    "cohort": "Student",
+    "rawPrompt": "Design a university club event calendar with detail popups"
+  },
+  {
+    "id": "PROMPT-010",
+    "cohort": "Student",
+    "rawPrompt": "Create a grade point average GPA calculator with spring slide charts"
+  },
+  {
+    "id": "PROMPT-011",
+    "cohort": "Indie Hacker",
+    "rawPrompt": "Create a premium stripe pricing section with an annual switcher"
+  },
+  {
+    "id": "PROMPT-012",
+    "cohort": "Indie Hacker",
+    "rawPrompt": "Build a sleek waitlist signup page with a neon halo glow badge"
+  },
+  {
+    "id": "PROMPT-013",
+    "cohort": "Indie Hacker",
+    "rawPrompt": "Design an elegant directory page showing curated indie maker tools"
+  },
+  {
+    "id": "PROMPT-014",
+    "cohort": "Indie Hacker",
+    "rawPrompt": "Build a clean customer feedback board with voting button springs"
+  },
+  {
+    "id": "PROMPT-015",
+    "cohort": "Indie Hacker",
+    "rawPrompt": "Create a minimalist digital download store checkout overlay card"
+  },
+  {
+    "id": "PROMPT-016",
+    "cohort": "Indie Hacker",
+    "rawPrompt": "Design a beautiful user testimonial deck carousel slider"
+  },
+  {
+    "id": "PROMPT-017",
+    "cohort": "Indie Hacker",
+    "rawPrompt": "Build a responsive startup sponsor logo wall with marquee scrolling"
+  },
+  {
+    "id": "PROMPT-018",
+    "cohort": "Indie Hacker",
+    "rawPrompt": "Create a simple changelog grid with time dates and feature pill badges"
+  },
+  {
+    "id": "PROMPT-019",
+    "cohort": "Indie Hacker",
+    "rawPrompt": "Design a premium newsletter signup section with spring entry motion"
+  },
+  {
+    "id": "PROMPT-020",
+    "cohort": "Indie Hacker",
+    "rawPrompt": "Build a clean dashboard displaying referral links and click metrics"
+  },
+  {
+    "id": "PROMPT-021",
+    "cohort": "Frontend Developer",
+    "rawPrompt": "A command palette that lets users search and run shortcuts"
+  },
+  {
+    "id": "PROMPT-022",
+    "cohort": "Frontend Developer",
+    "rawPrompt": "Design a collapsible side nav panel with strict keyboard navigation focus"
+  },
+  {
+    "id": "PROMPT-023",
+    "cohort": "Frontend Developer",
+    "rawPrompt": "Build an interactive modal dialog overlay with focus trapping and ARIA attributes"
+  },
+  {
+    "id": "PROMPT-024",
+    "cohort": "Frontend Developer",
+    "rawPrompt": "Create a highly customizable data table with multi-column sorting filters"
+  },
+  {
+    "id": "PROMPT-025",
+    "cohort": "Frontend Developer",
+    "rawPrompt": "Design a multi-step stepper form with instant client validation indicators"
+  },
+  {
+    "id": "PROMPT-026",
+    "cohort": "Frontend Developer",
+    "rawPrompt": "Build a custom drag-and-drop file uploader block with backdrop drops shadow"
+  },
+  {
+    "id": "PROMPT-027",
+    "cohort": "Frontend Developer",
+    "rawPrompt": "Create a code block editor playground widget with copy triggers and active buttons"
+  },
+  {
+    "id": "PROMPT-028",
+    "cohort": "Frontend Developer",
+    "rawPrompt": "Design an autocomplete dropdown select input with ARIA combobox markup"
+  },
+  {
+    "id": "PROMPT-029",
+    "cohort": "Frontend Developer",
+    "rawPrompt": "Build an infinite scroll photo gallery layout with responsive padding boundaries"
+  },
+  {
+    "id": "PROMPT-030",
+    "cohort": "Frontend Developer",
+    "rawPrompt": "Create a dark mode toggle button component with spring spin curves"
+  },
+  {
+    "id": "PROMPT-031",
+    "cohort": "SaaS Founder",
+    "rawPrompt": "Build a modern analytics dashboard with bento grid widgets"
+  },
+  {
+    "id": "PROMPT-032",
+    "cohort": "SaaS Founder",
+    "rawPrompt": "Design a subscription billing spotlight tiers panel with pro tags"
+  },
+  {
+    "id": "PROMPT-033",
+    "cohort": "SaaS Founder",
+    "rawPrompt": "Create a customer onboard pipeline portal with visual checkpoints"
+  },
+  {
+    "id": "PROMPT-034",
+    "cohort": "SaaS Founder",
+    "rawPrompt": "Build a user team member invite access control table with slider toggles"
+  },
+  {
+    "id": "PROMPT-035",
+    "cohort": "SaaS Founder",
+    "rawPrompt": "Design a live status page monitoring api services uptime stats"
+  },
+  {
+    "id": "PROMPT-036",
+    "cohort": "SaaS Founder",
+    "rawPrompt": "Build an account settings workspace screen with custom profile edit cards"
+  },
+  {
+    "id": "PROMPT-037",
+    "cohort": "SaaS Founder",
+    "rawPrompt": "Create a dynamic feature matrix comparison deck comparing free vs pro plans"
+  },
+  {
+    "id": "PROMPT-038",
+    "cohort": "SaaS Founder",
+    "rawPrompt": "Design a premium support ticket submission box with quick category tagging"
+  },
+  {
+    "id": "PROMPT-039",
+    "cohort": "SaaS Founder",
+    "rawPrompt": "Build a security settings page managing api keys and credentials visibility"
+  },
+  {
+    "id": "PROMPT-040",
+    "cohort": "SaaS Founder",
+    "rawPrompt": "Create an integration app marketplace gallery cards interface"
+  },
+  {
+    "id": "PROMPT-041",
+    "cohort": "Vibe Coder",
+    "rawPrompt": "make a frosted transparent user profile uploader card with smooth spring active buttons"
+  },
+  {
+    "id": "PROMPT-042",
+    "cohort": "Vibe Coder",
+    "rawPrompt": "Design a futuristic music album dashboard panel with neon backdrop blurs"
+  },
+  {
+    "id": "PROMPT-043",
+    "cohort": "Vibe Coder",
+    "rawPrompt": "Build an online neon cyber retro dashboard portal with pixel overlays"
+  },
+  {
+    "id": "PROMPT-044",
+    "cohort": "Vibe Coder",
+    "rawPrompt": "Create a minimal brutalist landing frame with flat bold black border shadows"
+  },
+  {
+    "id": "PROMPT-045",
+    "cohort": "Vibe Coder",
+    "rawPrompt": "Design a cozy wes anderson soft pastel portfolio homepage grid"
+  },
+  {
+    "id": "PROMPT-046",
+    "cohort": "Vibe Coder",
+    "rawPrompt": "Build a frosted glass uploader interface with micro bounce effects"
+  },
+  {
+    "id": "PROMPT-047",
+    "cohort": "Vibe Coder",
+    "rawPrompt": "Create a sleek bento card grid with glowing ambient hover highlights"
+  },
+  {
+    "id": "PROMPT-048",
+    "cohort": "Vibe Coder",
+    "rawPrompt": "Design a fluid responsive hero zone that scales nicely on hover focus"
+  },
+  {
+    "id": "PROMPT-049",
+    "cohort": "Vibe Coder",
+    "rawPrompt": "Build an interactive 3D slider grid panel showing retro profile icons"
+  },
+  {
+    "id": "PROMPT-050",
+    "cohort": "Vibe Coder",
+    "rawPrompt": "Create a modern futuristic user control command panel with spring bounces"
+  }
+]

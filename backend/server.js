@@ -59,7 +59,9 @@ app.post('/api/forge', async (req, res) => {
     pageType,
     components = [],
     componentName,
-    history = []
+    history = [],
+    codebaseContext,
+    framework
   } = req.body;
 
   if (!query && mode !== 'enhance') {
@@ -98,7 +100,9 @@ app.post('/api/forge', async (req, res) => {
       components,
       componentName,
       history,
-      retrievedTerms
+      retrievedTerms,
+      codebaseContext,
+      framework
     });
 
     res.json({

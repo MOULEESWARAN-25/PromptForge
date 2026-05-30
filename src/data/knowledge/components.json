@@ -1,0 +1,79 @@
+[
+  {
+    "componentName": "Interactive Command Palette",
+    "accessibilityGuidelines": [
+      "Ensure viewport focus immediately snaps inside the command text search input upon palette mount.",
+      "Support standard arrow key navigations and Tab options triggers across search items.",
+      "Attach aria-expanded properties to toggle elements."
+    ],
+    "responsiveGridPresets": "Centered floating console card overlay with absolute viewport boundaries."
+  },
+  {
+    "componentName": "Glassmorphic Modal Dialog",
+    "accessibilityGuidelines": [
+      "Trap user keyboard Tab selections within active modal modal elements.",
+      "Esc key click should instantly invoke overlay close animations.",
+      "Apply role='dialog' and aria-modal='true' attributes."
+    ],
+    "responsiveGridPresets": "Responsive responsive modal placing container cards centered on small screens, scaling up to max-w-lg on desktop."
+  },
+  {
+    "componentName": "Pricing Card Matrix",
+    "accessibilityGuidelines": [
+      "Ensure proper semantic card headers to direct screen readers correctly.",
+      "High contrast text guidelines to maintain readable subscription comparisons."
+    ],
+    "responsiveGridPresets": "Fluid single column layout on mobile, scaling into standard three-column pricing matrices on tablet devices."
+  },
+  {
+    "componentName": "Collapsible Sidebar Navigation",
+    "accessibilityGuidelines": [
+      "Provide custom visually hidden screen reader descriptions indicating link state (e.g. collapsed/expanded).",
+      "Attach custom aria-controls elements linking header toggles directly to drawer panels."
+    ],
+    "responsiveGridPresets": "Sticky floating navigation panel fitting viewport heights on desktop, collapsing to horizontal bottom menus on mobile."
+  },
+  {
+    "componentName": "Settings Tab Navigator",
+    "accessibilityGuidelines": [
+      "Attach role='tablist' properties to container bars, setting role='tab' and aria-selected values on options tabs."
+    ],
+    "responsiveGridPresets": "Multi-column responsive grid layout."
+  },
+  {
+    "componentName": "Multi-Step Form Wizard",
+    "accessibilityGuidelines": [
+      "Announce steps change states to screen readers.",
+      "Ensure standard focus flow across step circular indicator buttons."
+    ],
+    "responsiveGridPresets": "Unified wizard screen centering cards over subtle glass panels."
+  },
+  {
+    "componentName": "Activity Stream Log",
+    "accessibilityGuidelines": [
+      "Apply role='log' or aria-live='polite' attributes to list wrappers."
+    ],
+    "responsiveGridPresets": "Single column vertical cards stack."
+  },
+  {
+    "componentName": "KPI Metric Card",
+    "accessibilityGuidelines": [
+      "Pair dynamic numeric metric displays with text labels."
+    ],
+    "responsiveGridPresets": "Grid cells auto-scaling."
+  },
+  {
+    "componentName": "Interactive Data Chart Widget",
+    "accessibilityGuidelines": [
+      "Provide accessible tabular data fallbacks for screen reader charts."
+    ],
+    "responsiveGridPresets": "Sizable dynamic grid item slots."
+  },
+  {
+    "componentName": "Infinite Marquee Ticker",
+    "accessibilityGuidelines": [
+      "Support system motion accessibility settings, pausing infinite marquee ticker loops when users request reduced motion."
+    ],
+    "responsiveGridPresets": "Horizontal slider banner."
+  }
+]
