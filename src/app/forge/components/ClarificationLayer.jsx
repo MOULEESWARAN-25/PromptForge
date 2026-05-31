@@ -70,7 +70,7 @@ export function ClarificationLayer({
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
         {/* Q1: Target Audience */}
-        <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '12px', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <h4 style={{ fontSize: '0.85rem', fontWeight: '750', color: 'var(--foreground)' }}>Primary Target Audience</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {['SaaS Developers / B2B', 'General Public / B2C', 'Internal Enterprise Admins'].map((aud) => {
@@ -84,12 +84,13 @@ export function ClarificationLayer({
                     fontSize: '0.78rem',
                     borderRadius: '6px',
                     textAlign: 'left',
-                    background: isSel ? 'rgba(124, 58, 237, 0.08)' : 'rgba(255,255,255,0.02)',
-                    border: isSel ? '1px solid #7c3aed' : '1px solid rgba(255,255,255,0.05)',
-                    color: isSel ? '#ffffff' : 'var(--muted-foreground)',
+                    background: isSel ? 'rgba(104, 67, 236, 0.12)' : 'transparent',
+                    border: isSel ? '1px solid var(--accent)' : '1px solid var(--border)',
+                    color: isSel ? 'var(--accent)' : 'var(--muted-foreground)',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    width: '100%'
+                    width: '100%',
+                    fontWeight: isSel ? '700' : '500'
                   }}
                   className="active-scale-95"
                 >
@@ -101,7 +102,7 @@ export function ClarificationLayer({
         </div>
 
         {/* Q2: Layout Density */}
-        <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '12px', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <h4 style={{ fontSize: '0.85rem', fontWeight: '750', color: 'var(--foreground)' }}>Layout Visual Density</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {['Minimalist / Spacious', 'Balanced / Modern', 'Data-Heavy / Compact'].map((dens) => {
@@ -115,12 +116,13 @@ export function ClarificationLayer({
                     fontSize: '0.78rem',
                     borderRadius: '6px',
                     textAlign: 'left',
-                    background: isSel ? 'rgba(124, 58, 237, 0.08)' : 'rgba(255,255,255,0.02)',
-                    border: isSel ? '1px solid #7c3aed' : '1px solid rgba(255,255,255,0.05)',
-                    color: isSel ? '#ffffff' : 'var(--muted-foreground)',
+                    background: isSel ? 'rgba(104, 67, 236, 0.12)' : 'transparent',
+                    border: isSel ? '1px solid var(--accent)' : '1px solid var(--border)',
+                    color: isSel ? 'var(--accent)' : 'var(--muted-foreground)',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    width: '100%'
+                    width: '100%',
+                    fontWeight: isSel ? '700' : '500'
                   }}
                   className="active-scale-95"
                 >
@@ -132,7 +134,7 @@ export function ClarificationLayer({
         </div>
 
         {/* Q3: Viewport Layout */}
-        <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '12px', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <h4 style={{ fontSize: '0.85rem', fontWeight: '750', color: 'var(--foreground)' }}>Primary Viewport Scale</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {['Mobile-First Fluid', 'Desktop Grid Focus', 'Universal Adaptive'].map((viewp) => {
@@ -146,12 +148,13 @@ export function ClarificationLayer({
                     fontSize: '0.78rem',
                     borderRadius: '6px',
                     textAlign: 'left',
-                    background: isSel ? 'rgba(124, 58, 237, 0.08)' : 'rgba(255, 255, 255, 0.02)',
-                    border: isSel ? '1px solid #7c3aed' : '1px solid rgba(255,255,255,0.05)',
-                    color: isSel ? '#ffffff' : 'var(--muted-foreground)',
+                    background: isSel ? 'rgba(104, 67, 236, 0.12)' : 'transparent',
+                    border: isSel ? '1px solid var(--accent)' : '1px solid var(--border)',
+                    color: isSel ? 'var(--accent)' : 'var(--muted-foreground)',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    width: '100%'
+                    width: '100%',
+                    fontWeight: isSel ? '700' : '500'
                   }}
                   className="active-scale-95"
                 >
@@ -163,7 +166,7 @@ export function ClarificationLayer({
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '1.25rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '1.25rem' }}>
         <button
           onClick={onBack}
           style={{
@@ -189,3 +192,4 @@ export function ClarificationLayer({
     </div>
   );
 }
+

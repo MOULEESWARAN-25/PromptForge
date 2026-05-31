@@ -5,6 +5,17 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { track } from '@/lib/analytics';
+import { ShadcnSelect } from '@/components/ui/ShadcnElements';
+
+const FRAMEWORK_OPTIONS = [
+  { value: 'Shadcn/UI', label: 'Shadcn/UI' },
+  { value: 'Tailwind CSS', label: 'Tailwind CSS' },
+  { value: 'DaisyUI', label: 'DaisyUI' },
+  { value: 'React Bootstrap', label: 'React Bootstrap' },
+  { value: 'Material UI', label: 'Material UI' },
+  { value: 'Chakra UI', label: 'Chakra UI' },
+  { value: 'Vanilla CSS Modules', label: 'Vanilla CSS Modules' }
+];
 
 const PROJECT_TYPES = [
   { id: 'SaaS Platform', label: 'SaaS Platform', icon: <Layers size={16} /> },
@@ -110,9 +121,9 @@ export function SyncBranchSelector({
   const activeIntegration = projectIntegration || 'new';
 
   // Dynamic colors based on active wizard mode
-  const accentColor = activeMode === 'page' ? '#0891b2' : activeMode === 'component' ? '#ec4899' : '#7c3aed';
-  const activeBg = activeMode === 'page' ? 'rgba(8, 145, 178, 0.06)' : activeMode === 'component' ? 'rgba(236, 72, 153, 0.06)' : 'rgba(124, 58, 237, 0.06)';
-  const focusBorderShadow = activeMode === 'page' ? 'rgba(8, 145, 178, 0.15)' : activeMode === 'component' ? 'rgba(236, 72, 153, 0.15)' : 'rgba(124, 58, 237, 0.15)';
+  const accentColor = '#6843EC';
+  const activeBg = 'rgba(104, 67, 236, 0.10)';
+  const focusBorderShadow = 'rgba(104, 67, 236, 0.20)';
 
   const containerStyle = {
     display: 'flex',
@@ -134,8 +145,10 @@ export function SyncBranchSelector({
     }
   };
 
+  const totalPages = activeIntegration === 'new' ? 3 : 2;
+
   const handleNextSubPage = () => {
-    if (setupPage < 3) {
+    if (setupPage < totalPages) {
       setSetupPage(prev => prev + 1);
     } else if (isStepWizard && goNext) {
       goNext();
@@ -156,8 +169,8 @@ export function SyncBranchSelector({
       <style>{`
         .pf-setup-mode-tabs {
           display: flex;
-          background: rgba(255,255,255,0.02);
-          border: 1px solid rgba(255,255,255,0.06);
+          background: var(--muted);
+          border: 1px solid var(--border);
           border-radius: 12px;
           padding: 4px;
           gap: 4px;
@@ -182,7 +195,8 @@ export function SyncBranchSelector({
         .pf-setup-tab-btn.active {
           background: ${activeBg};
           border: 1px solid ${accentColor};
-          color: #fff;
+          color: var(--accent);
+          font-weight: 800;
         }
         
         .pf-setup-grid-3cols {
@@ -233,12 +247,12 @@ export function SyncBranchSelector({
           border-radius: 10px;
           cursor: pointer;
           transition: all 0.15s ease;
-          background: rgba(255, 255, 255, 0.01);
-          border: 1px solid rgba(255, 255, 255, 0.04);
+          background: var(--card);
+          border: 1px solid var(--border);
         }
         .pf-setup-card:hover {
-          background: rgba(255, 255, 255, 0.02);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: var(--muted);
+          border: 1px solid var(--accent);
         }
         .pf-setup-card.active {
           background: ${activeBg};
@@ -278,10 +292,10 @@ export function SyncBranchSelector({
           font-weight: 700;
           color: var(--muted-foreground);
           font-family: var(--font-mono);
-          background: rgba(255,255,255,0.03);
+          background: var(--muted);
           padding: 2px 8px;
           border-radius: 12px;
-          border: 1px solid rgba(255,255,255,0.04);
+          border: 1px solid var(--border);
         }
       `}</style>
 
@@ -290,6 +304,7 @@ export function SyncBranchSelector({
         <button 
           onClick={() => {
             setProjectIntegration('new');
+            setSetupPage(1);
             track('sync_branch_selected', { branch: 'new' });
           }}
           className={`pf-setup-tab-btn ${activeIntegration === 'new' ? 'active' : ''}`}
@@ -299,6 +314,7 @@ export function SyncBranchSelector({
         <button 
           onClick={() => {
             setProjectIntegration('existing');
+            setSetupPage(1);
             track('sync_branch_selected', { branch: 'existing' });
           }}
           className={`pf-setup-tab-btn ${activeIntegration === 'existing' ? 'active' : ''}`}
@@ -308,17 +324,26 @@ export function SyncBranchSelector({
       </div>
 
       {/* Subpage Header with Indicator */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '0.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
         <span style={{ fontSize: '0.8rem', fontWeight: '800', color: 'var(--foreground)' }}>
-          {setupPage === 1 && "Step 1: General Parameters"}
-          {setupPage === 2 && (activeIntegration === 'new' ? "Step 2: Technology Stacks" : "Step 2: IDE Environment Sync")}
-          {setupPage === 3 && "Step 3: Integration & Features"}
+          {activeIntegration === 'new' ? (
+            <>
+              {setupPage === 1 && "Step 1: General Parameters"}
+              {setupPage === 2 && "Step 2: Technology Stacks"}
+              {setupPage === 3 && "Step 3: Integration & Features"}
+            </>
+          ) : (
+            <>
+              {setupPage === 1 && "Step 1: IDE Sync Environment"}
+              {setupPage === 2 && "Step 2: Integration & Features"}
+            </>
+          )}
         </span>
-        <span className="pf-substep-indicator">{setupPage} / 3</span>
+        <span className="pf-substep-indicator">{setupPage} / {totalPages}</span>
       </div>
 
-      {/* PAGE 1: GENERAL PARAMETERS */}
-      {setupPage === 1 && (
+      {/* PAGE 1: GENERAL PARAMETERS (NEW PROJECT ONLY) */}
+      {activeIntegration === 'new' && setupPage === 1 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }} className="animate-fade-up">
           {/* Inputs Row */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
@@ -363,7 +388,7 @@ export function SyncBranchSelector({
                     className={`pf-setup-card ${isSelected ? 'active' : ''}`}
                   >
                     {opt.icon}
-                    <span style={{ fontSize: '0.75rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? '#fff' : 'var(--foreground)' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? 'var(--accent)' : 'var(--foreground)' }}>
                       {opt.label}
                     </span>
                   </div>
@@ -374,8 +399,8 @@ export function SyncBranchSelector({
         </div>
       )}
 
-      {/* PAGE 2: TECH STACKS (NEW PROJECT) */}
-      {setupPage === 2 && activeIntegration === 'new' && (
+      {/* PAGE 2: TECH STACKS (NEW PROJECT ONLY) */}
+      {activeIntegration === 'new' && setupPage === 2 && (
         <div className="pf-setup-grid-3cols animate-fade-up">
           {/* Frontend Column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
@@ -389,7 +414,7 @@ export function SyncBranchSelector({
                   className={`pf-setup-card ${isSelected ? 'active' : ''}`}
                 >
                   {opt.icon}
-                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? '#fff' : 'var(--foreground)' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? 'var(--accent)' : 'var(--foreground)' }}>
                     {opt.label}
                   </span>
                 </div>
@@ -409,7 +434,7 @@ export function SyncBranchSelector({
                   className={`pf-setup-card ${isSelected ? 'active' : ''}`}
                 >
                   {opt.icon}
-                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? '#fff' : 'var(--foreground)' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? 'var(--accent)' : 'var(--foreground)' }}>
                     {opt.label}
                   </span>
                 </div>
@@ -429,7 +454,7 @@ export function SyncBranchSelector({
                   className={`pf-setup-card ${isSelected ? 'active' : ''}`}
                 >
                   {opt.icon}
-                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? '#fff' : 'var(--foreground)' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? 'var(--accent)' : 'var(--foreground)' }}>
                     {opt.label}
                   </span>
                 </div>
@@ -439,8 +464,8 @@ export function SyncBranchSelector({
         </div>
       )}
 
-      {/* PAGE 2: IDE SYNC ENVIRONMENT (EXISTING PROJECT) */}
-      {setupPage === 2 && activeIntegration === 'existing' && (
+      {/* PAGE 2: IDE SYNC ENVIRONMENT (EXISTING PROJECT ONLY) */}
+      {activeIntegration === 'existing' && setupPage === 1 && (
         <div className="pf-setup-grid-2cols-split animate-fade-up">
           {/* Left panel: Framework & prompter */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
@@ -448,16 +473,12 @@ export function SyncBranchSelector({
               <label style={{ fontSize: '0.75rem', fontWeight: '750', color: 'var(--foreground)', display: 'block', marginBottom: '0.35rem' }}>
                 Active UI Framework
               </label>
-              <select
+              <ShadcnSelect
                 value={framework}
-                onChange={(e) => setFramework(e.target.value)}
-                className="pf-setup-input"
-                style={{ background: 'var(--input)', cursor: 'pointer' }}
-              >
-                {['Shadcn/UI', 'Tailwind CSS', 'DaisyUI', 'React Bootstrap', 'Material UI', 'Chakra UI', 'Vanilla CSS Modules'].map((fw) => (
-                  <option key={fw} value={fw}>{fw}</option>
-                ))}
-              </select>
+                onChange={setFramework}
+                options={FRAMEWORK_OPTIONS}
+                placeholder="Select framework..."
+              />
             </div>
 
             <div>
@@ -468,8 +489,8 @@ export function SyncBranchSelector({
                 Copy the instruction below, paste it into your editor chat (Cursor, Copilot, or terminal), then copy its structural response back here.
               </p>
               
-              <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '8px', padding: '0.65rem', position: 'relative' }}>
-                <pre style={{ margin: 0, fontSize: '0.68rem', color: '#c0c0c0', whiteSpace: 'pre-wrap', fontFamily: 'var(--font-mono)', lineHeight: '1.4' }}>
+              <div style={{ background: 'var(--muted)', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.65rem', position: 'relative' }}>
+                <pre style={{ margin: 0, fontSize: '0.68rem', color: 'var(--foreground)', whiteSpace: 'pre-wrap', fontFamily: 'var(--font-mono)', lineHeight: '1.4' }}>
                   {getSyncPromptText()}
                 </pre>
                 
@@ -484,12 +505,12 @@ export function SyncBranchSelector({
                     position: 'absolute',
                     top: '0.4rem',
                     right: '0.4rem',
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'var(--card)',
+                    border: '1px solid var(--border)',
                     borderRadius: '5px',
                     padding: '3px 8px',
                     fontSize: '0.62rem',
-                    color: '#ffffff',
+                    color: 'var(--foreground)',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -527,8 +548,8 @@ export function SyncBranchSelector({
         </div>
       )}
 
-      {/* PAGE 3: INTEGRATION & SERVICES */}
-      {setupPage === 3 && (
+      {/* PAGE 3: INTEGRATION & SERVICES (NEW: STEP 3, EXISTING: STEP 2) */}
+      {((activeIntegration === 'new' && setupPage === 3) || (activeIntegration === 'existing' && setupPage === 2)) && (
         <div className="pf-setup-grid-3cols animate-fade-up">
           {/* Authentication Column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
@@ -542,7 +563,7 @@ export function SyncBranchSelector({
                   className={`pf-setup-card ${isSelected ? 'active' : ''}`}
                 >
                   {opt.icon}
-                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? '#fff' : 'var(--foreground)' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? 'var(--accent)' : 'var(--foreground)' }}>
                     {opt.label}
                   </span>
                 </div>
@@ -562,7 +583,7 @@ export function SyncBranchSelector({
                   className={`pf-setup-card ${isSelected ? 'active' : ''}`}
                 >
                   {opt.icon}
-                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? '#fff' : 'var(--foreground)' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? 'var(--accent)' : 'var(--foreground)' }}>
                     {opt.label}
                   </span>
                 </div>
@@ -581,8 +602,8 @@ export function SyncBranchSelector({
                   onClick={() => handleFeatureToggle(opt.id)}
                   className={`pf-setup-card ${isSelected ? 'active' : ''}`}
                 >
-                  <CheckCircle2 size={13} style={{ color: isSelected ? accentColor : 'rgba(255,255,255,0.1)', flexShrink: 0 }} />
-                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? '#fff' : 'var(--foreground)' }}>
+                  <CheckCircle2 size={13} style={{ color: isSelected ? 'var(--accent)' : 'var(--border)', flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.72rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? 'var(--accent)' : 'var(--foreground)' }}>
                     {opt.label}
                   </span>
                 </div>
@@ -596,26 +617,39 @@ export function SyncBranchSelector({
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginTop: '0.5rem' }}>
         <button
           onClick={handlePrevSubPage}
+          disabled={setupPage === 1 && !isStepWizard}
           className="pf-setup-nav-btn active-scale-95"
           style={{
-            border: '1px solid rgba(255,255,255,0.08)',
-            background: 'rgba(255,255,255,0.02)',
-            color: 'var(--muted-foreground)'
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            padding: '0.6rem 1.25rem', borderRadius: '10px',
+            border: '1px solid var(--border)',
+            background: 'var(--card)',
+            color: 'var(--foreground)',
+            fontSize: '0.85rem', fontWeight: '600',
+            cursor: (setupPage === 1 && !isStepWizard) ? 'default' : 'pointer',
+            opacity: (setupPage === 1 && !isStepWizard) ? 0.35 : 1,
+            whiteSpace: 'nowrap',
+            fontFamily: 'var(--font-sans)', transition: 'all 0.2s ease'
           }}
         >
-          <ArrowLeft size={14} /> Back
+          <ArrowLeft size={14} /> {setupPage === 1 ? 'Back to Preview' : 'Back'}
         </button>
 
         <button
           onClick={handleNextSubPage}
           className="pf-setup-nav-btn active-scale-95"
           style={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            padding: '0.6rem 1.5rem', borderRadius: '10px',
             border: 'none',
-            background: accentColor,
-            color: '#fff'
+            background: 'var(--accent)',
+            color: 'var(--accent-foreground)',
+            fontSize: '0.85rem', fontWeight: '700',
+            cursor: 'pointer', whiteSpace: 'nowrap',
+            fontFamily: 'var(--font-sans)', transition: 'all 0.2s ease'
           }}
         >
-          {setupPage === 3 ? (isStepWizard ? 'Review' : 'Done') : 'Continue'} <ArrowRight size={14} />
+          {setupPage === totalPages ? (isStepWizard ? 'Review' : 'Done') : 'Continue'} <ArrowRight size={14} />
         </button>
       </div>
     </div>

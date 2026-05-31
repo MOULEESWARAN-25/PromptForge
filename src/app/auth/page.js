@@ -15,7 +15,7 @@ const SLIDES = [
     accentLine: 1,
     sub: 'Stop writing weak descriptions. PromptForge translates your intent into precision-grade prompts that AI tools actually understand.',
     tag: '12K+ Prompts Generated',
-    accent: '#fbbf24',
+    accent: '#6843EC',
     img: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=700&h=420&fit=crop&q=85',
     imgAlt: 'Code editor with colorful syntax highlighting',
     floats: [
@@ -144,7 +144,7 @@ export default function AuthPage() {
 
         {/* ── Logo ── */}
         <div style={logoRow}>
-          <div style={logoIcon}><Sparkles size={15} color="#fbbf24" /></div>
+          <div style={logoIcon}><Sparkles size={15} color="#6843EC" /></div>
           <span style={logoName}>PromptForge</span>
           <motion.span
             key={`badge-${slide}`}
@@ -392,7 +392,7 @@ export default function AuthPage() {
             onClick={handleDemo}
             style={demoBtn}
             disabled={loading}
-            whileHover={{ scale: 1.01, background: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(255, 255, 255, 0.12)' }}
+            whileHover={{ scale: 1.01, background: 'var(--card)', borderColor: 'rgba(255, 255, 255, 0.12)' }}
             whileTap={{ scale: 0.99 }}
             title="Explore the app with a pre-filled demo account — no sign-up needed"
             aria-label="Continue with demo account (no registration required)"
@@ -423,21 +423,21 @@ const rightOrb = { position: 'absolute', bottom: '-10%', right: '-10%', width: '
 const arcSvg = { position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' };
 
 const logoRow = { position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem' };
-const logoIcon = { width: 30, height: 30, borderRadius: 8, background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const logoName = { fontSize: '1rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: '#fff', letterSpacing: '-0.04em' };
+const logoIcon = { width: 30, height: 30, borderRadius: 8, background: 'rgba(104,67,236,0.12)', border: '1px solid rgba(104,67,236,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center' };
+const logoName = { fontSize: '1rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--foreground)', letterSpacing: '-0.04em' };
 const logoBadge = { fontSize: '0.62rem', fontWeight: 700, border: '1px solid', borderRadius: 999, padding: '1px 8px', letterSpacing: '0.05em', transition: 'all 0.5s ease' };
 
 const slideArea = { position: 'relative', zIndex: 2, flex: 1, display: 'flex', alignItems: 'center' };
 const slideInner = { width: '100%' };
 const slidePill = { display: 'inline-flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.67rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', border: '1px solid', borderRadius: 999, padding: '4px 12px', marginBottom: '1rem' };
-const slideHeadline = { fontSize: 'clamp(2rem,3.2vw,2.8rem)', fontWeight: 800, fontFamily: 'var(--font-display)', color: '#fff', lineHeight: 1.14, letterSpacing: '-0.04em', marginBottom: '1.5rem' };
+const slideHeadline = { fontSize: 'clamp(2rem,3.2vw,2.8rem)', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--foreground)', lineHeight: 1.14, letterSpacing: '-0.04em', marginBottom: '1.5rem' };
 
 // Image card
 const imgCardOuter = { display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.1rem' };
 const pillCol = { display: 'flex', flexDirection: 'column', gap: '0.5rem', flexShrink: 0 };
 const floatPill = { display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, border: '1px solid', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', whiteSpace: 'nowrap' };
 const imgCard = { borderRadius: 12, border: '1px solid', overflow: 'hidden', position: 'relative', background: '#0d0d14', minWidth: 0 };
-const imgCardBar = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', background: 'rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.07)' };
+const imgCardBar = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', background: 'var(--card)', borderBottom: '1px solid rgba(255,255,255,0.07)' };
 const imgCardUrl = { flex: 1, textAlign: 'center', fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono,monospace)' };
 const imgEl = { width: '100%', height: '185px', objectFit: 'cover', display: 'block', filter: 'brightness(0.85) contrast(1.05) saturate(1.1)' };
 const imgOverlay = { position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%', background: 'linear-gradient(to top, rgba(4,3,16,0.7) 0%, transparent 100%)', pointerEvents: 'none' };
@@ -457,15 +457,15 @@ const cardTopShine = { position: 'absolute', top: 0, left: 0, right: 0, height: 
 
 const brandRow = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', marginBottom: '0.1rem', position: 'relative', zIndex: 1 };
 const brandIcon = { width: 36, height: 36, borderRadius: 9, border: '1px solid', display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const brandName = { fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.16em', color: '#ffffff', fontFamily: 'var(--font-display)' };
+const brandName = { fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.16em', color: 'var(--foreground)', fontFamily: 'var(--font-display)' };
 
 const formHeading = { textAlign: 'center', position: 'relative', zIndex: 1 };
-const formTitle = { fontSize: '1.65rem', fontWeight: 900, fontFamily: 'var(--font-display)', color: '#ffffff', letterSpacing: '-0.03em', marginBottom: '0.3rem' };
+const formTitle = { fontSize: '1.65rem', fontWeight: 900, fontFamily: 'var(--font-display)', color: 'var(--foreground)', letterSpacing: '-0.03em', marginBottom: '0.3rem' };
 const formSub = { fontSize: '0.82rem', color: 'rgba(255,255,255,0.45)', fontWeight: 500 };
 
-const tabTrack = { display: 'flex', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 3, gap: 2, position: 'relative', zIndex: 1 };
+const tabTrack = { display: 'flex', background: 'var(--card)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 3, gap: 2, position: 'relative', zIndex: 1 };
 const tabBtn = (a, accent) => ({ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', padding: '0.6rem', background: 'transparent', border: 'none', borderRadius: 9, cursor: 'pointer', fontFamily: 'var(--font-sans)', color: a ? accent : 'rgba(255,255,255,0.4)', position: 'relative', transition: 'color 0.3s ease' });
-const tabHighlight = { position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8 };
+const tabHighlight = { position: 'absolute', inset: 0, background: 'var(--card)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8 };
 
 const errMsg = { background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: '0.7rem 1rem', fontSize: '0.83rem', color: '#ef4444', lineHeight: 1.5, position: 'relative', zIndex: 1, display: 'flex', alignItems: 'flex-start', gap: '0.5rem' };
 
@@ -474,7 +474,7 @@ const fieldGroup = { display: 'flex', flexDirection: 'column', gap: '0.45rem' };
 const fieldLabel = { fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.85)', letterSpacing: '0.02em' };
 const inputWrap = (f, accent) => ({ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0 0.95rem', background: 'rgba(255,255,255,0.015)', border: `1.5px solid ${f ? accent : 'rgba(255,255,255,0.07)'}`, borderRadius: 12, boxShadow: f ? `0 0 0 4px ${accent}15` : 'none', transition: 'all 0.25s ease' });
 const inputIcon = { color: 'rgba(255,255,255,0.35)', flexShrink: 0 };
-const inputEl = { flex: 1, height: 46, background: 'transparent', border: 'none', outline: 'none', fontSize: '0.88rem', color: '#ffffff', fontFamily: 'var(--font-sans)' };
+const inputEl = { flex: 1, height: 46, background: 'transparent', border: 'none', outline: 'none', fontSize: '0.88rem', color: 'var(--foreground)', fontFamily: 'var(--font-sans)' };
 const eyeBtn = { background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.35)', padding: 4, display: 'flex', alignItems: 'center' };
 
 const submitBtn = { width: '100%', height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#000000', border: 'none', borderRadius: 12, fontSize: '0.9rem', fontWeight: 800, cursor: 'pointer', fontFamily: 'var(--font-sans)', letterSpacing: '-0.01em', marginTop: '0.2rem' };
@@ -484,5 +484,5 @@ const divRow = { display: 'flex', alignItems: 'center', gap: '0.75rem', position
 const divLine = { flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' };
 const divTxt = { fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' };
 
-const demoBtn = { width: '100%', height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.02)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-sans)', position: 'relative', zIndex: 1, transition: 'all 0.2s ease' };
+const demoBtn = { width: '100%', height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: 'var(--card)', color: 'var(--foreground)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-sans)', position: 'relative', zIndex: 1, transition: 'all 0.2s ease' };
 const footerNote = { fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', textAlign: 'center', lineHeight: 1.5, position: 'relative', zIndex: 1 };

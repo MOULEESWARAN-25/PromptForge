@@ -238,7 +238,7 @@ const ambientGlow = {
   width: '200px',
   height: '200px',
   borderRadius: '50%',
-  background: 'radial-gradient(circle, rgba(251,191,36,0.06) 0%, transparent 70%)',
+  background: 'radial-gradient(circle, rgba(104,67,236,0.06) 0%, transparent 70%)',
   pointerEvents: 'none',
 };
 
@@ -251,7 +251,7 @@ const visualHeader = {
   fontSize: '0.8rem',
   fontWeight: '700',
   color: 'var(--foreground)',
-  background: 'rgba(255, 255, 255, 0.02)',
+  background: 'var(--card)',
 };
 
 const visualBody = {

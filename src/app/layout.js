@@ -1,22 +1,40 @@
-import { Plus_Jakarta_Sans, Bricolage_Grotesque } from "next/font/google";
+import { Work_Sans, Darker_Grotesque } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
 import AuroraBackground from "@/components/AuroraBackground";
 import Navigation from "@/components/Navigation";
 import { Toaster } from "sonner";
 import OfflineBanner from "@/components/OfflineBanner";
+import { 
+  fontInter,
+  fontManrope,
+  fontDmSans,
+  fontOutfit,
+  fontPlusJakartaSans,
+  fontSpaceGrotesk,
+  fontSora,
+  fontPoppins,
+  fontNunito,
+  fontUrbanist,
+  fontIbmPlexSans,
+  fontJetBrainsMono,
+  fontRecursive,
+  fontSyne,
+  fontPlayfairDisplay,
+  fontLexend
+} from "@/lib/fonts";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const workSans = Work_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
   weight: ["300", "400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-const bricolageGrotesque = Bricolage_Grotesque({
+const darkerGrotesque = Darker_Grotesque({
   subsets: ["latin"],
   variable: "--font-display",
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800", "900"],
   display: "swap",
 });
 
@@ -41,17 +59,19 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${plusJakartaSans.variable} ${bricolageGrotesque.variable}`}
+      className={`${workSans.variable} ${darkerGrotesque.variable} ${fontInter.variable} ${fontManrope.variable} ${fontDmSans.variable} ${fontOutfit.variable} ${fontPlusJakartaSans.variable} ${fontSpaceGrotesk.variable} ${fontSora.variable} ${fontPoppins.variable} ${fontNunito.variable} ${fontUrbanist.variable} ${fontIbmPlexSans.variable} ${fontJetBrainsMono.variable} ${fontRecursive.variable} ${fontSyne.variable} ${fontPlayfairDisplay.variable} ${fontLexend.variable}`}
       suppressHydrationWarning
     >
       <head>
         <style dangerouslySetInnerHTML={{ __html: `
           body, button, input, textarea, select, label, p, span, li, a {
             font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            font-feature-settings: 'ss01', 'cv01';
           }
           h1, h2, h3, h4, h5, h6, .display-font, .hero-headline, .display-xl, .display-lg, .display-md {
             font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
-            letter-spacing: -0.03em;
+            letter-spacing: -0.02em;
+            font-weight: 800;
           }
         ` }} />
       </head>

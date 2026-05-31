@@ -3,12 +3,23 @@ import { getThemeCardDynamicStyles } from '../utils/themeStyles';
 import { themeStyles } from '@/data/designVocabulary';
 
 const FONT_MAP = {
-  'Inter':    "'Inter', sans-serif",
-  'Geist':    "'Geist', sans-serif",
-  'Manrope':  "'Manrope', sans-serif",
-  'Poppins':  "'Poppins', sans-serif",
-  'DM Sans':  "'DM Sans', sans-serif",
-  'Outfit':   "'Outfit', sans-serif",
+  'Inter':             "var(--font-inter)",
+  'Geist':             "var(--font-display)",
+  'Manrope':           "var(--font-manrope)",
+  'Poppins':           "var(--font-poppins)",
+  'DM Sans':           "var(--font-dm-sans)",
+  'Outfit':            "var(--font-outfit)",
+  'Plus Jakarta Sans': "var(--font-plus-jakarta-sans)",
+  'Space Grotesk':     "var(--font-space-grotesk)",
+  'Sora':              "var(--font-sora)",
+  'Nunito':            "var(--font-nunito)",
+  'Urbanist':          "var(--font-urbanist)",
+  'IBM Plex Sans':     "var(--font-ibm-plex-sans)",
+  'JetBrains Mono':    "var(--font-jetbrains-mono)",
+  'Recursive':         "var(--font-recursive)",
+  'Syne':              "var(--font-syne)",
+  'Playfair Display':  "var(--font-playfair-display)",
+  'Lexend':            "var(--font-lexend)"
 };
 
 // ── Mock Data for Domain Categories ──
@@ -172,8 +183,8 @@ function ModalPreview({ theme, font }) {
         </div>
         <div style={{ fontSize: '0.52rem', color: theme.textSecondary, lineHeight: 1.6, marginBottom: '0.6rem' }}>This action cannot be undone. All project blueprint files will be permanently deleted from the registry.</div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <div style={{ flex: 1, padding: '0.32rem', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '6px', fontSize: '0.52rem', fontWeight: 700, color: '#ef4444', textAlign: 'center', cursor: 'pointer' }}>Delete</div>
-          <div style={{ flex: 1, padding: '0.32rem', background: theme.background, border: borderStyle, borderRadius: '6px', fontSize: '0.52rem', fontWeight: 600, color: theme.textPrimary, textAlign: 'center', cursor: 'pointer' }}>Cancel</div>
+          <div style={{ flex: 1, padding: '0.32rem', background: '#dc2626', border: '1px solid #b91c1c', borderRadius: '6px', fontSize: '0.52rem', fontWeight: 700, color: '#ffffff', textAlign: 'center', cursor: 'pointer' }}>Delete</div>
+          <div style={{ flex: 1, padding: '0.32rem', background: 'transparent', border: `1px solid ${theme.textSecondary}88`, borderRadius: '6px', fontSize: '0.52rem', fontWeight: 600, color: theme.textPrimary, textAlign: 'center', cursor: 'pointer' }}>Cancel</div>
         </div>
       </div>
     </div>
@@ -195,7 +206,7 @@ function PricingPreview({ theme, font }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.18rem', marginTop: '0.3rem' }}>
             {[1, 2, 3].map(i => <div key={i} style={{ height: '3px', borderRadius: '2px', background: hot ? `${theme.primary}60` : `${theme.textSecondary}33` }} />)}
           </div>
-          <div style={{ fontSize: '0.5rem', fontWeight: 700, color: '#ffffff', background: hot ? theme.primary : `${theme.textSecondary}66`, padding: '0.22rem', borderRadius: '5px', textAlign: 'center', marginTop: '0.35rem', cursor: 'pointer' }}>Subscribe</div>
+          <div style={{ fontSize: '0.5rem', fontWeight: 700, color: hot ? '#ffffff' : theme.textPrimary, background: hot ? theme.primary : `${theme.textSecondary}22`, padding: '0.22rem', borderRadius: '5px', textAlign: 'center', marginTop: '0.35rem', cursor: 'pointer' }}>Subscribe</div>
         </div>
       ))}
     </div>
@@ -362,7 +373,7 @@ export function ThemePreview({
                 <div style={{ fontSize: '0.46rem', fontWeight: 700, color: idx === 1 ? theme.primary : theme.textSecondary }}>{name}</div>
                 <div style={{ fontSize: '0.58rem', fontWeight: 800, color: theme.textPrimary, marginTop: '1px' }}>{price}</div>
                 <div style={{ height: '2px', background: `${theme.textSecondary}33`, margin: '4px 0' }} />
-                <div style={{ fontSize: '0.4rem', padding: '2px', background: idx === 1 ? theme.primary : `${theme.textSecondary}44`, color: '#ffffff', borderRadius: '3px', marginTop: '4px' }}>Select</div>
+                <div style={{ fontSize: '0.4rem', padding: '2px', background: idx === 1 ? theme.primary : `${theme.textSecondary}22`, color: idx === 1 ? '#ffffff' : theme.textPrimary, borderRadius: '3px', marginTop: '4px' }}>Select</div>
               </div>
             ))}
           </div>
@@ -375,7 +386,7 @@ export function ThemePreview({
               <thead>
                 <tr style={{ background: theme.surface, borderBottom: borderStyle }}>
                   {mockData.tableHeaders.map((h, i) => (
-                    <th key={i} style={{ padding: '3px 6px', fontWeight: 700, color: theme.textSecondary }}>{h}</th>
+                    <th key={i} style={{ padding: '3px 6px', fontWeight: 700, color: theme.textPrimary }}>{h}</th>
                   ))}
                 </tr>
               </thead>

@@ -5,9 +5,8 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { 
   Sparkles, ArrowRight, Monitor, Code2, 
-  Wand2, Shield, Zap, Database, Check, Cpu 
+  Wand2, Shield, Zap, Database, Check, Cpu, FileText 
 } from 'lucide-react';
-import { getExperimentVariant, trackExperimentConversion } from '@/lib/experimentation';
 
 
 const FEATURES_LIST = [
@@ -40,38 +39,7 @@ const FEATURES_LIST = [
   }
 ];
 
-const PRICING_TIERS = [
-  {
-    tier: 'free',
-    name: 'Hobby Plan',
-    price: '$0',
-    frequency: 'Forever Free',
-    desc: 'Ideal for single developers exploring prompt engineering.',
-    features: ['Local Storage fallbacks', 'Universal mode compilers', 'Design token library search', '3 saved workspaces'],
-    accent: '#fbbf24',
-    badge: 'Standard'
-  },
-  {
-    tier: 'pro',
-    name: 'Professional',
-    price: '$15',
-    frequency: 'per month',
-    desc: 'For professional software builders demanding elite code structures.',
-    features: ['Supabase cloud synchronization', 'Unlimited saved workspaces', 'Priority LLM endpoints', 'Dynamic design templates'],
-    accent: '#7c3aed',
-    badge: 'Recommended'
-  },
-  {
-    tier: 'enterprise',
-    name: 'Enterprise',
-    price: 'Custom',
-    frequency: 'yearly contract',
-    desc: 'Designed for engineering teams scaling AI code generation workflows.',
-    features: ['Dedicated team vector DBs', 'Custom design systems', 'SLA support contracts', 'Self-hosted options'],
-    accent: '#db2777',
-    badge: 'Scale'
-  }
-];
+
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -87,10 +55,6 @@ const itemVariants = {
 };
 
 export default function LandingPage() {
-  const ctaVariant = getExperimentVariant("pricing-cta", {
-    A: "Get Started for Free",
-    B: "Generate Your First Prompt"
-  });
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -185,9 +149,9 @@ export default function LandingPage() {
         .fb-1 {
           top: 90px;
           left: 20px;
-          color: #fbbf24;
-          background: rgba(251,191,36,0.08);
-          borderColor: rgba(251,191,36,0.2);
+          color: #6843EC;
+          background: rgba(104,67,236,0.08);
+          borderColor: rgba(104,67,236,0.2);
         }
         .fb-2 {
           bottom: 90px;
@@ -409,13 +373,12 @@ export default function LandingPage() {
               href="/auth"
               style={primaryCta}
               className="btn-accent shine-effect active-scale-95"
-              onClick={() => trackExperimentConversion("pricing-cta")}
             >
-              {ctaVariant === "A" ? "Get Started for Free" : "Generate Your First Prompt"}
+              Get Started for Free
               <ArrowRight size={15} />
             </Link>
-            <a href="#pricing" style={secondaryCta} className="btn-secondary active-scale-95">
-              View Premium Plans
+            <a href="#features" style={secondaryCta} className="btn-secondary active-scale-95">
+              Explore Capabilities
             </a>
           </div>
         </motion.div>
@@ -548,119 +511,180 @@ export default function LandingPage() {
         </motion.div>
 
         <motion.div 
-          className="ide-comparison-grid glass-panel" 
-          style={previewSection}
+          className="ide-comparison-grid" 
+          style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', gap: '1.5rem' }}
           variants={itemVariants}
         >
           {/* Left panel: Draft User Query */}
-          <div style={previewBox}>
-            <div style={previewBoxHeader}>
-              <span style={{ color: 'var(--muted-foreground)' }}>user_prompt.txt</span>
+          <motion.div 
+            style={terminalPanel} 
+            className="glass-panel"
+            whileHover={{ y: -4, borderColor: 'rgba(104,67,236,0.3)' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          >
+            <div style={terminalHeader}>
+              <div style={windowDotRed} />
+              <div style={windowDotYellow} />
+              <div style={windowDotGreen} />
+              <div style={terminalTab}>
+                <FileText size={12} style={{ color: 'var(--muted-foreground)' }} />
+                <span>user_prompt.txt</span>
+              </div>
             </div>
-            <div style={{ padding: '1.5rem' }}>
+            <div style={promptBody}>
               <p style={previewBoxText}>
+                <span style={{ 
+                  color: 'var(--accent)', 
+                  display: 'block', 
+                  fontSize: '0.68rem', 
+                  fontWeight: '800', 
+                  textTransform: 'uppercase', 
+                  letterSpacing: '0.08em', 
+                  marginBottom: '0.75rem', 
+                  fontFamily: 'var(--font-sans)', 
+                  fontStyle: 'normal' 
+                }}>
+                  Raw Input Prompt
+                </span>
                 "Build a premium dark-mode SaaS dashboard with glassmorphism cards and smooth entrance motions."
               </p>
             </div>
-          </div>
+          </motion.div>
 
           {/* Center Connection Icon */}
           <div className="comparison-arrow" style={previewArrowWrap}>
-            <motion.div
-              animate={{ scale: [1, 1.15, 1] }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              <Zap size={22} style={{ color: 'var(--accent)' }} />
-            </motion.div>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative'
+            }}>
+              <motion.div
+                animate={{ 
+                  scale: [1, 1.15, 1],
+                  boxShadow: [
+                    '0 0 12px rgba(104,67,236,0.2)', 
+                    '0 0 28px rgba(210,255,58,0.7)', 
+                    '0 0 12px rgba(104,67,236,0.2)'
+                  ]
+                }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backdropFilter: 'blur(8px)',
+                  zIndex: 2,
+                }}
+              >
+                <Zap size={20} style={{ color: '#D2FF3A' }} />
+              </motion.div>
+            </div>
           </div>
 
           {/* Right panel: Enhanced Prompt Output */}
-          <div style={{ ...previewBox, borderLeft: '1px solid var(--border)' }}>
-            <div style={previewBoxHeader}>
-              <span style={{ color: 'var(--accent)' }}>promptforge_enhanced_spec.xml</span>
-            </div>
-            <div style={{ padding: '1.5rem' }}>
-              <pre style={previewCode}>
-{`<design_system>
-  <theme>Sleek Dark Glassmorphism</theme>
-  <tokens>
-    <background>#000000</background>
-    <card_bg>rgba(255,255,255,0.04)</card_bg>
-    <backdrop_blur>24px</backdrop_blur>
-    <border>1px solid rgba(255,255,255,0.08)</border>
-  </tokens>
-  <motion_curve>
-    <type>spring</type>
-    <stiffness>260</stiffness>
-    <damping>20</damping>
-  </motion_curve>
-</design_system>`}
-              </pre>
-            </div>
+          <div style={{ position: 'relative', width: '100%' }}>
+            {/* Ambient Radial backdrop glow */}
+            <div style={{
+              position: 'absolute',
+              top: '-15%',
+              right: '-10%',
+              width: '120%',
+              height: '130%',
+              background: 'radial-gradient(circle, rgba(104,67,236,0.12) 0%, rgba(8,145,178,0.01) 60%, transparent 100%)',
+              filter: 'blur(30px)',
+              pointerEvents: 'none',
+              zIndex: -1
+            }} />
+            
+            <motion.div 
+              style={terminalPanel} 
+              className="glass-panel"
+              whileHover={{ y: -4, borderColor: 'rgba(210,255,58,0.3)' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              <div style={terminalHeader}>
+                <div style={windowDotRed} />
+                <div style={windowDotYellow} />
+                <div style={windowDotGreen} />
+                <div style={{ ...terminalTab, color: '#D2FF3A' }}>
+                  <Code2 size={12} style={{ color: '#D2FF3A' }} />
+                  <span>enhanced_spec.xml</span>
+                </div>
+              </div>
+              <div style={codeBody}>
+                <pre style={previewCode}>
+                  <div>
+                    <span style={{ color: '#a855f7', fontWeight: 600 }}>&lt;design_system&gt;</span>
+                  </div>
+                  <div style={{ paddingLeft: '1rem' }}>
+                    <span style={{ color: '#38bdf8' }}>&lt;theme&gt;</span>
+                    <span style={{ color: '#e2e8f0' }}>Sleek Dark Glassmorphism</span>
+                    <span style={{ color: '#38bdf8' }}>&lt;/theme&gt;</span>
+                  </div>
+                  <div style={{ paddingLeft: '1rem' }}>
+                    <span style={{ color: '#38bdf8' }}>&lt;tokens&gt;</span>
+                  </div>
+                  <div style={{ paddingLeft: '2rem' }}>
+                    <span style={{ color: '#f472b6' }}>&lt;background&gt;</span>
+                    <span style={{ color: '#a3e635' }}>#000000</span>
+                    <span style={{ color: '#f472b6' }}>&lt;/background&gt;</span>
+                  </div>
+                  <div style={{ paddingLeft: '2rem' }}>
+                    <span style={{ color: '#f472b6' }}>&lt;card_bg&gt;</span>
+                    <span style={{ color: '#a3e635' }}>rgba(255,255,255,0.04)</span>
+                    <span style={{ color: '#f472b6' }}>&lt;/card_bg&gt;</span>
+                  </div>
+                  <div style={{ paddingLeft: '2rem' }}>
+                    <span style={{ color: '#f472b6' }}>&lt;backdrop_blur&gt;</span>
+                    <span style={{ color: '#a3e635' }}>24px</span>
+                    <span style={{ color: '#f472b6' }}>&lt;/backdrop_blur&gt;</span>
+                  </div>
+                  <div style={{ paddingLeft: '2rem' }}>
+                    <span style={{ color: '#f472b6' }}>&lt;border&gt;</span>
+                    <span style={{ color: '#a3e635' }}>1px solid rgba(255,255,255,0.08)</span>
+                    <span style={{ color: '#f472b6' }}>&lt;/border&gt;</span>
+                  </div>
+                  <div style={{ paddingLeft: '1rem' }}>
+                    <span style={{ color: '#38bdf8' }}>&lt;/tokens&gt;</span>
+                  </div>
+                  <div style={{ paddingLeft: '1rem' }}>
+                    <span style={{ color: '#38bdf8' }}>&lt;motion_curve&gt;</span>
+                  </div>
+                  <div style={{ paddingLeft: '2rem' }}>
+                    <span style={{ color: '#f472b6' }}>&lt;type&gt;</span>
+                    <span style={{ color: '#a3e635' }}>spring</span>
+                    <span style={{ color: '#f472b6' }}>&lt;/type&gt;</span>
+                  </div>
+                  <div style={{ paddingLeft: '2rem' }}>
+                    <span style={{ color: '#f472b6' }}>&lt;stiffness&gt;</span>
+                    <span style={{ color: '#a3e635' }}>260</span>
+                    <span style={{ color: '#f472b6' }}>&lt;/stiffness&gt;</span>
+                  </div>
+                  <div style={{ paddingLeft: '2rem' }}>
+                    <span style={{ color: '#f472b6' }}>&lt;damping&gt;</span>
+                    <span style={{ color: '#a3e635' }}>20</span>
+                    <span style={{ color: '#f472b6' }}>&lt;/damping&gt;</span>
+                  </div>
+                  <div style={{ paddingLeft: '1rem' }}>
+                    <span style={{ color: '#38bdf8' }}>&lt;/motion_curve&gt;</span>
+                  </div>
+                  <div>
+                    <span style={{ color: '#a855f7', fontWeight: 600 }}>&lt;/design_system&gt;</span>
+                  </div>
+                </pre>
+              </div>
+            </motion.div>
           </div>
         </motion.div>
       </motion.section>
 
-      {/* ── PRICING MATRIX ── */}
-      <motion.section 
-        id="pricing" 
-        style={sectionContainer}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, margin: "-100px" }}
-        variants={containerVariants}
-      >
-        <motion.div style={sectionHeader} variants={itemVariants}>
-          <p className="section-label">PAYMENT MATRIX</p>
-          <h2 style={sectionTitle}>Flexible SaaS Subscriptions</h2>
-        </motion.div>
-
-        <div className="pricing-grid-cards">
-          {PRICING_TIERS.map((tier) => (
-            <motion.div 
-              key={tier.tier} 
-              style={{ ...pricingCard, border: `1px solid ${tier.tier === 'pro' ? 'rgba(124,58,237,0.3)' : 'var(--border)'}` }} 
-              className="glass-panel pricing-card-responsive"
-              variants={itemVariants}
-              whileHover={{ y: -6 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            >
-              {tier.tier === 'pro' && <div style={pricingProGlow} />}
-
-              <div style={pricingCardTop}>
-                <span style={{ ...pricingName, color: tier.accent }}>{tier.name}</span>
-                <span style={{ ...pricingBadgePill, background: `${tier.accent}12`, color: tier.accent, borderColor: `${tier.accent}25` }}>
-                  {tier.badge}
-                </span>
-              </div>
-
-              <div style={priceRow}>
-                <span style={priceText}>{tier.price}</span>
-                {tier.price !== 'Custom' && <span style={priceSub}>/ month</span>}
-              </div>
-
-              <p style={pricingDesc}>{tier.desc}</p>
-              
-              <div style={featureListStyle}>
-                {tier.features.map((f, i) => (
-                  <div key={i} style={featureItemStyle}>
-                    <Check size={13} style={{ color: tier.accent, flexShrink: 0 }} />
-                    <span style={{ fontSize: '0.8rem' }}>{f}</span>
-                  </div>
-                ))}
-              </div>
-
-              <Link 
-                href={`/pricing/${tier.tier}`} 
-                style={pricingCtaBtn(tier.tier === 'pro', tier.accent)}
-                className="active-scale-95"
-              >
-                Get Plan Details
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </motion.section>
     </div>
   );
 }
@@ -734,7 +758,7 @@ const consoleForm = {
   alignItems: 'center',
   gap: 'var(--space-sm)',
   padding: '0 0.5rem 0 1.15rem',
-  background: 'rgba(255, 255, 255, 0.03)',
+  background: 'var(--card)',
   border: '1.5px solid var(--border)',
   borderRadius: '12px',
   boxShadow: 'var(--shadow-md)',
@@ -807,7 +831,7 @@ const browserMockupFrame = {
 
 const browserHeader = {
   padding: '0.6rem 1rem',
-  background: 'rgba(255, 255, 255, 0.02)',
+  background: 'var(--card)',
   borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
   display: 'flex',
   alignItems: 'center',
@@ -816,7 +840,7 @@ const browserHeader = {
 
 const browserHeaderSmall = {
   padding: '0.4rem 0.75rem',
-  background: 'rgba(255, 255, 255, 0.02)',
+  background: 'var(--card)',
   borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
   display: 'flex',
   alignItems: 'center',
@@ -930,34 +954,80 @@ const featureLink = {
 };
 
 // ─── Comparison Terminal styling ───
-const previewSection = {
-  background: 'var(--card)',
-  borderRadius: '16px',
-  border: '1px solid var(--border)',
-  overflow: 'hidden',
-  boxShadow: 'var(--shadow-lg)',
-};
-
-const previewBox = {
+const terminalPanel = {
   display: 'flex',
   flexDirection: 'column',
+  background: 'rgba(10, 10, 15, 0.45)',
+  backdropFilter: 'blur(16px)',
+  border: '1px solid rgba(255, 255, 255, 0.08)',
+  borderRadius: '14px',
+  overflow: 'hidden',
+  boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+  width: '100%',
 };
 
-const previewBoxHeader = {
-  padding: '0.6rem 1.25rem',
+const terminalHeader = {
+  display: 'flex',
+  alignItems: 'center',
+  padding: '0.75rem 1rem',
   background: 'rgba(255, 255, 255, 0.02)',
-  borderBottom: '1px solid var(--border)',
-  fontSize: '0.68rem',
-  fontWeight: '800',
-  letterSpacing: '0.05em',
-  textTransform: 'uppercase',
+  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+};
+
+const windowDotRed = {
+  width: '9px',
+  height: '9px',
+  borderRadius: '50%',
+  background: '#ef4444',
+  marginRight: '6px',
+};
+
+const windowDotYellow = {
+  width: '9px',
+  height: '9px',
+  borderRadius: '50%',
+  background: '#f59e0b',
+  marginRight: '6px',
+};
+
+const windowDotGreen = {
+  width: '9px',
+  height: '9px',
+  borderRadius: '50%',
+  background: '#10b981',
+};
+
+const terminalTab = {
+  margin: '0 auto',
+  fontSize: '0.72rem',
+  color: 'rgba(255, 255, 255, 0.7)',
+  fontWeight: '600',
+  fontFamily: 'var(--font-sans)',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.4rem',
+};
+
+const promptBody = {
+  padding: '1.75rem',
+  background: 'rgba(0,0,0,0.15)',
+  minHeight: '230px',
+  display: 'flex',
+  alignItems: 'center',
+};
+
+const codeBody = {
+  padding: '1.5rem 1.75rem',
+  background: 'rgba(0,0,0,0.25)',
+  minHeight: '230px',
+  overflowX: 'auto',
 };
 
 const previewBoxText = {
   fontSize: '0.88rem',
   lineHeight: '1.65',
   color: 'var(--foreground)',
-  fontStyle: 'italic',
+  margin: 0,
 };
 
 const previewArrowWrap = {
@@ -969,110 +1039,11 @@ const previewArrowWrap = {
 
 const previewCode = {
   fontFamily: 'var(--font-mono)',
-  fontSize: '0.78rem',
+  fontSize: '0.76rem',
   color: 'var(--foreground)',
-  lineHeight: '1.5',
+  lineHeight: '1.55',
   margin: 0,
+  textAlign: 'left',
 };
 
-// ─── Pricing Card styling ───
-const pricingCard = {
-  padding: '2.5rem 1.8rem',
-  background: 'var(--card)',
-  borderRadius: '20px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '1.25rem',
-  position: 'relative',
-  overflow: 'visible',
-  boxShadow: 'var(--shadow-md)',
-};
 
-const pricingProGlow = {
-  position: 'absolute',
-  top: '-40%',
-  right: '-30%',
-  width: '280px',
-  height: '280px',
-  borderRadius: '50%',
-  background: 'radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%)',
-  pointerEvents: 'none',
-};
-
-const pricingCardTop = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-};
-
-const pricingName = {
-  fontSize: '0.78rem',
-  fontWeight: '800',
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
-};
-
-const pricingBadgePill = {
-  fontSize: '0.68rem',
-  fontWeight: '700',
-  padding: '2px 8px',
-  borderRadius: '999px',
-  border: '1px solid',
-};
-
-const priceRow = {
-  display: 'flex',
-  alignItems: 'baseline',
-  gap: '0.25rem',
-};
-
-const priceText = {
-  fontSize: '2.25rem',
-  fontWeight: '800',
-  fontFamily: 'var(--font-display)',
-  color: 'var(--foreground)',
-  letterSpacing: '-0.02em',
-};
-
-const priceSub = {
-  fontSize: '0.85rem',
-  color: 'var(--muted-foreground)',
-};
-
-const pricingDesc = {
-  fontSize: '0.82rem',
-  color: 'var(--muted-foreground)',
-  lineHeight: '1.45',
-};
-
-const featureListStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.65rem',
-  margin: '0.75rem 0',
-  flex: 1,
-};
-
-const featureItemStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.5rem',
-  color: 'var(--foreground)',
-};
-
-const pricingCtaBtn = (isPro, accentColor) => ({
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '0.7rem 1.25rem',
-  fontSize: '0.85rem',
-  fontWeight: '700',
-  borderRadius: '8px',
-  textDecoration: 'none',
-  textAlign: 'center',
-  transition: 'opacity 0.2s',
-  background: isPro ? accentColor : 'var(--muted)',
-  color: isPro ? 'var(--accent-foreground)' : 'var(--foreground)',
-  border: isPro ? 'none' : '1px solid var(--border)',
-  marginTop: '0.5rem',
-});

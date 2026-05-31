@@ -152,7 +152,8 @@ export function usePromptGeneration({
         authOption: forgeState.authOption,
         deployment: forgeState.deployment,
         additionalFeatures: forgeState.additionalFeatures,
-        apiKey
+        apiKey,
+        modelProvider: forgeState.selectedModel
       });
 
       const savedRecord = await savePromptRecord({
@@ -161,7 +162,10 @@ export function usePromptGeneration({
         query: compilationResult.query,
         theme: forgeState.selectedTheme || 'Sleek Dark Glassmorphic',
         resolvedPrompt: compilationResult.resolvedPrompt,
-        ragDetails: compilationResult.ragDetails,
+        ragDetails: {
+          ...compilationResult.ragDetails,
+          modelProvider: forgeState.selectedModel || 'gemini'
+        },
         category: forgeState.activeMode === 'application' ? (forgeState.appCategory === 'Custom' ? forgeState.customCategory : forgeState.appCategory) : null,
         pageType: forgeState.activeMode === 'page' ? forgeState.pageType : null,
         components: forgeState.activeMode === 'page' ? forgeState.selectedComponents : null,

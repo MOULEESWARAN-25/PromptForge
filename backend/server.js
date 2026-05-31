@@ -4,8 +4,13 @@ import dotenv from 'dotenv';
 import { searchVectorVocabulary } from './services/ragService.js';
 import { runPromptEnhancerAgent } from './services/agentService.js';
 import { themeStyles } from './services/themeData.js'; // Keep visual design definitions consistent
+import { telemetryService } from './services/telemetryService.js';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, './.env') });
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -33,6 +38,17 @@ app.get('/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date(), service: 'PromptForge RAG Agent Server' });
 });
 
+// System Status & Observability Telemetry Stats
+app.get('/api/telemetry/stats', async (req, res) => {
+  try {
+    const stats = await telemetryService.getStats();
+    res.json(stats);
+  } catch (error) {
+    console.error(`[telemetry] Stats retrieval failed: ${error.message}`);
+    res.status(500).json({ error: 'Failed to retrieve telemetry stats' });
+  }
+});
+
 /**
  * Endpoint for Vector Semantic search (used in Learn Sandbox playground)
  */
@@ -47,8 +63,8 @@ app.post('/api/search', async (req, res) => {
     const searchData = await searchVectorVocabulary(query, limit, boostCategory);
     res.json(searchData);
   } catch (error) {
-    console.error("Express /api/search error:", error);
-    res.status(500).json({ error: 'Internal server search error', details: error.message });
+    console.error(`[search] Vector search error [${new Date().toISOString()}]: ${error.message}`);
+    res.status(500).json({ error: 'Internal server search error' });
   }
 });
 
@@ -66,10 +82,11 @@ app.post('/api/forge', async (req, res) => {
     componentName,
     history = [],
     codebaseContext,
-    framework
+    framework,
+    modelProvider = 'gemini'
   } = req.body;
 
-  if (!query && mode !== 'enhance') {
+  if (!query) {
     return res.status(400).json({ error: 'Description query is required' });
   }
 
@@ -107,18 +124,19 @@ app.post('/api/forge', async (req, res) => {
       history,
       retrievedTerms,
       codebaseContext,
-      framework
+      framework,
+      modelProvider
     });
 
     res.json({
       prompt: generatedPrompt,
       ragDetails,
-      source: "Google Gemini 3.5 Flash via LangChain Backend"
+      source: modelProvider === 'groq' ? "Groq Llama 3.3 70B via LangChain Backend" : "Google Gemini 2.5 Flash via LangChain Backend"
     });
 
   } catch (error) {
-    console.error("Express /api/forge error:", error);
-    res.status(500).json({ error: 'Internal prompt agent execution failed', details: error.message });
+    console.error(`[forge] Agent execution error [${new Date().toISOString()}]: ${error.message}`);
+    res.status(500).json({ error: 'Internal prompt agent execution failed' });
   }
 });
 

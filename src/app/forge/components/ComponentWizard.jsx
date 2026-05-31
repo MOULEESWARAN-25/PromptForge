@@ -1,13 +1,15 @@
 'use client';
-import React from 'react';
-import { CheckCircle2, Sliders, Sparkles, Info, Code2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { CheckCircle2, Sliders, Sparkles, Info, Code2, Search } from 'lucide-react';
 import { COMPONENT_TYPES } from '../constants/components';
+import ShadcnDropdown from '@/components/ShadcnDropdown';
 import { ThemeSelector } from './ThemeSelector';
 import { TypographyPicker } from './TypographyPicker';
 import { SyncBranchSelector } from './SyncBranchSelector';
 import { ThemePreview } from './ThemePreview';
 
 export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanced = false }) {
+  const [componentSearch, setComponentSearch] = useState('');
   const {
     componentType, setComponentType,
     customComponentType, setCustomComponentType,
@@ -25,7 +27,8 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
     database, setDatabase,
     authOption, setAuthOption,
     deployment, setDeployment,
-    additionalFeatures, setAdditionalFeatures
+    additionalFeatures, setAdditionalFeatures,
+    selectedModel, setSelectedModel
   } = forgeState;
 
   const { isGenerating, handleForgeSubmit } = promptGeneration;
@@ -34,9 +37,9 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
 
   // ─── Shared styles ─────────────────────────────────────────────
   const panelBase = {
-    background: 'rgba(255,255,255,0.01)',
+    background: 'var(--card)',
     backdropFilter: 'blur(16px)',
-    border: '1px solid rgba(255,255,255,0.04)',
+    border: '1px solid var(--border)',
     borderRadius: '20px',
     boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
   };
@@ -50,9 +53,9 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
     display: 'flex', alignItems: 'center', gap: '0.6rem',
     padding: '0.6rem 0.75rem', borderRadius: '8px', cursor: 'pointer',
     transition: 'all 0.2s ease',
-    border: isSelected ? '1px solid #ec4899' : '1px solid rgba(255,255,255,0.04)',
-    background: isSelected ? 'rgba(236,72,153,0.06)' : 'rgba(255,255,255,0.01)',
-    boxShadow: isSelected ? '0 0 12px rgba(236,72,153,0.15)' : 'none',
+    border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border)',
+    background: isSelected ? 'rgba(104,67,236,0.08)' : 'transparent',
+    boxShadow: isSelected ? '0 0 12px rgba(104,67,236,0.15)' : 'none',
   });
 
   const scrollableCol = {
@@ -75,9 +78,22 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
       {/* ── COLUMN 1: Component Catalog (220px) ── */}
       <div className="component-wizard-left" style={{ ...scrollableCol, width: '220px' }}>
         <div style={{ ...panelBase, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-          <div style={sectionHead('#ec4899')}>Component Catalog</div>
+          <div style={sectionHead('var(--accent)')}>Component Catalog</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '8px', padding: '4px 8px', marginBottom: '6px' }}>
+            <Search size={12} style={{ color: 'var(--muted-foreground)' }} />
+            <input
+              type="text"
+              placeholder="Search components..."
+              value={componentSearch}
+              onChange={(e) => setComponentSearch(e.target.value)}
+              style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.7rem', color: 'var(--foreground)', width: '100%', fontFamily: 'var(--font-sans)' }}
+            />
+          </div>
 
-          {COMPONENT_TYPES.map((comp) => {
+          {COMPONENT_TYPES.filter(comp => 
+            comp.label.toLowerCase().includes(componentSearch.toLowerCase()) || 
+            comp.desc.toLowerCase().includes(componentSearch.toLowerCase())
+          ).map((comp) => {
             const isSelected = componentType === comp.id;
             return (
               <div
@@ -87,11 +103,11 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
                 className="active-scale-95"
               >
                 {isSelected
-                  ? <CheckCircle2 size={13} style={{ color: '#ec4899', flexShrink: 0 }} />
-                  : <Code2 size={13} style={{ color: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+                  ? <CheckCircle2 size={13} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                  : <Code2 size={13} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
                 }
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '0.78rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? '#fff' : 'var(--foreground)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? 'var(--accent)' : 'var(--foreground)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {comp.label}
                   </div>
                   <div style={{ fontSize: '0.6rem', color: 'var(--muted-foreground)', lineHeight: '1.25', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -145,7 +161,7 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
               )}
 
               {!selectedTheme && (
-                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: '0.82rem', background: 'rgba(255,255,255,0.01)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.06)' }}>
+                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: '0.82rem', background: 'var(--card)', borderRadius: '12px', border: '1px dashed var(--border)' }}>
                   Select a theme from the right panel to see the live preview.
                 </div>
               )}
@@ -197,10 +213,31 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
         )}
 
         {/* Generate Trigger */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', background: 'rgba(8,8,12,0.85)', backdropFilter: 'blur(12px)', borderRadius: '14px', padding: '0.75rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', background: 'var(--card)', backdropFilter: 'blur(12px)', borderRadius: '14px', padding: '0.75rem', border: '1px solid var(--border)' }}>
+          {/* AI Generator Engine Selector */}
+          <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '0.25rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', fontWeight: '700', color: 'var(--foreground)' }}>
+              <Sparkles size={11} style={{ color: 'var(--accent)' }} />
+              AI Generator Engine
+            </div>
+            <ShadcnDropdown
+              value={selectedModel || 'gemini'}
+              onChange={(val) => setSelectedModel(val)}
+              options={[
+                { label: 'Gemini 3.1 Pro', value: 'gemini' },
+                { label: 'Groq Llama 3.3', value: 'groq' }
+              ]}
+              triggerWidth="100%"
+              style={{
+                fontSize: '0.72rem',
+                padding: '4px 8px'
+              }}
+            />
+          </div>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: 'var(--muted-foreground)', justifyContent: 'center' }}>
             <Info size={12} />
-            {apiKey ? 'Live Gemini Compiler active.' : 'Offline Compiler active.'}
+            {apiKey ? 'Live Compiler active.' : 'Offline Compiler active.'}
           </div>
           <button
             onClick={handleForgeSubmit}
@@ -212,11 +249,11 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
               fontSize: '0.9rem', borderRadius: '10px', fontWeight: '800',
               cursor: isReady && !isGenerating ? 'pointer' : 'not-allowed',
               border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-              background: isReady ? '#ec4899' : 'rgba(255,255,255,0.05)',
-              color: isReady ? '#fff' : 'rgba(255,255,255,0.2)',
+              background: isReady ? 'var(--accent)' : 'var(--muted)',
+              color: isReady ? 'var(--accent-foreground)' : 'var(--muted-foreground)',
               transition: 'all 0.2s ease',
               opacity: isGenerating ? 0.7 : 1,
-              boxShadow: isReady ? '0 0 0 1px rgba(236,72,153,0.3), 0 8px 24px rgba(236,72,153,0.2)' : 'none',
+              boxShadow: isReady ? '0 0 0 1px rgba(104,67,236,0.3), 0 8px 24px rgba(104,67,236,0.2)' : 'none',
             }}
           >
             {isGenerating
@@ -265,7 +302,7 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
         .component-wizard-left::-webkit-scrollbar-thumb,
         .component-wizard-themes::-webkit-scrollbar-thumb,
         .component-wizard-typography::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.1);
+          background: var(--border);
           border-radius: 4px;
         }
         @media (max-width: 1200px) {

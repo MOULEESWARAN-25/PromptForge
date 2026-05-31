@@ -35,7 +35,7 @@ export default function OfflineBanner() {
           role="status"
           aria-live="polite"
         >
-          <WifiOff size={14} style={{ color: '#f59e0b' }} />
+          <WifiOff size={14} style={{ color: '#6843EC' }} />
           <span style={text}>
             You are currently offline. Your active drafts and configurations are safely stored locally.
           </span>
@@ -82,7 +82,7 @@ const badge = {
   padding: '2px 8px',
   borderRadius: '999px',
   background: 'rgba(245,158,11,0.12)',
-  color: '#f59e0b',
+  color: '#6843EC',
   fontSize: '0.65rem',
   fontWeight: '700',
   textTransform: 'uppercase',

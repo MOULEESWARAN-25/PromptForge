@@ -1,12 +1,13 @@
 'use client';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Sliders, Sparkles, Info, ArrowRight, ArrowLeft, Code2, Plus } from 'lucide-react';
+import { CheckCircle2, Sliders, Sparkles, Info, ArrowRight, ArrowLeft, Code2, Plus, Search } from 'lucide-react';
 import { APP_CATEGORIES, CATEGORY_FEATURES } from '../constants/appCategories';
 import { ThemeSelector } from './ThemeSelector';
 import { TypographyPicker } from './TypographyPicker';
 import { SyncBranchSelector } from './SyncBranchSelector';
 import { ThemePreview } from './ThemePreview';
+import ShadcnDropdown from '@/components/ShadcnDropdown';
 
 const STEPS = ['Application', 'Features', 'Theme', 'Typography', 'Live Preview', 'Project Setup', 'Generate'];
 
@@ -19,11 +20,11 @@ const slideVariants = {
 // Shared styles
 const sectionWrap = {
   padding: '1.25rem',
-  background: 'rgba(255,255,255,0.01)',
+  background: 'var(--card)',
   backdropFilter: 'blur(20px)',
-  border: '1px solid rgba(255,255,255,0.04)',
+  border: '1px solid var(--border)',
   borderRadius: '24px',
-  boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+  boxShadow: 'var(--shadow-md)',
 };
 const stepTitle = { fontSize: '1.25rem', fontWeight: '800', color: 'var(--foreground)', letterSpacing: '-0.02em' };
 const stepDesc  = { fontSize: '0.88rem', color: 'var(--muted-foreground)', marginTop: '0.35rem', lineHeight: '1.4' };
@@ -31,6 +32,7 @@ const stepDesc  = { fontSize: '0.88rem', color: 'var(--muted-foreground)', margi
 export function ApplicationWizard({ forgeState, promptGeneration, apiKey }) {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
+  const [appSearch, setAppSearch] = useState('');
 
   const {
     appCategory, customCategory, setCustomCategory,
@@ -50,7 +52,8 @@ export function ApplicationWizard({ forgeState, promptGeneration, apiKey }) {
     database, setDatabase,
     authOption, setAuthOption,
     deployment, setDeployment,
-    additionalFeatures, setAdditionalFeatures
+    additionalFeatures, setAdditionalFeatures,
+    selectedModel, setSelectedModel
   } = forgeState;
 
   const { isGenerating, handleForgeSubmit } = promptGeneration;
@@ -61,7 +64,7 @@ export function ApplicationWizard({ forgeState, promptGeneration, apiKey }) {
     if (step === 3) return !!selectedTheme;
     if (step === 4) return !!selectedTypography;
     if (step === 5) return true; // Live Preview always can advance
-    if (step === 6) return !!projectIntegration;
+    if (step === 6) return true; // projectIntegration defaults to 'new', always valid
     return true;
   };
 
@@ -77,18 +80,20 @@ export function ApplicationWizard({ forgeState, promptGeneration, apiKey }) {
   };
 
   // Category card styles
-  const categoryCard = (isSelected) => ({
+  const categoryCard = (isSelected, hasImage) => ({
     position: 'relative', borderRadius: '12px',
-    border: isSelected ? '2px solid #7c3aed' : '1px solid rgba(255,255,255,0.06)',
-    background: isSelected ? 'rgba(124,58,237,0.06)' : 'rgba(255,255,255,0.01)',
+    border: isSelected ? '2px solid #6843EC' : '1px solid var(--border)',
+    background: hasImage
+      ? (isSelected ? 'rgba(104,67,236,0.08)' : 'var(--card)')
+      : (isSelected ? 'linear-gradient(135deg, #251854, #120b2e)' : 'linear-gradient(135deg, #181528, #0a0714)'),
     overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s ease',
     display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-    boxShadow: isSelected ? '0 0 20px rgba(124,58,237,0.2)' : 'none',
+    boxShadow: isSelected ? '0 0 20px rgba(104,67,236,0.20)' : 'none',
   });
   const checkboxCard = (isChecked) => ({
     display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.65rem 0.85rem',
-    borderRadius: '10px', border: isChecked ? '1px solid #7c3aed' : '1px solid rgba(255,255,255,0.04)',
-    background: isChecked ? 'rgba(124,58,237,0.05)' : 'rgba(255,255,255,0.01)',
+    borderRadius: '10px', border: isChecked ? '1px solid #6843EC' : '1px solid var(--border)',
+    background: isChecked ? 'rgba(104,67,236,0.08)' : 'var(--card)',
     cursor: 'pointer', transition: 'all 0.2s ease',
   });
 
@@ -107,9 +112,9 @@ export function ApplicationWizard({ forgeState, promptGeneration, apiKey }) {
                   width: '24px', height: '24px', borderRadius: '50%', display: 'flex',
                   alignItems: 'center', justifyContent: 'center',
                   fontSize: '0.65rem', fontWeight: '700', transition: 'all 0.3s ease',
-                  background: done ? '#7c3aed' : active ? 'rgba(124,58,237,0.15)' : 'rgba(255,255,255,0.04)',
-                  border: active ? '2px solid #7c3aed' : done ? '2px solid #7c3aed' : '1px solid rgba(255,255,255,0.1)',
-                  color: done || active ? '#fff' : 'var(--muted-foreground)',
+                  background: done ? '#6843EC' : active ? 'rgba(104,67,236,0.15)' : 'var(--muted)',
+                  border: active ? '2px solid #6843EC' : done ? '2px solid #6843EC' : '1px solid var(--border)',
+                  color: done ? '#ffffff' : active ? '#6843EC' : 'var(--muted-foreground)',
                 }}>
                   {done ? <CheckCircle2 size={11} /> : n}
                 </div>
@@ -118,7 +123,7 @@ export function ApplicationWizard({ forgeState, promptGeneration, apiKey }) {
                 </span>
               </div>
               {i < STEPS.length - 1 && (
-                <div style={{ width: '20px', height: '1px', background: step > n ? '#7c3aed' : 'rgba(255,255,255,0.08)', marginBottom: '16px', transition: 'background 0.3s ease' }} />
+                <div style={{ width: '20px', height: '1px', background: step > n ? '#6843EC' : 'var(--border)', marginBottom: '16px', transition: 'background 0.3s ease' }} />
               )}
             </React.Fragment>
           );
@@ -144,29 +149,45 @@ export function ApplicationWizard({ forgeState, promptGeneration, apiKey }) {
                   <h3 style={stepTitle}>Select Application Type</h3>
                   <p style={stepDesc}>What kind of digital product are you building?</p>
                 </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.45rem 0.75rem', width: '100%', maxWidth: '360px', boxSizing: 'border-box' }}>
+                  <Search size={14} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
+                  <input
+                    type="text"
+                    placeholder="Search application categories..."
+                    value={appSearch}
+                    onChange={(e) => setAppSearch(e.target.value)}
+                    style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.78rem', color: 'var(--foreground)', width: '100%', fontFamily: 'var(--font-sans)' }}
+                  />
+                  {appSearch && (
+                    <span onClick={() => setAppSearch('')} style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', cursor: 'pointer', fontWeight: 600 }}>Clear</span>
+                  )}
+                </div>
                 <div className="category-grid" style={{ gap: '1rem' }}>
-                  {APP_CATEGORIES.map((cat) => {
+                  {APP_CATEGORIES.filter(cat => 
+                    cat.label.toLowerCase().includes(appSearch.toLowerCase()) || 
+                    cat.desc.toLowerCase().includes(appSearch.toLowerCase())
+                  ).map((cat) => {
                     const isSelected = appCategory === cat.id;
                     return (
-                      <div key={cat.id} style={categoryCard(isSelected)}
+                      <div key={cat.id} style={categoryCard(isSelected, !!cat.image)}
                          onClick={() => handleCategorySelect(cat.id)}
                          className="category-card bento-card-premium glow-card-spotlight active-scale-95"
                       >
                         {cat.image
                           ? <img src={cat.image} alt={cat.label} className="card-artwork" />
-                          : <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Code2 size={26} style={{ color: 'rgba(255,255,255,0.12)' }} /></div>
+                          : <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Code2 size={26} style={{ color: 'var(--border)' }} /></div>
                         }
-                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '75%', background: 'linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.4), transparent)', zIndex: 1 }} />
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '75%', background: 'linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.4), transparent)', zIndex: 1 }} />
                         {isSelected && (
                           <div style={{ position: 'absolute', top: '0.6rem', right: '0.6rem', zIndex: 3 }}>
-                            <CheckCircle2 size={15} style={{ color: '#fbbf24' }} />
+                            <CheckCircle2 size={15} style={{ color: '#6843EC' }} />
                           </div>
                         )}
                         <div style={{ padding: '0.85rem', zIndex: 2 }}>
-                          <span style={{ fontSize: '0.95rem', fontWeight: '800', color: '#fff', display: 'block', textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
+                          <span style={{ fontSize: '0.95rem', fontWeight: '800', color: '#ffffff', display: 'block', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
                             {cat.label}
                           </span>
-                          <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.75)', marginTop: '0.25rem', lineHeight: '1.4', textShadow: '0 1px 2px rgba(0,0,0,0.6)', margin: 0 }}>
+                          <p style={{ fontSize: '0.72rem', color: '#e4e4e7', marginTop: '0.25rem', lineHeight: '1.4', textShadow: '0 1px 2px rgba(0,0,0,0.6)', margin: 0 }}>
                             {cat.desc}
                           </p>
                         </div>
@@ -200,20 +221,24 @@ export function ApplicationWizard({ forgeState, promptGeneration, apiKey }) {
                   <p style={stepDesc}>Select the functional modules to bundle into your application spec.</p>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '0.5rem' }}>
-                  {(CATEGORY_FEATURES[appCategory] || CATEGORY_FEATURES['Custom'] || []).map((feat, idx) => {
-                    const isChecked = selectedFeatures.includes(feat);
-                    return (
-                      <div key={idx} style={checkboxCard(isChecked)}
-                           onClick={() => handleFeatureToggle(feat)}
-                           className="active-scale-95"
-                      >
-                        <CheckCircle2 size={13} style={{ color: isChecked ? '#7c3aed' : 'rgba(255,255,255,0.1)', flexShrink: 0 }} />
-                        <span style={{ fontSize: '0.8rem', color: 'var(--foreground)', fontWeight: '500' }}>
-                          {feat}
-                        </span>
-                      </div>
-                    );
-                  })}
+                  {(() => {
+                    const predefined = CATEGORY_FEATURES[appCategory] || CATEGORY_FEATURES['Custom'] || [];
+                    const displayed = [...predefined, ...selectedFeatures.filter(f => !predefined.includes(f))];
+                    return displayed.map((feat, idx) => {
+                      const isChecked = selectedFeatures.includes(feat);
+                      return (
+                        <div key={idx} style={checkboxCard(isChecked)}
+                             onClick={() => handleFeatureToggle(feat)}
+                             className="active-scale-95"
+                        >
+                          <CheckCircle2 size={13} style={{ color: isChecked ? '#6843EC' : 'var(--border)', flexShrink: 0 }} />
+                          <span style={{ fontSize: '0.8rem', color: 'var(--foreground)', fontWeight: '500' }}>
+                            {feat}
+                          </span>
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
                 {/* Custom feature add form */}
                 <form onSubmit={handleAddCustomFeature} style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
@@ -338,14 +363,34 @@ export function ApplicationWizard({ forgeState, promptGeneration, apiKey }) {
                     { label: 'Font', value: selectedTypography },
                     { label: 'Project', value: projectIntegration === 'existing' ? `Existing · ${framework}` : 'New Project' },
                   ].map(({ label, value }) => value && (
-                    <span key={label} style={{ fontSize: '0.72rem', fontWeight: '600', color: 'var(--accent)', background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.2)', borderRadius: '8px', padding: '3px 10px' }}>
+                    <span key={label} style={{ fontSize: '0.72rem', fontWeight: '600', color: 'var(--accent)', background: 'rgba(104,67,236,0.08)', border: '1px solid rgba(104,67,236,0.20)', borderRadius: '8px', padding: '3px 10px' }}>
                        {label}: {value}
                     </span>
                   ))}
                 </div>
+                {/* AI Generator Engine Selector */}
+                <div style={{ border: '1px solid var(--border)', borderRadius: '12px', padding: '0.85rem 1rem', background: 'rgba(255,255,255,0.01)', display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', marginBottom: '0.5rem' }} className="animate-fade-in">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: '700', color: 'var(--foreground)' }}>
+                    <Sparkles size={13} style={{ color: 'var(--accent)' }} />
+                    AI Generator Engine
+                  </div>
+                  <ShadcnDropdown
+                    value={selectedModel || 'gemini'}
+                    onChange={(val) => setSelectedModel(val)}
+                    options={[
+                      { label: 'Gemini 3.1 Pro (Flagship)', value: 'gemini' },
+                      { label: 'Groq Llama 3.3 70B (High Precision)', value: 'groq' }
+                    ]}
+                    triggerWidth="100%"
+                  />
+                  <p style={{ fontSize: '0.68rem', color: 'var(--muted-foreground)', margin: 0 }}>
+                    {selectedModel === 'groq' ? "⚡ Running Groq Llama 3.3 for faster, high-fidelity synthesis." : "✨ Running flagship Gemini 3.1 Pro synthesis."}
+                  </p>
+                </div>
+
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--muted-foreground)', justifyContent: 'center' }}>
                   <Info size={15} />
-                  {apiKey ? 'Live Gemini Compiler active.' : 'Offline Prompt Compiler active.'}
+                  {apiKey ? 'Live Compiler active.' : 'Offline Compiler active.'}
                 </div>
                 <button
                   onClick={handleForgeSubmit}
@@ -371,7 +416,7 @@ export function ApplicationWizard({ forgeState, promptGeneration, apiKey }) {
             onClick={goBack}
             disabled={step === 1}
             className="active-scale-95"
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.25rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)', color: step === 1 ? 'rgba(255,255,255,0.2)' : 'var(--muted-foreground)', fontSize: '0.85rem', fontWeight: '600', cursor: step === 1 ? 'default' : 'pointer', transition: 'all 0.2s ease' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.25rem', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', opacity: step === 1 ? 0.35 : 1, fontSize: '0.85rem', fontWeight: '600', cursor: step === 1 ? 'default' : 'pointer', transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}
           >
             <ArrowLeft size={15} /> Back
           </button>
@@ -379,7 +424,7 @@ export function ApplicationWizard({ forgeState, promptGeneration, apiKey }) {
             onClick={goNext}
             disabled={!canAdvance()}
             className="active-scale-95"
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.5rem', borderRadius: '10px', border: 'none', background: canAdvance() ? 'var(--accent)' : 'rgba(255,255,255,0.05)', color: canAdvance() ? '#fff' : 'rgba(255,255,255,0.2)', fontSize: '0.85rem', fontWeight: '700', cursor: canAdvance() ? 'pointer' : 'default', transition: 'all 0.2s ease' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.5rem', borderRadius: '10px', border: 'none', background: canAdvance() ? 'var(--accent)' : 'var(--muted)', color: canAdvance() ? 'var(--accent-foreground)' : 'var(--muted-foreground)', fontSize: '0.85rem', fontWeight: '700', cursor: canAdvance() ? 'pointer' : 'default', transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}
           >
             {step === 6 ? 'Review' : 'Continue'} <ArrowRight size={15} />
           </button>

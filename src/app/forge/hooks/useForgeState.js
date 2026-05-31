@@ -16,6 +16,7 @@ export function useForgeState(user, router) {
   // Universal Wizard States
   const [selectedTheme, setSelectedTheme] = useState(null);
   const [selectedTypography, setSelectedTypography] = useState('Inter');
+  const [selectedModel, setSelectedModel] = useState('gemini');
 
   // 1. Full-Stack Application State
   const [appCategory, setAppCategory] = useState(null);
@@ -33,7 +34,7 @@ export function useForgeState(user, router) {
   const [customComponentType, setCustomComponentType] = useState('');
   
   // 5. Existing Codebase Sync State
-  const [projectIntegration, setProjectIntegration] = useState(null); // 'new' | 'existing'
+  const [projectIntegration, setProjectIntegration] = useState('new'); // 'new' | 'existing'
   const [framework, setFramework] = useState('Shadcn/UI');
   const [codebaseContext, setCodebaseContext] = useState('');
   const [ideSyncPromptCopied, setIdeSyncPromptCopied] = useState(false);
@@ -72,6 +73,7 @@ export function useForgeState(user, router) {
       if (draft.selectedFeatures) setSelectedFeatures(draft.selectedFeatures);
       if (draft.selectedTheme) setSelectedTheme(draft.selectedTheme);
       if (draft.selectedTypography) setSelectedTypography(draft.selectedTypography);
+      if (draft.selectedModel) setSelectedModel(draft.selectedModel);
       if (draft.pageType) setPageType(draft.pageType);
       if (draft.selectedComponents) setSelectedComponents(draft.selectedComponents);
       if (draft.componentType) setComponentType(draft.componentType);
@@ -142,13 +144,14 @@ export function useForgeState(user, router) {
 
   // Draft autosave whenever key state changes
   useEffect(() => {
-    if (appCategory || pageType || componentType || selectedTheme) {
+    if (appCategory || pageType || componentType || selectedTheme || selectedModel) {
       const draft = {
         mode: activeMode,
         appCategory,
         selectedFeatures,
         selectedTheme,
         selectedTypography,
+        selectedModel,
         pageType,
         selectedComponents,
         componentType,
@@ -168,7 +171,7 @@ export function useForgeState(user, router) {
       localStorage.setItem('promptforge_draft', JSON.stringify(draft));
     }
   }, [
-    activeMode, appCategory, selectedFeatures, selectedTheme, selectedTypography, pageType, selectedComponents, componentType, projectIntegration, framework,
+    activeMode, appCategory, selectedFeatures, selectedTheme, selectedTypography, selectedModel, pageType, selectedComponents, componentType, projectIntegration, framework,
     projectName, projectDescription, projectType, frontendStack, backendStack, database, authOption, deployment, additionalFeatures
   ]);
 
@@ -282,6 +285,7 @@ export function useForgeState(user, router) {
     showDraftBanner, setShowDraftBanner,
     selectedTheme, setSelectedTheme,
     selectedTypography, setSelectedTypography,
+    selectedModel, setSelectedModel,
     appCategory, setAppCategory,
     customCategory, setCustomCategory,
     selectedFeatures, setSelectedFeatures,

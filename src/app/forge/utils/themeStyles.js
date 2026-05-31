@@ -16,10 +16,10 @@ export const getThemeCardDynamicStyles = (themeName, isSelected) => {
   if (themeName === "Sleek Dark Glassmorphic") {
     return {
       ...base,
-      background: isSelected ? 'rgba(124, 58, 237, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+      background: isSelected ? 'rgba(104, 67, 236, 0.22)' : '#1a1235',
       backdropFilter: 'blur(16px)',
-      border: isSelected ? '1px solid #7c3aed' : '1px solid rgba(255, 255, 255, 0.06)',
-      boxShadow: isSelected ? '0 0 25px rgba(124, 58, 237, 0.2)' : 'none',
+      border: isSelected ? '1px solid #6843EC' : '1px solid rgba(104, 67, 236, 0.25)',
+      boxShadow: isSelected ? '0 0 25px rgba(104, 67, 236, 0.25)' : '0 2px 12px rgba(0,0,0,0.3)',
       color: '#ffffff'
     };
   }
@@ -40,7 +40,7 @@ export const getThemeCardDynamicStyles = (themeName, isSelected) => {
   if (themeName === "Brutalist Bold") {
     return {
       ...base,
-      background: isSelected ? '#fbbf24' : 'var(--card)',
+      background: isSelected ? '#6843EC' : 'var(--card)',
       border: '3px solid #000000',
       borderRadius: '0px',
       boxShadow: isSelected ? '8px 8px 0px #000000' : '4px 4px 0px #000000',
@@ -303,7 +303,8 @@ export const getThemeCardDynamicStyles = (themeName, isSelected) => {
 
   return {
     ...base,
-    background: isSelected ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.02)',
-    border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border)'
+    background: isSelected ? 'rgba(104, 67, 236, 0.10)' : 'var(--card)',
+    border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border)',
+    color: 'var(--foreground)'
   };
 };

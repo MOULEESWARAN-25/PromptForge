@@ -1,5 +1,6 @@
 import { searchVectorVocabulary } from './ragEngine';
 import { themeStyles } from '../data/designVocabulary';
+import { resolveAccessibilitySpecs } from './accessibilitySpecs';
 
 /**
  * Main service to compile and enhance prompts using either the Google Gemini API (Free Tier)
@@ -28,7 +29,8 @@ export async function generateEnhancedPrompt({
   history = [],
   apiKey,
   codebaseContext,
-  framework
+  framework,
+  modelProvider = 'gemini'
 }) {
   const startTime = Date.now();
   
@@ -57,7 +59,8 @@ export async function generateEnhancedPrompt({
         componentName,
         history,
         codebaseContext,
-        framework
+        framework,
+        modelProvider
       })
     });
 
@@ -162,6 +165,9 @@ async function executeGeminiGeneration({
   codebaseContext,
   framework
 }) {
+  // Resolve component-aware accessibility specifications
+  const a11yBlock = resolveAccessibilitySpecs({ mode, componentName, components, pageType, query: query || '' });
+
   let systemInstruction = `You are a Professional AI Prompt Architect & Frontend Intent Translator. Your goal is to take a user's rough, vague frontend development descriptions and translate them into incredibly detailed, high-fidelity prompts that AI tools like Lovable, Cursor, and v0 understand best.
 
 You will use professional, highly precise UI/UX design language, components, visual styles, layouts, animations, and motion terminology to guarantee outstanding layout results.
@@ -175,10 +181,13 @@ ${framework ? `\nTarget UI Framework: ${framework}. Follow standard development 
 
 ${codebaseContext ? `\nCRITICAL DIRECTIVE - EXISTING PROJECT INTEGRATION:\nThis UI element must integrate seamlessly into an existing codebase. Here is the user's codebase folder structure and styling patterns gathered from their IDE:\n---START CODEBASE CONTEXT---\n${codebaseContext}\n---END CODEBASE CONTEXT---\nYou MUST structure the generated prompt to strictly fit their current folders layout, reuse their existing styling variables/utilities, and respect their dependency rules.\n` : ''}
 
+${a11yBlock}
+
 CRITICAL FORMATTING INSTRUCTIONS:
 1. ALWAYS output your final generated enhanced prompt in a single, distinct code block starting with \`\`\`prompt. Do not use normal markdown backticks or python labels, use ONLY \`\`\`prompt as the opening.
 2. In your normal chat dialogue, explain the changes or architectural decisions you made, and outline the technical terminology you injected.
-3. Be professional, supportive, and act as a senior software architect. Encourage the user to chat with you to refine details (e.g. colors, transitions, typography).`;
+3. Be professional, supportive, and act as a senior software architect. Encourage the user to chat with you to refine details (e.g. colors, transitions, typography).
+4. ACCESSIBILITY MANDATE: Every component in the generated prompt MUST include its specific ARIA roles, keyboard navigation pattern, focus management strategy, and the rationale explaining WHY each accessibility requirement exists. Do not omit accessibility — it is a first-class requirement.`;
 
   // Construct context prompt for first generation
   let promptText = "";
@@ -232,7 +241,7 @@ Stitch in premium effects, UX characteristics, micro-interactions, responsive ta
   });
 
   // Call official Gemini Beta API
-  // Using gemini-2.5-flash: current free-tier model (gemini-2.0-flash deprecated June 2026)
+  // Using gemini-3.1-pro for flagship performance and high accuracy
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
     {
@@ -268,7 +277,7 @@ Stitch in premium effects, UX characteristics, micro-interactions, responsive ta
   return {
     prompt: rawModelResponse,
     ragDetails,
-    source: "Google Gemini 3.5 Flash API"
+    source: "Google Gemini 2.5 Flash API"
   };
 }
 

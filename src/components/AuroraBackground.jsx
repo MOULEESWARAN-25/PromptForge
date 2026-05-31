@@ -13,7 +13,6 @@ export default function AuroraBackground() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Respect prefers-reduced-motion — skip animation entirely
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
       canvas.style.display = 'none';
@@ -29,17 +28,21 @@ export default function AuroraBackground() {
     resize();
     window.addEventListener('resize', resize);
 
-    // Reduced orb radii (0.45 → 0.32) for lighter GPU footprint
+    // Purple + green aurora orbs matching the new palette
     const orbs = isDark ? [
-      { x: 0.15, y: 0.35, r: 0.32, color: 'rgba(251,191,36,0.08)', speedX: 0.0002, speedY: 0.00015, phase: 0 },
-      { x: 0.75, y: 0.55, r: 0.36, color: 'rgba(249,115,22,0.06)', speedX: -0.00015, speedY: 0.0002, phase: 1 },
-      { x: 0.4, y: 0.75, r: 0.28, color: 'rgba(168,85,247,0.04)', speedX: 0.00025, speedY: -0.00015, phase: 2 },
-      { x: 0.85, y: 0.15, r: 0.24, color: 'rgba(251,191,36,0.05)', speedX: -0.0002, speedY: 0.00025, phase: 3 },
+      // Main purple glow — upper left (like Present.ai reference)
+      { x: 0.10, y: 0.25, r: 0.45, color: 'rgba(104,67,236,0.13)', speedX: 0.00018, speedY: 0.00012, phase: 0 },
+      // Deep purple center-right
+      { x: 0.72, y: 0.50, r: 0.38, color: 'rgba(130,80,255,0.09)', speedX: -0.00012, speedY: 0.00018, phase: 1.5 },
+      // Green accent — bottom right (subtle)
+      { x: 0.82, y: 0.78, r: 0.28, color: 'rgba(210,255,58,0.05)', speedX: 0.00022, speedY: -0.00014, phase: 3 },
+      // Soft indigo — top right
+      { x: 0.88, y: 0.12, r: 0.30, color: 'rgba(80,50,200,0.07)', speedX: -0.00018, speedY: 0.00022, phase: 4.5 },
     ] : [
-      { x: 0.15, y: 0.3, r: 0.32, color: 'rgba(251,191,36,0.04)', speedX: 0.00015, speedY: 0.0001, phase: 0 },
-      { x: 0.7, y: 0.5, r: 0.36, color: 'rgba(249,115,22,0.03)', speedX: -0.0001, speedY: 0.00015, phase: 1 },
-      { x: 0.45, y: 0.7, r: 0.28, color: 'rgba(168,85,247,0.02)', speedX: 0.0002, speedY: -0.0001, phase: 2 },
-      { x: 0.8, y: 0.15, r: 0.22, color: 'rgba(251,191,36,0.03)', speedX: -0.00015, speedY: 0.0002, phase: 3 },
+      { x: 0.15, y: 0.3,  r: 0.38, color: 'rgba(104,67,236,0.06)', speedX: 0.00012, speedY: 0.00008, phase: 0 },
+      { x: 0.70, y: 0.50, r: 0.32, color: 'rgba(130,80,255,0.04)', speedX: -0.00008, speedY: 0.00012, phase: 1.5 },
+      { x: 0.80, y: 0.75, r: 0.22, color: 'rgba(210,255,58,0.025)', speedX: 0.00016, speedY: -0.00010, phase: 3 },
+      { x: 0.85, y: 0.15, r: 0.24, color: 'rgba(80,50,200,0.035)', speedX: -0.00012, speedY: 0.00016, phase: 4.5 },
     ];
 
     let time = 0;
@@ -49,8 +52,8 @@ export default function AuroraBackground() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       orbs.forEach(orb => {
-        const cx = (orb.x + Math.sin(time * orb.speedX + orb.phase) * 0.08) * canvas.width;
-        const cy = (orb.y + Math.cos(time * orb.speedY + orb.phase) * 0.06) * canvas.height;
+        const cx = (orb.x + Math.sin(time * orb.speedX + orb.phase) * 0.09) * canvas.width;
+        const cy = (orb.y + Math.cos(time * orb.speedY + orb.phase) * 0.07) * canvas.height;
         const radius = orb.r * Math.max(canvas.width, canvas.height);
 
         const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
@@ -76,14 +79,13 @@ export default function AuroraBackground() {
 
   return (
     <>
-      {/* CSS Blueprint & Node Animations Injector */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes bg-spin-clockwise {
-          0% { transform: translate(-50%, -50%) rotate(0deg); }
+          0%   { transform: translate(-50%, -50%) rotate(0deg); }
           100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
         @keyframes bg-spin-counter {
-          0% { transform: translate(-50%, -50%) rotate(360deg); }
+          0%   { transform: translate(-50%, -50%) rotate(360deg); }
           100% { transform: translate(-50%, -50%) rotate(0deg); }
         }
         @keyframes flow-dash {
@@ -91,7 +93,7 @@ export default function AuroraBackground() {
         }
       ` }} />
 
-      {/* 1. Animated Radial Spotlights Canvas */}
+      {/* 1. Animated Purple Aurora Canvas */}
       <canvas
         ref={canvasRef}
         style={{
@@ -105,7 +107,7 @@ export default function AuroraBackground() {
         }}
       />
 
-      {/* 2. Concentric Blueprint Coordinate Rings (Slow Clockwise Rotation) */}
+      {/* 2. Concentric Purple Coordinate Rings */}
       <div
         style={{
           position: 'fixed',
@@ -117,10 +119,10 @@ export default function AuroraBackground() {
           pointerEvents: 'none',
           animation: 'bg-spin-clockwise 150s linear infinite',
           backgroundImage: `
-            radial-gradient(circle, transparent 0%, transparent 150px, rgba(251, 191, 36, ${isDark ? '0.012' : '0.024'}) 151px, transparent 152px),
-            radial-gradient(circle, transparent 0%, transparent 300px, rgba(251, 191, 36, ${isDark ? '0.01' : '0.02'}) 301px, transparent 302px),
-            radial-gradient(circle, transparent 0%, transparent 600px, rgba(251, 191, 36, ${isDark ? '0.007' : '0.014'}) 601px, transparent 602px),
-            radial-gradient(circle, transparent 0%, transparent 950px, rgba(251, 191, 36, ${isDark ? '0.004' : '0.008'}) 951px, transparent 952px)
+            radial-gradient(circle, transparent 0%, transparent 150px, rgba(104, 67, 236, ${isDark ? '0.018' : '0.020'}) 151px, transparent 152px),
+            radial-gradient(circle, transparent 0%, transparent 300px, rgba(104, 67, 236, ${isDark ? '0.012' : '0.015'}) 301px, transparent 302px),
+            radial-gradient(circle, transparent 0%, transparent 600px, rgba(104, 67, 236, ${isDark ? '0.008' : '0.010'}) 601px, transparent 602px),
+            radial-gradient(circle, transparent 0%, transparent 950px, rgba(104, 67, 236, ${isDark ? '0.005' : '0.006'}) 951px, transparent 952px)
           `,
           transform: 'translate(-50%, -50%)',
           opacity: 0.95,
@@ -128,7 +130,7 @@ export default function AuroraBackground() {
         }}
       />
 
-      {/* 3. Subtle Dashed Radial Orbit Coordinate (Slow Counter-Clockwise Rotation) */}
+      {/* 3. Dashed Orbit Ring */}
       <div
         style={{
           position: 'fixed',
@@ -139,7 +141,7 @@ export default function AuroraBackground() {
           zIndex: 1,
           pointerEvents: 'none',
           animation: 'bg-spin-counter 180s linear infinite',
-          backgroundImage: `radial-gradient(circle, transparent 0%, transparent 450px, rgba(251, 191, 36, ${isDark ? '0.006' : '0.012'}) 451px, transparent 453px)`,
+          backgroundImage: `radial-gradient(circle, transparent 0%, transparent 450px, rgba(104, 67, 236, ${isDark ? '0.008' : '0.010'}) 451px, transparent 453px)`,
           maskImage: 'repeating-conic-gradient(black 0deg 3deg, transparent 3deg 9deg)',
           WebkitMaskImage: 'repeating-conic-gradient(black 0deg 3deg, transparent 3deg 9deg)',
           transform: 'translate(-50%, -50%)',
@@ -148,7 +150,7 @@ export default function AuroraBackground() {
         }}
       />
 
-      {/* 4. Live SVG Networking Constellations */}
+      {/* 4. Flowing Line Paths */}
       <svg
         style={{
           position: 'fixed',
@@ -159,27 +161,25 @@ export default function AuroraBackground() {
           pointerEvents: 'none',
         }}
       >
-        {/* Curving Flow 1 */}
         <path
           d="M -100 200 C 300 280, 550 80, 1400 130"
           fill="none"
-          stroke={isDark ? "rgba(251, 191, 36, 0.07)" : "rgba(251, 191, 36, 0.16)"}
+          stroke={isDark ? 'rgba(104, 67, 236, 0.10)' : 'rgba(104, 67, 236, 0.12)'}
           strokeWidth="1.25"
           strokeDasharray="6, 6"
           style={{ animation: 'flow-dash 35s linear infinite' }}
         />
-        {/* Curving Flow 2 */}
         <path
           d="M 100 850 C 400 680, 750 780, 1500 480"
           fill="none"
-          stroke={isDark ? "rgba(251, 191, 36, 0.07)" : "rgba(251, 191, 36, 0.16)"}
+          stroke={isDark ? 'rgba(104, 67, 236, 0.07)' : 'rgba(104, 67, 236, 0.09)'}
           strokeWidth="1.25"
           strokeDasharray="6, 6"
           style={{ animation: 'flow-dash 45s linear infinite' }}
         />
       </svg>
 
-      {/* 5. Radial Ambient Dark Vignette (Cinematic Edge Shading) */}
+      {/* 5. Cinematic Edge Vignette */}
       <div
         style={{
           position: 'fixed',
@@ -187,7 +187,7 @@ export default function AuroraBackground() {
           zIndex: 3,
           pointerEvents: 'none',
           background: isDark
-            ? 'radial-gradient(ellipse at center, transparent 35%, rgba(8,7,17,0.55) 100%)'
+            ? 'radial-gradient(ellipse at center, transparent 30%, rgba(12,10,28,0.60) 100%)'
             : 'radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.02) 100%)',
           transition: 'background var(--duration-slow) var(--ease-in-out)',
         }}

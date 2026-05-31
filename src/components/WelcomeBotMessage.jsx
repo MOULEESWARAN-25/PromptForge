@@ -76,7 +76,7 @@ export default function WelcomeBotMessage() {
         <div style={botHeader}>
           <div style={avatarRing}>
             <div style={avatar}>
-              <Sparkles size={16} style={{ color: '#fff' }} />
+              <Sparkles size={16} style={{ color: 'var(--foreground)' }} />
             </div>
             <div style={onlineDot} />
           </div>
@@ -193,7 +193,7 @@ const onlineDot = {
 };
 
 const botName = {
-  fontSize: '0.88rem', fontWeight: '700', color: '#fff',
+  fontSize: '0.88rem', fontWeight: '700', color: 'var(--foreground)',
   fontFamily: 'var(--font-display)',
 };
 
@@ -208,8 +208,8 @@ const bubbleWrap = {
 const typingBubble = {
   display: 'inline-flex', alignItems: 'center', gap: '5px',
   padding: '0.6rem 0.9rem',
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.06)',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
   borderRadius: '12px 12px 12px 4px',
 };
 
@@ -222,14 +222,14 @@ const dot = (delay) => ({
 
 const messageBubble = {
   padding: '0.85rem 1rem',
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.06)',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
   borderRadius: '12px 12px 12px 4px',
   maxWidth: '480px',
 };
 
 const messageText = {
-  fontSize: '0.85rem', color: 'rgba(255,255,255,0.85)',
+  fontSize: '0.85rem', color: 'var(--foreground)',
   lineHeight: '1.6', margin: 0,
 };
 
@@ -258,7 +258,7 @@ const actionIconWrap = (accent) => ({
 const actionText = { flex: 1, minWidth: 0 };
 
 const actionLabel = {
-  fontSize: '0.82rem', fontWeight: '700', color: '#fff',
+  fontSize: '0.82rem', fontWeight: '700', color: 'var(--foreground)',
   marginBottom: '0.2rem',
 };
 

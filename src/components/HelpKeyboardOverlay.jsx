@@ -79,7 +79,7 @@ const overlay = {
 const modal = {
   width: '100%',
   maxWidth: '440px',
-  background: 'rgba(10, 10, 15, 0.85)',
+  background: 'rgba(26, 23, 64, 0.85)',
   border: '1px solid rgba(255, 255, 255, 0.08)',
   boxShadow: '0 24px 60px rgba(0,0,0,0.8), 0 0 40px rgba(124,58,237,0.05)',
   borderRadius: '16px',
@@ -105,7 +105,7 @@ const titleRow = {
 const title = {
   fontSize: '0.98rem',
   fontWeight: '700',
-  color: '#ffffff',
+  color: 'var(--foreground)',
   margin: 0,
   fontFamily: 'var(--font-display)',
 };
@@ -150,7 +150,7 @@ const kbdKey = {
   border: '1px solid rgba(255,255,255,0.12)',
   borderRadius: '6px',
   padding: '3px 7px',
-  color: '#ffffff',
+  color: 'var(--foreground)',
   boxShadow: '0 2px 0 rgba(0,0,0,0.4)',
 };
 

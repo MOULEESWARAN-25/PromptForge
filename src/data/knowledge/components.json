@@ -1,79 +1,346 @@
 [
   {
     "componentName": "Interactive Command Palette",
-    "accessibilityGuidelines": [
-      "Ensure viewport focus immediately snaps inside the command text search input upon palette mount.",
-      "Support standard arrow key navigations and Tab options triggers across search items.",
-      "Attach aria-expanded properties to toggle elements."
+    "accessibilityRequirements": [
+      "Apply role='combobox' to the search input with aria-expanded reflecting open/closed state",
+      "Apply role='listbox' to the results container and role='option' to each result item",
+      "Use aria-activedescendant on the input pointing to the currently highlighted option ID",
+      "Auto-focus the search input immediately on palette mount",
+      "Navigate results with ArrowUp / ArrowDown; wrap at list boundaries",
+      "Activate the selected option on Enter key press",
+      "Close the palette on Escape key press and restore focus to the trigger",
+      "Announce result count changes using aria-live='polite' on a status element",
+      "Group results under role='group' with aria-label describing the group category"
+    ],
+    "accessibilityRationale": [
+      "Combobox role communicates to assistive technology that the input controls a list of options",
+      "Listbox and option roles allow screen readers to announce each result and total count",
+      "aria-activedescendant allows screen readers to track the highlighted option without moving DOM focus",
+      "Auto-focusing removes a click barrier for keyboard users who triggered the palette via shortcut",
+      "Arrow key navigation is the expected interaction pattern for list traversal",
+      "Enter activation matches the standard selection behaviour keyboard users expect in any picker",
+      "Escape provides a safe, predictable exit that restores the user's previous context",
+      "Live region announcements ensure screen reader users know when results filter dynamically",
+      "Result grouping with labels helps screen reader users understand the category structure at a glance"
     ],
     "responsiveGridPresets": "Centered floating console card overlay with absolute viewport boundaries."
   },
   {
     "componentName": "Glassmorphic Modal Dialog",
-    "accessibilityGuidelines": [
-      "Trap user keyboard Tab selections within active modal modal elements.",
-      "Esc key click should instantly invoke overlay close animations.",
-      "Apply role='dialog' and aria-modal='true' attributes."
+    "accessibilityRequirements": [
+      "Apply role='dialog' and aria-modal='true' to the modal container element",
+      "Add aria-labelledby pointing to the modal's visible heading element",
+      "Add aria-describedby pointing to the modal's body description if present",
+      "Trap keyboard Tab and Shift+Tab focus within the open modal",
+      "Move focus to the first interactive element on open",
+      "Restore focus to the trigger element that opened the modal on close",
+      "Close the modal on Escape key press",
+      "Provide a visible close button with aria-label='Close dialog'"
     ],
-    "responsiveGridPresets": "Responsive responsive modal placing container cards centered on small screens, scaling up to max-w-lg on desktop."
+    "accessibilityRationale": [
+      "Screen readers must announce the dialog boundary so users know they've entered a modal context",
+      "Labelling the modal gives screen reader users an immediate understanding of its purpose",
+      "Describing the body prevents users from navigating before understanding the content",
+      "Focus trapping prevents keyboard users from interacting with background content while the dialog is open",
+      "Moving focus on open ensures screen reader users start at the right context",
+      "Restoring focus on close returns the user to their last position — critical for keyboard-only users",
+      "Escape is the universally expected dismissal shortcut that keyboard users rely on",
+      "An accessible close button ensures the action is discoverable without a mouse"
+    ],
+    "responsiveGridPresets": "Responsive modal centered on small screens, scaling up to max-w-lg on desktop."
   },
   {
     "componentName": "Pricing Card Matrix",
-    "accessibilityGuidelines": [
-      "Ensure proper semantic card headers to direct screen readers correctly.",
-      "High contrast text guidelines to maintain readable subscription comparisons."
+    "accessibilityRequirements": [
+      "Use semantic heading hierarchy inside each card (h2 for plan name, h3 for price)",
+      "Ensure CTA buttons have descriptive text: 'Get Started with Pro' not just 'Get Started'",
+      "Apply aria-describedby on each CTA button pointing to its feature list",
+      "Ensure colour contrast of 4.5:1 minimum on all pricing text and CTA buttons",
+      "Mark the recommended plan with aria-label='Recommended plan: Pro'"
     ],
-    "responsiveGridPresets": "Fluid single column layout on mobile, scaling into standard three-column pricing matrices on tablet devices."
+    "accessibilityRationale": [
+      "Heading hierarchy allows screen reader users to navigate between plans using heading shortcuts",
+      "Descriptive button text prevents screen reader users from encountering ambiguous 'Get Started' labels repeated three times",
+      "aria-describedby links the CTA to its features so users understand what they are purchasing",
+      "Colour contrast ensures readability for users with low vision or colour blindness",
+      "The recommended plan must be announced to screen reader users who cannot see the visual highlight"
+    ],
+    "responsiveGridPresets": "Single column on mobile, three-column pricing matrix on tablet and desktop."
   },
   {
     "componentName": "Collapsible Sidebar Navigation",
-    "accessibilityGuidelines": [
-      "Provide custom visually hidden screen reader descriptions indicating link state (e.g. collapsed/expanded).",
-      "Attach custom aria-controls elements linking header toggles directly to drawer panels."
+    "accessibilityRequirements": [
+      "Wrap in <nav> with aria-label='Main navigation' or 'Side navigation'",
+      "Apply aria-current='page' on the active route link",
+      "Apply aria-expanded on the toggle button controlling the sidebar",
+      "When in overlay mode (mobile), trap focus inside and close on Escape",
+      "Provide visually hidden screen reader text indicating collapsed/expanded state",
+      "Ensure all nav links have descriptive text — no 'Click here' labels"
     ],
-    "responsiveGridPresets": "Sticky floating navigation panel fitting viewport heights on desktop, collapsing to horizontal bottom menus on mobile."
+    "accessibilityRationale": [
+      "Named nav landmark allows screen reader users to jump directly to navigation",
+      "aria-current='page' communicates the user's current location to assistive technology",
+      "aria-expanded tells screen reader users whether the sidebar is open or collapsed",
+      "Focus trapping in overlay mode prevents keyboard users from reaching obscured background content",
+      "Hidden state descriptions ensure screen reader users understand the sidebar's current visibility state",
+      "Descriptive link text allows users browsing link lists to understand destinations out of context"
+    ],
+    "responsiveGridPresets": "Sticky panel on desktop, collapsing to a bottom or slide-out menu on mobile."
   },
   {
     "componentName": "Settings Tab Navigator",
-    "accessibilityGuidelines": [
-      "Attach role='tablist' properties to container bars, setting role='tab' and aria-selected values on options tabs."
+    "accessibilityRequirements": [
+      "Apply role='tablist' to the tab container element",
+      "Apply role='tab' and aria-selected='true'/'false' to each tab button",
+      "Apply role='tabpanel' to each panel and link it to its tab via aria-labelledby",
+      "Apply aria-controls on each tab pointing to its associated panel ID",
+      "Navigate between tabs with ArrowLeft / ArrowRight; Tab moves focus into the active panel",
+      "Ensure inactive panels are hidden with the hidden attribute — not only visually"
     ],
-    "responsiveGridPresets": "Multi-column responsive grid layout."
+    "accessibilityRationale": [
+      "tablist groups the tab buttons so screen readers announce the set as a navigation region",
+      "aria-selected communicates which tab is active without relying on visual-only cues",
+      "tabpanel with aria-labelledby ensures users know which tab's content they are reading",
+      "aria-controls makes the tab-panel relationship machine-readable for assistive technology",
+      "Arrow key navigation is the ARIA design pattern — Tab is reserved for moving into panel content",
+      "Properly hidden panels prevent screen readers from reading inactive content during navigation"
+    ],
+    "responsiveGridPresets": "Horizontal tab bar on desktop, converting to vertical stack or select input on mobile."
   },
   {
     "componentName": "Multi-Step Form Wizard",
-    "accessibilityGuidelines": [
-      "Announce steps change states to screen readers.",
-      "Ensure standard focus flow across step circular indicator buttons."
+    "accessibilityRequirements": [
+      "Use aria-label='Step X of Y: Step Name' on each step indicator",
+      "Apply aria-current='step' on the active step indicator",
+      "Move focus to the heading or first input of each new step after navigation",
+      "Announce step transitions with aria-live='polite'",
+      "Provide a text-based step count (e.g. 'Step 2 of 4') not only icon-based",
+      "Ensure Back and Next buttons have descriptive aria-labels"
     ],
-    "responsiveGridPresets": "Unified wizard screen centering cards over subtle glass panels."
+    "accessibilityRationale": [
+      "Step position announcement prevents screen reader users from losing orientation in a multi-step flow",
+      "aria-current='step' communicates progress state beyond visual progress bars",
+      "Moving focus on step change ensures users are immediately aware of the new step",
+      "Live region announcements prevent confusion after a step transition completes",
+      "Text-based step count is readable by screen readers that may not interpret SVG icon sequences",
+      "Descriptive button labels give keyboard users confidence about the consequence of Next"
+    ],
+    "responsiveGridPresets": "Centered wizard card with a full-width progress indicator above the form."
   },
   {
     "componentName": "Activity Stream Log",
-    "accessibilityGuidelines": [
-      "Apply role='log' or aria-live='polite' attributes to list wrappers."
+    "accessibilityRequirements": [
+      "Apply role='log' or aria-live='polite' to the stream container",
+      "Each activity item should have a visible timestamp accessible to screen readers",
+      "Use <time datetime='ISO-8601-date'> for machine-readable timestamps",
+      "Ensure new items appended to the log are announced by the live region"
     ],
-    "responsiveGridPresets": "Single column vertical cards stack."
+    "accessibilityRationale": [
+      "role='log' informs assistive technology that this is an auto-updating feed of events",
+      "Visible timestamps provide sighted and screen reader users with chronological context",
+      "machine-readable datetime attributes allow browsers and AT to format dates per user locale",
+      "Live region announcements ensure real-time activity is communicated to screen reader users"
+    ],
+    "responsiveGridPresets": "Single-column vertical cards stack with infinite scroll or pagination."
   },
   {
     "componentName": "KPI Metric Card",
-    "accessibilityGuidelines": [
-      "Pair dynamic numeric metric displays with text labels."
+    "accessibilityRequirements": [
+      "Pair each numeric metric with a visible text label — never use the number alone",
+      "Use aria-label on the card to provide a full summary: 'Monthly Revenue: $12,400, up 8% from last month'",
+      "Ensure colour-coded trend indicators (green up, red down) also have text labels",
+      "Apply sufficient colour contrast on metric values (4.5:1 minimum)"
     ],
-    "responsiveGridPresets": "Grid cells auto-scaling."
+    "accessibilityRationale": [
+      "Numbers without labels are meaningless to screen reader users who lack visual layout context",
+      "Full aria-label summaries allow screen reader users to understand a KPI card in a single announcement",
+      "Colour-only trend indicators are invisible to users with colour blindness — text labels are required",
+      "Contrast ensures metric values are readable in varying display environments"
+    ],
+    "responsiveGridPresets": "Auto-scaling grid cells, single column on mobile, 2–4 columns on desktop."
   },
   {
     "componentName": "Interactive Data Chart Widget",
-    "accessibilityGuidelines": [
-      "Provide accessible tabular data fallbacks for screen reader charts."
+    "accessibilityRequirements": [
+      "Provide a text summary of the chart's key insight above or below the visualisation",
+      "Add role='img' and a descriptive aria-label on the chart container",
+      "Provide a data table alternative (role='table') alongside or in a togglable view",
+      "Ensure interactive chart elements (hover states, drill-downs) are keyboard operable",
+      "Respect prefers-reduced-motion by disabling chart entry animations when requested"
     ],
-    "responsiveGridPresets": "Sizable dynamic grid item slots."
+    "accessibilityRationale": [
+      "Chart SVG/Canvas elements are invisible to screen readers without explicit text alternatives",
+      "role='img' with aria-label provides at minimum a summary for users who cannot access the visual",
+      "A data table alternative gives screen reader users the same data in an accessible format",
+      "Keyboard operability ensures power users and motor-impaired users can interact with chart data",
+      "Reduced-motion compliance prevents animation-triggered discomfort for vestibular disorder sufferers"
+    ],
+    "responsiveGridPresets": "Sizable grid item slot with a minimum height of 200px; responsive width."
   },
   {
     "componentName": "Infinite Marquee Ticker",
-    "accessibilityGuidelines": [
-      "Support system motion accessibility settings, pausing infinite marquee ticker loops when users request reduced motion."
+    "accessibilityRequirements": [
+      "Pause the marquee animation when prefers-reduced-motion is set",
+      "Pause animation on hover AND on keyboard focus",
+      "Mark the ticker container with aria-hidden='true' if it contains purely decorative content",
+      "If ticker contains meaningful logos or names, use aria-label on each item"
     ],
-    "responsiveGridPresets": "Horizontal slider banner."
+    "accessibilityRationale": [
+      "Continuously moving content triggers vestibular disorders and violates WCAG 2.2.2 Pause, Stop, Hide",
+      "Hover and focus pausing ensures keyboard users can read ticker content that would otherwise scroll past",
+      "aria-hidden on decorative tickers prevents screen readers from announcing repetitive logo names",
+      "Meaningful ticker items need labels so screen reader users understand the brands or content being displayed"
+    ],
+    "responsiveGridPresets": "Full-width horizontal banner with overflow hidden and CSS marquee animation."
+  },
+  {
+    "componentName": "Dropdown / Select Menu",
+    "accessibilityRequirements": [
+      "Apply role='button' and aria-haspopup='listbox' to the trigger element",
+      "Apply aria-expanded='true'/'false' on the trigger",
+      "Apply role='listbox' to the options container; role='option' to each item",
+      "Navigate options with ArrowUp / ArrowDown; Home to first, End to last",
+      "Select with Enter or Space; close with Escape",
+      "Close when focus moves outside the dropdown",
+      "Use aria-selected='true' on the currently selected option"
+    ],
+    "accessibilityRationale": [
+      "aria-haspopup signals to screen readers that activating this control opens a list",
+      "aria-expanded provides state feedback so screen reader users know the list is open",
+      "Listbox and option semantics allow screen readers to announce options and the total count",
+      "Arrow key navigation is the standard for list traversal — mouse users have no equivalent constraint",
+      "Enter/Space and Escape are the universal selection and dismissal keys",
+      "Closing on blur prevents the dropdown from staying open when the user moves on",
+      "aria-selected communicates the current value without relying on visual styling"
+    ],
+    "responsiveGridPresets": "Inline trigger with an absolutely positioned options list; full-width on mobile."
+  },
+  {
+    "componentName": "Form / Input Group",
+    "accessibilityRequirements": [
+      "Associate every input with a visible <label> using for/id pairing — do not use placeholder as a label substitute",
+      "Add aria-required='true' on required fields with a visible asterisk and legend",
+      "Add aria-invalid='true' and aria-describedby pointing to the error message on validation failure",
+      "Render error messages in a persistent visible element adjacent to the invalid field",
+      "Add aria-live='assertive' on an error summary region",
+      "Ensure Tab order follows visual reading order",
+      "Move focus to the error summary or first invalid field on failed submit",
+      "Support Enter key submission from single-line text inputs"
+    ],
+    "accessibilityRationale": [
+      "Placeholders disappear on input and are not reliably announced by all screen readers",
+      "aria-required communicates mandatory fields beyond colour or asterisk alone",
+      "aria-invalid with aria-describedby associates the error message directly to its field",
+      "Persistent visible errors allow users to review all issues before re-submitting",
+      "aria-live='assertive' immediately announces errors to screen reader users",
+      "Logical Tab order prevents disorientation on complex forms",
+      "Moving focus to errors guides keyboard and screen reader users directly to the problem",
+      "Enter-to-submit is the expected keyboard behaviour for standard text inputs"
+    ],
+    "responsiveGridPresets": "Single-column stacked labels and inputs, grouping related fields with fieldset/legend."
+  },
+  {
+    "componentName": "Data Table",
+    "accessibilityRequirements": [
+      "Add a <caption> element describing the table's purpose",
+      "Use <th> with scope='col' for column headers and scope='row' for row headers",
+      "Apply aria-sort='ascending'/'descending'/'none' on sortable column headers",
+      "Ensure horizontal scrollability on mobile while maintaining header associations",
+      "If rows are interactive (selectable), add role='grid' and manage ArrowKey cell navigation",
+      "Provide a text description alongside any chart embedded in the table"
+    ],
+    "accessibilityRationale": [
+      "A caption gives screen reader users immediate context before they enter the table",
+      "scope attributes create explicit associations between data cells and their headers",
+      "aria-sort communicates column ordering without reading the full data set",
+      "Horizontal scroll preserves data integrity — truncating columns breaks header associations",
+      "role='grid' with arrow key navigation allows traversal without losing position",
+      "Charts without textual alternatives are completely inaccessible to screen reader users"
+    ],
+    "responsiveGridPresets": "Horizontally scrollable on mobile with sticky first column for row context."
+  },
+  {
+    "componentName": "Accordion / FAQ Panel",
+    "accessibilityRequirements": [
+      "Apply aria-expanded='true'/'false' to each accordion trigger button",
+      "Apply aria-controls on the trigger pointing to the panel ID",
+      "Apply role='region' and aria-labelledby on each panel",
+      "Toggle expand/collapse with Enter or Space; do not intercept Tab",
+      "Animate using max-height or clip-path respecting prefers-reduced-motion",
+      "Ensure collapsed panel content is not focusable by keyboard"
+    ],
+    "accessibilityRationale": [
+      "aria-expanded state change is announced to screen readers when a panel opens",
+      "aria-controls creates the programmatic link between trigger and panel",
+      "role='region' with a label marks each panel as a navigable landmark",
+      "Enter/Space are standard toggle keys — Tab must remain free for navigation",
+      "Respecting prefers-reduced-motion prevents discomfort for vestibular disorder sufferers",
+      "Hidden panel content must be unreachable to prevent keyboard navigation confusion"
+    ],
+    "responsiveGridPresets": "Full-width stacked panels with a 1px border separator between items."
+  },
+  {
+    "componentName": "Toast Notification",
+    "accessibilityRequirements": [
+      "Apply role='status' and aria-live='polite' for non-critical notifications",
+      "Apply role='alert' and aria-live='assertive' for error notifications",
+      "Do not move keyboard focus to the toast",
+      "Provide a dismiss button with aria-label on persistent toasts",
+      "Ensure sufficient colour contrast on toast text (4.5:1 minimum)",
+      "Respect prefers-reduced-motion by removing slide/bounce animations"
+    ],
+    "accessibilityRationale": [
+      "aria-live='polite' queues the announcement after the current screen reader utterance",
+      "aria-live='assertive' interrupts immediately — appropriate only for errors requiring urgent attention",
+      "Moving focus to a toast disrupts the user's current interaction flow",
+      "A dismiss button allows keyboard users to clear persistent toasts without a mouse",
+      "Contrast ensures toast messages are readable by users with low vision",
+      "Reduced-motion compliance prevents vestibular disorder triggers"
+    ],
+    "responsiveGridPresets": "Fixed positioned bottom-right stack, collapsing to bottom-center on mobile."
+  },
+  {
+    "componentName": "Combobox / Autocomplete",
+    "accessibilityRequirements": [
+      "Apply role='combobox' to the text input with aria-autocomplete='list'",
+      "Apply aria-expanded reflecting whether the suggestion list is visible",
+      "Apply aria-controls pointing to the suggestion listbox element ID",
+      "Apply aria-activedescendant on the input tracking the highlighted suggestion ID",
+      "Navigate suggestions with ArrowUp / ArrowDown; commit with Enter",
+      "Clear input and close suggestions with Escape",
+      "Announce suggestion count with aria-live='polite': 'X results available'",
+      "Allow users to type freely without forcing a suggestion selection"
+    ],
+    "accessibilityRationale": [
+      "aria-autocomplete='list' signals that suggestions appear as the user types",
+      "aria-expanded state change is announced when the suggestion list appears",
+      "aria-controls links the input and suggestion list for assistive technology",
+      "aria-activedescendant tracks the highlighted item without moving DOM focus from the input",
+      "Arrow key navigation is the standard pattern for suggestion list traversal",
+      "Escape gives users a reliable way to abort the autocomplete",
+      "Live region suggestion count announcements orient screen reader users",
+      "Free text input is essential — forced selection breaks the experience for unusual input"
+    ],
+    "responsiveGridPresets": "Inline input with an absolutely positioned suggestion list below; full-width on mobile."
+  },
+  {
+    "componentName": "Tooltip",
+    "accessibilityRequirements": [
+      "Apply role='tooltip' to the tooltip container element",
+      "Reference the tooltip from its trigger via aria-describedby",
+      "Show the tooltip on both hover AND keyboard focus — never hover-only",
+      "Dismiss the tooltip on Escape key or when focus/hover leaves the trigger",
+      "Do not put essential information only in a tooltip",
+      "Ensure tooltip text has sufficient contrast against its background"
+    ],
+    "accessibilityRationale": [
+      "role='tooltip' allows assistive technology to identify and announce supplementary information",
+      "aria-describedby associates the tooltip with its trigger so screen readers announce it on focus",
+      "Focus-triggered display ensures keyboard users receive the same hint as mouse hover users",
+      "Escape dismissal allows users to remove an obscuring tooltip",
+      "Essential information in tooltips-only is inaccessible to touch-only users with no hover state",
+      "Contrast requirements apply to tooltip text as they do to body content"
+    ],
+    "responsiveGridPresets": "Absolutely positioned relative to the trigger; auto-repositions to avoid viewport edges."
   }
 ]

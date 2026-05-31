@@ -104,8 +104,8 @@ export default function FeedbackWidget({ contextId, mode = 'inline' }) {
 // ─── Styles ───────────────────────────────────────────────────
 const container = (mode) => ({
   padding: '0.85rem 1.25rem',
-  background: 'rgba(255,255,255,0.02)',
-  border: '1px solid rgba(255,255,255,0.05)',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
   borderRadius: '12px',
   marginTop: '0.75rem',
   width: '100%',
@@ -173,12 +173,12 @@ const inputAreaRow = {
 
 const textInput = {
   flex: 1,
-  background: 'rgba(255,255,255,0.04)',
+  background: 'var(--card)',
   border: '1px solid rgba(255,255,255,0.08)',
   borderRadius: '6px',
   padding: '0.4rem 0.65rem',
   fontSize: '0.75rem',
-  color: '#fff',
+  color: 'var(--foreground)',
   fontFamily: 'var(--font-sans)',
   outline: 'none',
 };
@@ -187,7 +187,7 @@ const submitBtn = {
   width: '30px',
   height: '30px',
   borderRadius: '6px',
-  background: '#fbbf24',
+  background: '#6843EC',
   color: '#000',
   border: 'none',
   display: 'flex',

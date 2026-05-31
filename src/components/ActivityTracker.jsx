@@ -46,14 +46,14 @@ export default function ActivityTracker() {
       value: sessionsThisMonth,
       label: `Building Sessions`,
       sub: monthName,
-      color: '#f59e0b',
+      color: '#6843EC',
     },
     {
       icon: Calendar,
       value: blueprintsThisMonth,
       label: `Blueprints Created`,
       sub: `this ${monthName}`,
-      color: '#7c3aed',
+      color: '#6843EC',
     },
   ];
 
@@ -100,8 +100,8 @@ const statCard = {
   alignItems: 'center',
   gap: '0.6rem',
   padding: '0.6rem 0.9rem',
-  background: 'rgba(255,255,255,0.02)',
-  border: '1px solid rgba(255,255,255,0.05)',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
   borderRadius: '12px',
 };
 
@@ -114,11 +114,11 @@ const iconWrap = (color) => ({
 const statValue = {
   fontSize: '1.1rem', fontWeight: '800',
   fontFamily: 'var(--font-display)',
-  color: '#fff', lineHeight: 1,
+  color: 'var(--foreground)', lineHeight: 1,
 };
 
 const statLabel = {
-  fontSize: '0.72rem', fontWeight: '600', color: 'rgba(255,255,255,0.7)',
+  fontSize: '0.72rem', fontWeight: '600', color: 'var(--muted-foreground)',
   marginTop: '0.1rem',
 };
 

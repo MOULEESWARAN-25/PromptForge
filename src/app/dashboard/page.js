@@ -119,12 +119,7 @@ export default function DashboardPage() {
   const usage = getUsageStats ? getUsageStats() : { used: 0, max: 3, isAtLimit: false, isNearLimit: false, percent: 0 };
 
   const handleNewWorkspaceIntent = (action) => {
-    if (usage.isAtLimit) {
-      setShowInterceptModal(true);
-      track('workspace_limit_intercepted', { source: 'dashboard' });
-    } else {
-      action();
-    }
+    action();
   };
 
   // ── Folder Collections state
@@ -299,7 +294,7 @@ export default function DashboardPage() {
   const handleClearAll = () => {
     if (!clearConfirm) {
       setClearConfirm(true);
-      clearTimerRef.current = setTimeout(() => setClearConfirm(false), 3000);
+      clearTimerRef.current = setTimeout(() => setClearConfirm(false), 7000);
       return;
     }
     clearTimeout(clearTimerRef.current);
@@ -393,7 +388,7 @@ export default function DashboardPage() {
             {/* History cards grid skeletons matching exact geometry */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.25rem' }}>
               {[...Array(3)].map((_, i) => (
-                <div key={i} style={{ height: '172px', borderRadius: '14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }} className="animate-pulse">
+                <div key={i} style={{ height: '172px', borderRadius: '14px', background: 'var(--card)', border: '1px solid var(--border)', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }} className="animate-pulse">
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <div style={skeletonLine('80px', '18px')} />
                     <div style={skeletonLine('60px', '14px')} />
@@ -478,10 +473,10 @@ export default function DashboardPage() {
           className="glass-panel"
         >
           {[
-            { icon: FileText, label: 'Blueprints Compiled', value: vaultStats.blueprints, color: '#7c3aed' },
+            { icon: FileText, label: 'Blueprints Compiled', value: vaultStats.blueprints, color: '#6843EC' },
             { icon: Folder, label: 'Collections Organized', value: vaultStats.collections, color: '#0891b2' },
-            { icon: Brain, label: 'AI Refinements Applied', value: vaultStats.refinements, color: '#db2777' },
-            { icon: Zap, label: 'Est. Hours Saved', value: `~${vaultStats.hoursSaved}h`, color: '#f59e0b', isText: true },
+            { icon: Brain, label: 'AI Refinements Applied', value: vaultStats.refinements, color: '#6843EC' },
+            { icon: Zap, label: 'Est. Hours Saved', value: `~${vaultStats.hoursSaved}h`, color: '#6843EC', isText: true },
           ].map(stat => {
             const Icon = stat.icon;
             return (
@@ -553,40 +548,7 @@ export default function DashboardPage() {
           )}
         </motion.div>
 
-        {/* Progress-Based Conversion Upgrade Banner — Sunk Cost Reframing */}
-        {optimisticHistory.length > 0 && (usage.isNearLimit || usage.isAtLimit) && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-            style={usageBannerStyle(usage.isAtLimit)}
-            className="glass-panel"
-          >
-            <div style={usageBannerHead}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <TrendingUp size={16} style={{ color: usage.isAtLimit ? '#f43f5e' : '#fbbf24' }} />
-                <span style={usageBannerTitle}>
-                  {usage.isAtLimit
-                    ? `${usage.used} of ${usage.max} workspace slots used (Limit Reached)`
-                    : `${usage.used} of ${usage.max} workspace slots used`}
-                </span>
-              </div>
-              <Link href="/pricing/pro" style={usageBannerUpgradeLink(usage.isAtLimit)}>
-                Upgrade to Pro <ArrowRight size={12} />
-              </Link>
-            </div>
 
-            <div style={usageBannerProgressBg}>
-              <div style={usageBannerProgressFill(usage.percent, usage.isAtLimit)} />
-            </div>
-
-            <p style={usageBannerDesc}>
-              {usage.isAtLimit
-                ? `You've built ${usage.used} blueprints here. Upgrade to keep your entire library — unlimited workspaces, never lose your work.`
-                : `You've invested ${usage.used} blueprints into PromptForge. Upgrade now to grow your library without limits.`}
-            </p>
-          </motion.div>
-        )}
 
         {optimisticHistory.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
@@ -662,7 +624,7 @@ export default function DashboardPage() {
                 style={filterChipBtn(showFavoritesOnly, true)}
                 onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
               >
-                <Star size={12} fill={showFavoritesOnly ? '#fbbf24' : 'none'} style={{ color: showFavoritesOnly ? '#fbbf24' : 'inherit' }} />
+                <Star size={12} fill={showFavoritesOnly ? '#6843EC' : 'none'} style={{ color: showFavoritesOnly ? '#6843EC' : 'inherit' }} />
                 <span>Favorites</span>
               </button>
 
@@ -677,11 +639,11 @@ export default function DashboardPage() {
                     { label: 'Alphabetical', value: 'title' }
                   ]}
                   style={{
-                    background: 'rgba(255,255,255,0.02)',
-                    border: '1px solid rgba(255,255,255,0.05)',
+                    background: 'var(--card)',
+                    border: '1px solid var(--border)',
                     padding: '0.4rem 0.65rem',
                     fontSize: '0.78rem',
-                    color: '#fff',
+                    color: 'var(--foreground)',
                     fontFamily: 'var(--font-sans)',
                     minWidth: '100px'
                   }}
@@ -732,7 +694,7 @@ export default function DashboardPage() {
               <AnimatePresence mode="popLayout">
                 {filtered.map((log) => {
                   const ModeIcon = MODE_ICONS[log.mode] || Sparkles;
-                  const modeColor = MODE_COLORS[log.mode] || '#19398d';
+                  const modeColor = MODE_COLORS[log.mode] || '#6843EC';
                   const modeLabel = MODE_LABELS[log.mode] || log.mode;
                   const isCopied = copiedId === log.id;
                   const isFav = favorites.includes(log.id);
@@ -759,11 +721,11 @@ export default function DashboardPage() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                           <motion.button
                             onClick={(e) => toggleFavorite(log.id, e)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: isFav ? '#fbbf24' : 'var(--muted-foreground)' }}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: isFav ? '#6843EC' : 'var(--muted-foreground)' }}
                             whileHover={{ scale: 1.15 }}
                             title={isFav ? "Remove from favorites" : "Add to favorites"}
                           >
-                            <Star size={13} fill={isFav ? '#fbbf24' : 'none'} />
+                            <Star size={13} fill={isFav ? '#6843EC' : 'none'} />
                           </motion.button>
                           <span style={historyDate}>
                             <Clock size={11} />
@@ -804,7 +766,7 @@ export default function DashboardPage() {
                             ]}
                             style={{
                               background: 'rgba(255,255,255,0.01)',
-                              border: '1px solid rgba(255,255,255,0.05)',
+                              border: '1px solid var(--border)',
                               padding: '0.25rem 0.5rem',
                               fontSize: '0.72rem',
                               color: 'var(--muted-foreground)',
@@ -935,7 +897,6 @@ export default function DashboardPage() {
           }
         }
       ` }} />
-      <InterceptModal isOpen={showInterceptModal} onClose={() => setShowInterceptModal(false)} />
     </div>
   );
 }
@@ -1004,7 +965,7 @@ const nudgeBanner = (type) => ({
 const nudgeCta = {
   display: 'flex', alignItems: 'center', gap: '0.35rem',
   fontSize: '0.78rem', fontWeight: '700',
-  color: 'var(--accent)', background: 'rgba(124,58,237,0.1)',
+  color: 'var(--accent)', background: 'rgba(104,67,236,0.15)',
   border: '1px solid rgba(124,58,237,0.2)',
   borderRadius: '8px', padding: '0.4rem 0.8rem',
   cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'var(--font-sans)',
@@ -1022,14 +983,14 @@ const vaultStrip = {
   padding: '0.85rem 1.1rem',
   borderRadius: '14px',
   marginBottom: '1.25rem',
-  background: 'rgba(255,255,255,0.01)',
-  border: '1px solid rgba(255,255,255,0.05)',
+  background: 'var(--muted)',
+  border: '1px solid var(--border)',
 };
 
 const vaultStat = {
   display: 'flex', alignItems: 'center', gap: '0.55rem',
   paddingRight: '1rem',
-  borderRight: '1px solid rgba(255,255,255,0.04)',
+  borderRight: '1px solid var(--border)',
 };
 
 const vaultStatIcon = (color) => ({
@@ -1041,7 +1002,7 @@ const vaultStatIcon = (color) => ({
 const vaultStatValue = {
   fontSize: '1.05rem', fontWeight: '800',
   fontFamily: 'var(--font-display)',
-  color: '#fff', lineHeight: 1,
+  color: 'var(--foreground)', lineHeight: 1,
 };
 
 const vaultStatLabel = {
@@ -1077,15 +1038,15 @@ const welcomeSub = {
 };
 
 const sandboxConsoleContainer = {
-  background: 'rgba(5, 5, 8, 0.25)',
-  border: '1px solid rgba(255,255,255,0.04)',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
   borderRadius: '16px',
   padding: '1.75rem 2rem',
   display: 'flex',
   flexDirection: 'column',
   gap: '1.25rem',
   marginBottom: '3rem',
-  boxShadow: '0 4px 20px rgba(0,0,0,0.2), inset 0 1px 0 0 rgba(255,255,255,0.02)',
+  boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
 };
 
 const sandboxHeaderRow = {
@@ -1104,8 +1065,8 @@ const sandboxIconWrap = {
   width: '32px',
   height: '32px',
   borderRadius: '8px',
-  background: 'rgba(251, 191, 36, 0.08)',
-  border: '1px solid rgba(251, 191, 36, 0.15)',
+  background: 'rgba(104, 67, 236, 0.08)',
+  border: '1px solid rgba(104, 67, 236, 0.15)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -1133,12 +1094,12 @@ const sandboxConsoleForm = (focused) => ({
   alignItems: 'center',
   gap: '0.75rem',
   padding: '0 0.4rem 0 1rem',
-  background: 'rgba(10, 10, 12, 0.6)',
-  border: `1px solid ${focused ? 'var(--accent)' : 'rgba(255,255,255,0.05)'}`,
+  background: 'var(--muted)',
+  border: `1px solid ${focused ? 'var(--accent)' : 'var(--border)'}`,
   borderRadius: '10px',
   boxShadow: focused
-    ? '0 0 0 1px var(--accent), 0 4px 24px rgba(124,58,237,0.1), inset 0 1px 0 0 rgba(255,255,255,0.08)'
-    : 'inset 0 1px 0 0 rgba(255,255,255,0.03)',
+    ? '0 0 0 1px var(--accent), 0 4px 24px rgba(104,67,236,0.08)'
+    : 'none',
   transition: 'all 0.2s ease',
 });
 
@@ -1190,7 +1151,7 @@ const suggestLabel = {
 
 const suggestChip = {
   padding: '0.35rem 0.85rem',
-  background: 'rgba(255,255,255,0.02)',
+  background: 'var(--card)',
   border: '1px solid rgba(255,255,255,0.06)',
   borderRadius: '999px',
   fontSize: '0.78rem',
@@ -1232,13 +1193,13 @@ const bentoCard = (hovered, accent) => ({
   textDecoration: 'none',
   position: 'relative',
   overflow: 'hidden',
-  background: 'rgba(255, 255, 255, 0.01)',
-  border: `1px solid ${hovered ? `${accent}40` : 'rgba(255,255,255,0.04)'}`,
+  background: 'var(--card)',
+  border: `1px solid ${hovered ? `${accent}40` : 'var(--border)'}`,
   transition: 'all var(--duration-base) var(--ease-spring)',
   transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
   boxShadow: hovered
-    ? `0 1px 0 0 rgba(255,255,255,0.08) inset, 0 20px 40px ${accent}12, 0 8px 16px rgba(0,0,0,0.3)`
-    : '0 1px 0 0 rgba(255,255,255,0.02) inset, 0 4px 12px rgba(0,0,0,0.15)',
+    ? `0 20px 40px ${accent}12, 0 8px 16px rgba(0,0,0,0.1)`
+    : '0 4px 12px rgba(0,0,0,0.05)',
 });
 
 const bentoGlow = (accent, hovered) => ({
@@ -1307,7 +1268,7 @@ const bentoFooter = (accent, hovered) => ({
   fontWeight: '700',
   color: hovered ? accent : 'var(--muted-foreground)',
   paddingTop: '0.75rem',
-  borderTop: '1px solid rgba(255,255,255,0.06)',
+  borderTop: '1px solid var(--border)',
   transition: 'color 0.2s ease',
 });
 
@@ -1317,7 +1278,7 @@ const clearBtn = (isConfirm) => ({
   gap: '0.4rem',
   padding: '0.4rem 0.85rem',
   background: isConfirm ? 'rgba(239,68,68,0.08)' : 'transparent',
-  border: `1px solid ${isConfirm ? 'rgba(239,68,68,0.25)' : 'rgba(255,255,255,0.06)'}`,
+  border: `1px solid ${isConfirm ? 'rgba(239,68,68,0.25)' : 'var(--border)'}`,
   borderRadius: '8px',
   fontSize: '0.78rem',
   fontWeight: '600',
@@ -1334,8 +1295,8 @@ const emptyState = {
   alignItems: 'center',
   gap: '1.25rem',
   padding: '4rem 2rem',
-  background: 'rgba(255,255,255,0.01)',
-  border: '1px dashed rgba(255,255,255,0.07)',
+  background: 'var(--card)',
+  border: '1px dashed var(--border)',
   borderRadius: '20px',
   textAlign: 'center',
 };
@@ -1344,8 +1305,8 @@ const emptyIconWrap = {
   width: '80px',
   height: '80px',
   borderRadius: '20px',
-  background: 'rgba(251,191,36,0.06)',
-  border: '1px solid rgba(251,191,36,0.15)',
+  background: 'rgba(104,67,236,0.06)',
+  border: '1px solid rgba(104,67,236,0.15)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -1368,14 +1329,14 @@ const skeletonLine = (width, height) => ({
   width,
   height,
   borderRadius: '8px',
-  background: 'rgba(255,255,255,0.04)',
+  background: 'var(--card)',
   animation: 'pulse 1.5s ease-in-out infinite',
 });
 
 const skeletonCard = {
   height: '160px',
   borderRadius: '16px',
-  background: 'rgba(255,255,255,0.03)',
+  background: 'var(--card)',
 };
 
 const emptyTitle = {
@@ -1401,10 +1362,10 @@ const historyCard = {
   flexDirection: 'column',
   gap: '0.65rem',
   padding: '1.35rem',
-  background: 'rgba(255,255,255,0.01)',
-  border: '1px solid rgba(255,255,255,0.05)',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
   borderRadius: '16px',
-  boxShadow: '0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 20px rgba(0,0,0,0.2)',
+  boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
   cursor: 'pointer',
   transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
 };
@@ -1456,7 +1417,7 @@ const historyActions = {
   alignItems: 'center',
   gap: '0.25rem',
   paddingTop: '0.6rem',
-  borderTop: '1px solid rgba(255,255,255,0.06)',
+  borderTop: '1px solid var(--border)',
   marginTop: '0.4rem',
 };
 
@@ -1465,14 +1426,15 @@ const historyActionBtn = {
   alignItems: 'center',
   gap: '0.3rem',
   padding: '0.3rem 0.65rem',
-  background: 'rgba(255,255,255,0.01)',
-  border: '1px solid rgba(255,255,255,0.06)',
+  background: 'var(--muted)',
+  border: '1px solid var(--border)',
   borderRadius: '6px',
   fontSize: '0.75rem',
   fontWeight: '600',
   cursor: 'pointer',
   fontFamily: 'var(--font-sans)',
   transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+  color: 'var(--foreground)',
 };
 
 const historyOpen = {
@@ -1529,8 +1491,8 @@ const searchWrap = {
   display: 'flex',
   alignItems: 'center',
   gap: '0.5rem',
-  background: 'rgba(255,255,255,0.02)',
-  border: '1px solid rgba(255,255,255,0.05)',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
   borderRadius: '8px',
   padding: '0.4rem 0.75rem',
   flex: 1,
@@ -1541,7 +1503,7 @@ const searchInput = {
   background: 'transparent',
   border: 'none',
   fontSize: '0.8rem',
-  color: '#fff',
+  color: 'var(--foreground)',
   fontFamily: 'var(--font-sans)',
   outline: 'none',
   width: '100%',
@@ -1563,10 +1525,10 @@ const filterChipBtn = (active, isStar = false) => ({
   fontWeight: active ? '700' : '500',
   cursor: 'pointer',
   background: active
-    ? (isStar ? 'rgba(251,191,36,0.1)' : 'rgba(255,255,255,0.08)')
-    : 'rgba(255,255,255,0.02)',
-  border: `1px solid ${active ? (isStar ? 'rgba(251,191,36,0.25)' : 'rgba(255,255,255,0.15)') : 'rgba(255,255,255,0.05)'}`,
-  color: active ? (isStar ? '#fbbf24' : '#ffffff') : 'var(--muted-foreground)',
+    ? (isStar ? 'rgba(104,67,236,0.1)' : 'var(--accent)')
+    : 'var(--card)',
+  border: `1px solid ${active ? (isStar ? 'rgba(104,67,236,0.25)' : 'var(--accent)') : 'var(--border)'}`,
+  color: active ? (isStar ? '#6843EC' : 'var(--accent-foreground)') : 'var(--muted-foreground)',
   fontFamily: 'var(--font-sans)',
   transition: 'all 0.2s ease',
 });
@@ -1580,12 +1542,12 @@ const sortWrap = {
 };
 
 const sortSelect = {
-  background: 'rgba(255,255,255,0.02)',
-  border: '1px solid rgba(255,255,255,0.05)',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
   borderRadius: '8px',
   padding: '0.4rem 0.65rem',
   fontSize: '0.78rem',
-  color: '#fff',
+  color: 'var(--foreground)',
   fontFamily: 'var(--font-sans)',
   outline: 'none',
   cursor: 'pointer',
@@ -1598,9 +1560,9 @@ const floatingHelpBtn = {
   width: '36px',
   height: '36px',
   borderRadius: '50%',
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -1617,7 +1579,7 @@ const foldersTabRow = {
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: '1rem',
-  borderBottom: '1px solid rgba(255,255,255,0.05)',
+  borderBottom: '1px solid var(--border)',
   paddingBottom: '0.75rem',
   flexWrap: 'wrap',
 };
@@ -1630,8 +1592,8 @@ const folderTabBtn = (active) => ({
   borderRadius: '6px',
   fontSize: '0.78rem',
   fontWeight: active ? '700' : '500',
-  color: active ? '#ffffff' : 'var(--muted-foreground)',
-  background: active ? 'rgba(255,255,255,0.04)' : 'transparent',
+  color: active ? 'var(--accent)' : 'var(--muted-foreground)',
+  background: active ? 'rgba(104,67,236,0.08)' : 'transparent',
   border: 'none',
   cursor: 'pointer',
   transition: 'all 0.2s ease',
@@ -1639,7 +1601,7 @@ const folderTabBtn = (active) => ({
 
 const folderCountBadge = {
   fontSize: '0.65rem',
-  background: 'rgba(255,255,255,0.06)',
+  background: 'var(--muted)',
   padding: '1px 5px',
   borderRadius: '4px',
   marginLeft: '0.2rem',
@@ -1650,8 +1612,8 @@ const folderCreateForm = {
   display: 'flex',
   alignItems: 'center',
   gap: '0.25rem',
-  background: 'rgba(255,255,255,0.02)',
-  border: '1px solid rgba(255,255,255,0.05)',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
   borderRadius: '6px',
   padding: '2px 4px',
 };
@@ -1660,7 +1622,7 @@ const folderCreateInput = {
   background: 'transparent',
   border: 'none',
   fontSize: '0.72rem',
-  color: '#ffffff',
+  color: 'var(--foreground)',
   outline: 'none',
   padding: '2px 6px',
   width: '90px',
@@ -1679,8 +1641,8 @@ const folderCreateBtn = {
 };
 
 const folderSelectorCard = {
-  background: 'rgba(255,255,255,0.02)',
-  border: '1px solid rgba(255,255,255,0.05)',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
   borderRadius: '6px',
   padding: '0.25rem 0.5rem',
   fontSize: '0.72rem',
@@ -1692,266 +1654,7 @@ const folderSelectorCard = {
 };
 
 
-// ─── Intercept Modal Component ─────────────────────────────
-function InterceptModal({ isOpen, onClose }) {
-  if (!isOpen) return null;
 
-  return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        style={modalOverlayStyle}
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ scale: 0.95, y: 15, opacity: 0 }}
-          animate={{ scale: 1, y: 0, opacity: 1 }}
-          exit={{ scale: 0.95, y: 15, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          style={modalContentStyle}
-          className="glass-panel"
-          onClick={e => e.stopPropagation()}
-        >
-          <div style={modalHeaderRow}>
-            <div style={modalWarningIconWrap}>
-              <AlertTriangle size={20} style={{ color: '#f43f5e' }} />
-            </div>
-            <h3 style={modalTitle}>Workspace Limit Reached</h3>
-          </div>
-          
-          <p style={modalDesc}>
-            You already have <strong>3 active workspaces</strong> on the Hobby Plan. Upgrade to Professional to continue building:
-          </p>
-
-          <div style={modalFeaturesList}>
-            <div style={modalFeatureItem}>
-              <Check size={14} style={{ color: '#fbbf24', flexShrink: 0, marginTop: '2px' }} />
-              <span><strong>Unlimited Workspaces</strong> — build as many projects as you want</span>
-            </div>
-            <div style={modalFeatureItem}>
-              <Check size={14} style={{ color: '#fbbf24', flexShrink: 0, marginTop: '2px' }} />
-              <span><strong>Supabase Cloud Sync</strong> — secure backups & cross-device access</span>
-            </div>
-            <div style={modalFeatureItem}>
-              <Check size={14} style={{ color: '#fbbf24', flexShrink: 0, marginTop: '2px' }} />
-              <span><strong>Priority LLM Orchestrator</strong> — instant, zero-delay compilations</span>
-            </div>
-            <div style={modalFeatureItem}>
-              <Check size={14} style={{ color: '#fbbf24', flexShrink: 0, marginTop: '2px' }} />
-              <span><strong>Premium Visual Blueprints</strong> — full bento & animation library access</span>
-            </div>
-          </div>
-
-          <div style={modalActions}>
-            <button
-              onClick={() => {
-                track('upgrade_modal_click', { source: 'intercept_modal' });
-                window.location.href = '/pricing/pro';
-              }}
-              style={modalUpgradeBtn}
-              className="shine-effect"
-            >
-              Upgrade to Pro — $15/mo
-            </button>
-            <button
-              onClick={onClose}
-              style={modalCloseBtn}
-            >
-              Manage Existing Workspaces
-            </button>
-          </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
-
-
-// ─── Usage Progress Banner Styles ────────────────────────────
-const usageBannerStyle = (isAtLimit) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.75rem',
-  padding: '1.25rem 1.5rem',
-  borderRadius: '16px',
-  background: isAtLimit ? 'rgba(239,68,68,0.03)' : 'rgba(251,191,36,0.02)',
-  border: `1px solid ${isAtLimit ? 'rgba(239,68,68,0.2)' : 'rgba(251,191,36,0.15)'}`,
-  boxShadow: isAtLimit 
-    ? '0 0 24px rgba(239,68,68,0.05), inset 0 1px 0 0 rgba(255,255,255,0.05)'
-    : '0 0 24px rgba(251,191,36,0.05), inset 0 1px 0 0 rgba(255,255,255,0.05)',
-  marginBottom: '1.5rem',
-});
-
-const usageBannerHead = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  flexWrap: 'wrap',
-  gap: '0.5rem',
-};
-
-const usageBannerTitle = {
-  fontSize: '0.88rem',
-  fontWeight: '700',
-  color: 'var(--foreground)',
-  fontFamily: 'var(--font-display)',
-};
-
-const usageBannerUpgradeLink = (isAtLimit) => ({
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '0.3rem',
-  fontSize: '0.8rem',
-  fontWeight: '700',
-  color: isAtLimit ? '#ef4444' : 'var(--accent)',
-  textDecoration: 'none',
-  transition: 'all 0.2s ease',
-});
-
-const usageBannerProgressBg = {
-  width: '100%',
-  height: '8px',
-  background: 'rgba(255,255,255,0.04)',
-  borderRadius: '999px',
-  overflow: 'hidden',
-};
-
-const usageBannerProgressFill = (percent, isAtLimit) => ({
-  width: `${percent}%`,
-  height: '100%',
-  background: isAtLimit 
-    ? 'linear-gradient(90deg, #ef4444, #db2777)'
-    : 'linear-gradient(90deg, #fbbf24, #f59e0b)',
-  borderRadius: '999px',
-  transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-});
-
-const usageBannerDesc = {
-  fontSize: '0.78rem',
-  color: 'var(--muted-foreground)',
-  lineHeight: '1.5',
-};
-
-// ─── Intercept Modal Styles ─────────────────────────────────
-const modalOverlayStyle = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  background: 'rgba(5,5,8,0.75)',
-  backdropFilter: 'blur(8px)',
-  zIndex: 1100,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '1.5rem',
-};
-
-const modalContentStyle = {
-  width: '100%',
-  maxWidth: '480px',
-  background: 'rgba(10,10,14,0.94)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: '20px',
-  padding: '2rem',
-  boxShadow: '0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 0 rgba(255,255,255,0.05)',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '1.25rem',
-};
-
-const modalHeaderRow = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.75rem',
-};
-
-const modalWarningIconWrap = {
-  width: '40px',
-  height: '40px',
-  borderRadius: '10px',
-  background: 'rgba(244,63,94,0.08)',
-  border: '1px solid rgba(244,63,94,0.2)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  flexShrink: 0,
-};
-
-const modalTitle = {
-  fontSize: '1.25rem',
-  fontWeight: '700',
-  fontFamily: 'var(--font-display)',
-  color: '#fff',
-  letterSpacing: '-0.02em',
-};
-
-const modalDesc = {
-  fontSize: '0.85rem',
-  color: 'var(--muted-foreground)',
-  lineHeight: '1.6',
-};
-
-const modalFeaturesList = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.75rem',
-  background: 'rgba(255,255,255,0.01)',
-  border: '1px solid rgba(255,255,255,0.04)',
-  borderRadius: '12px',
-  padding: '1rem',
-};
-
-const modalFeatureItem = {
-  display: 'flex',
-  alignItems: 'flex-start',
-  gap: '0.6rem',
-  fontSize: '0.8rem',
-  color: 'var(--foreground)',
-  lineHeight: '1.4',
-};
-
-const modalActions = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.65rem',
-  marginTop: '0.5rem',
-};
-
-const modalUpgradeBtn = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '0.8rem 1.5rem',
-  background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-  color: '#000',
-  border: 'none',
-  borderRadius: '10px',
-  fontSize: '0.88rem',
-  fontWeight: '700',
-  cursor: 'pointer',
-  fontFamily: 'var(--font-sans)',
-  transition: 'opacity 0.2s ease',
-};
-
-const modalCloseBtn = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '0.8rem 1.5rem',
-  background: 'rgba(255,255,255,0.02)',
-  border: '1px solid rgba(255,255,255,0.06)',
-  borderRadius: '10px',
-  fontSize: '0.88rem',
-  fontWeight: '600',
-  color: 'var(--muted-foreground)',
-  cursor: 'pointer',
-  fontFamily: 'var(--font-sans)',
-  transition: 'all 0.2s ease',
-};
 
 
 

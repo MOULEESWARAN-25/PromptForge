@@ -1,18 +1,39 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatGroq } from "@langchain/groq";
 import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
+import { resolveAccessibilitySpecs } from "./accessibilitySpecs.js";
+import { telemetryService } from "./telemetryService.js";
 import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import path from "path";
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
-// Initialize ChatGoogleGenerativeAI Model via LangChain
-// NOTE: Use 'model' not 'modelName' — 'modelName' is deprecated in @langchain/google-genai
-// Using gemini-2.5-flash: current free-tier Flash model (gemini-2.0-flash deprecated June 2026)
-const model = new ChatGoogleGenerativeAI({
+// Initialize ChatGoogleGenerativeAI Model via LangChain with fail-fast maxRetries: 0
+const geminiModel = new ChatGoogleGenerativeAI({
   apiKey: process.env.GEMINI_API_KEY,
   model: "gemini-2.5-flash",
   temperature: 0.7,
-  maxOutputTokens: 2048,
+  maxOutputTokens: 4096,
+  maxRetries: 0, // Fail fast to trigger immediate failover
 });
+
+// Initialize ChatGroq Model via LangChain with fail-fast maxRetries: 0
+let groqModel = null;
+if (process.env.GROQ_API_KEY) {
+  try {
+    groqModel = new ChatGroq({
+      apiKey: process.env.GROQ_API_KEY,
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.7,
+      maxRetries: 0, // Fail fast to trigger immediate failover
+    });
+  } catch (err) {
+    console.error(`[agent] Failed to initialize Groq model: ${err.message}`);
+  }
+}
 
 /**
  * Orchestrates prompt engineering agent workflow via LangChain.
@@ -28,6 +49,7 @@ const model = new ChatGoogleGenerativeAI({
  * @param {string} [params.componentName]
  * @param {Array<{role: string, content: string}>} [params.history]
  * @param {object[]} params.retrievedTerms
+ * @param {string} [params.modelProvider] - 'gemini' | 'groq'
  * @returns {Promise<string>} Enhanced copiable prompt
  */
 export async function runPromptEnhancerAgent({
@@ -41,11 +63,20 @@ export async function runPromptEnhancerAgent({
   history = [],
   retrievedTerms = [],
   codebaseContext,
-  framework
+  framework,
+  modelProvider = 'gemini'
 }) {
   try {
-    // 1. Construct LangChain System Message
-    let systemInstruction = `You are a Professional AI Prompt Architect & Frontend Intent Translator. Your goal is to take a user's rough, vague frontend development descriptions and translate them into incredibly detailed, high-fidelity prompts that AI tools like Lovable, Cursor, and v0 understand best.
+    // 0. Resolve component-aware accessibility specifications
+    const a11yBlock = resolveAccessibilitySpecs({ mode, componentName, components, pageType, query });
+
+    // 1. Construct LangChain System Message with a built-in Self-Critique & Refinement loop directive
+    let systemInstruction = `You are a Professional AI Prompt Architect & Senior Frontend Architect. Your goal is to take a user's rough, vague frontend development descriptions and translate them into incredibly detailed, high-fidelity prompts that AI tools like Lovable, Cursor, and v0 understand best.
+
+You will execute a rigorous MULTI-STEP REFINEMENT & CRITIQUE LOOP internally to craft the final output:
+1. INTERNAL DRAFTING: Draft a comprehensive UI blueprint layout based on the user's input.
+2. SYSTEMATIC CRITIQUE: Critique the draft against the retrieved semantic design tokens and accessibility specifications. Ensure zero placeholders are used.
+3. FINAL BLUEPRINT GENERATION: Synthesize the critique and compile a premium production-ready prompt.
 
 You will use professional, highly precise UI/UX design language, components, visual styles, layouts, animations, and motion terminology to guarantee outstanding layout results.
 
@@ -58,10 +89,13 @@ ${framework ? `\nTarget UI Framework: ${framework}. Follow standard development 
 
 ${codebaseContext ? `\nCRITICAL DIRECTIVE - EXISTING PROJECT INTEGRATION:\nThis UI element must integrate seamlessly into an existing codebase. Here is the user's codebase folder structure and styling patterns gathered from their IDE:\n---START CODEBASE CONTEXT---\n${codebaseContext}\n---END CODEBASE CONTEXT---\nYou MUST structure the generated prompt to strictly fit their current folders layout, reuse their existing styling variables/utilities, and respect their dependency rules.\n` : ''}
 
+${a11yBlock}
+
 CRITICAL FORMATTING INSTRUCTIONS:
 1. ALWAYS output your final generated enhanced prompt in a single, distinct code block starting with \`\`\`prompt. Do not use normal markdown backticks or python labels, use ONLY \`\`\`prompt as the opening.
 2. In your normal chat dialogue, explain the changes or architectural decisions you made, and outline the technical terminology you injected.
-3. Be professional, supportive, and act as a senior software architect. Encourage the user to chat with you to refine details (e.g. colors, transitions, typography).`;
+3. Be professional, supportive, and act as a senior software architect. Encourage the user to chat with you to refine details (e.g. colors, transitions, typography).
+4. ACCESSIBILITY MANDATE: Every component in the generated prompt MUST include its specific ARIA roles, keyboard navigation pattern, focus management strategy, and the rationale explaining WHY each accessibility requirement exists. Do not omit accessibility — it is a first-class requirement.`;
 
     // 2. Format User query based on active mode
     let userPromptText = "";
@@ -114,13 +148,51 @@ Stitch in premium effects, UX characteristics, micro-interactions, responsive ta
     // Add the current user instruction
     messages.push(new HumanMessage(userPromptText));
 
-    // 4. Run LangChain invocation
-    const response = await model.invoke(messages);
-    
-    return response.content;
+    // 4. Select and Invoke LLM model with fallback handling
+    let primaryProvider = modelProvider;
+    let secondaryProvider = modelProvider === 'gemini' ? 'groq' : 'gemini';
+
+    let primaryModel = primaryProvider === 'gemini' ? geminiModel : groqModel;
+    let secondaryModel = secondaryProvider === 'gemini' ? geminiModel : groqModel;
+
+    // Default back to gemini if groq is missing or not configured
+    if (primaryProvider === 'groq' && !groqModel) {
+      primaryModel = geminiModel;
+      primaryProvider = 'gemini';
+    }
+
+    const start = Date.now();
+    try {
+      telemetryService.recordRequest(primaryProvider);
+      const response = await primaryModel.invoke(messages);
+      telemetryService.recordSuccess(primaryProvider, Date.now() - start);
+      return response.content;
+    } catch (primaryError) {
+      console.warn(`[agent] Primary AI provider ${primaryProvider} failed (${primaryError.message}). Triggering failover to ${secondaryProvider}...`);
+      telemetryService.recordFailure(primaryProvider, primaryError.message);
+      telemetryService.recordFailover(secondaryProvider);
+
+      if (secondaryModel) {
+        const secondaryStart = Date.now();
+        try {
+          telemetryService.recordRequest(secondaryProvider);
+          const response = await secondaryModel.invoke(messages);
+          telemetryService.recordSuccess(secondaryProvider, Date.now() - secondaryStart);
+          return response.content;
+        } catch (secondaryError) {
+          telemetryService.recordFailure(secondaryProvider, secondaryError.message);
+          console.error(`[agent] Both AI providers failed. Fallback chains exhausted.`);
+          throw secondaryError;
+        }
+      } else {
+        console.error(`[agent] Failover model (${secondaryProvider}) is not initialized or configured.`);
+        throw primaryError;
+      }
+    }
 
   } catch (error) {
-    console.error("Error running LangChain prompt agent:", error);
+    console.error(`[agent] LangChain execution error [${new Date().toISOString()}]: ${error.message}`);
     throw error;
   }
 }
+

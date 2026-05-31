@@ -29,7 +29,9 @@ export function PromptEnhancer({
     clarifiedViewport,
     setClarifiedViewport,
     handleQualityToggle,
-    handleMotionToggle
+    handleMotionToggle,
+    selectedModel,
+    setSelectedModel
   } = forgeState;
 
   const { isGenerating, runPromptAnalysis, handleForgeSubmit } = promptGeneration;
@@ -38,14 +40,14 @@ export function PromptEnhancer({
   const flowContainer = { display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%' };
   const stepSection = {
     padding: '2rem',
-    background: 'rgba(255, 255, 255, 0.01)',
+    background: 'var(--card)',
     backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.04)',
+    border: '1px solid var(--border)',
     borderRadius: '24px',
     display: 'flex',
     flexDirection: 'column',
     gap: '1.5rem',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.05)'
   };
   const stepHeader = { display: 'flex', gap: '1rem', alignItems: 'flex-start' };
   const stepNum = { fontSize: '2rem', fontWeight: '900', color: 'var(--accent)', lineHeight: '1', fontFamily: 'var(--font-mono)' };
@@ -77,9 +79,9 @@ export function PromptEnhancer({
     fontSize: '0.75rem',
     borderRadius: '20px',
     cursor: 'pointer',
-    background: isSelected ? 'rgba(124, 58, 237, 0.08)' : 'rgba(255,255,255,0.02)',
-    border: isSelected ? '1px solid #7c3aed' : '1px solid rgba(255,255,255,0.06)',
-    color: isSelected ? '#ffffff' : 'var(--muted-foreground)',
+    background: isSelected ? 'rgba(104, 67, 236, 0.12)' : 'transparent',
+    border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border)',
+    color: isSelected ? 'var(--accent)' : 'var(--muted-foreground)',
     fontWeight: isSelected ? '700' : '500',
     transition: 'all 0.2s ease'
   });
@@ -151,7 +153,7 @@ export function PromptEnhancer({
                 width: '64px',
                 height: '64px',
                 borderRadius: '50%',
-                border: '2.5px solid rgba(255,255,255,0.06)',
+                border: '2.5px solid var(--border)',
                 borderTopColor: 'var(--accent)',
                 animation: 'spin-slow 1s linear infinite',
               }}
@@ -176,18 +178,18 @@ export function PromptEnhancer({
               </div>
               <div>
                 <span style={{ fontSize: '0.72rem', color: '#059669', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Auto-Detected Intent</span>
-                <h4 style={{ fontSize: '1.05rem', fontWeight: '800', color: '#ffffff', fontFamily: 'var(--font-display)', marginTop: '2px' }}>
+                <h4 style={{ fontSize: '1.05rem', fontWeight: '800', color: 'var(--foreground)', fontFamily: 'var(--font-display)', marginTop: '2px' }}>
                   {analysisReport.detectedIntent}
                 </h4>
               </div>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.7rem', fontWeight: '700', padding: '2px 8px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--muted-foreground)' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: '700', padding: '2px 8px', borderRadius: '999px', background: 'var(--muted)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
                 Match Confidence: {analysisReport.confidence}
               </span>
               <button 
                 onClick={() => setEnhanceStep('input')}
-                style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--muted-foreground)', cursor: 'pointer' }}
+                style={{ background: 'transparent', border: '1px solid var(--border)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--muted-foreground)', cursor: 'pointer' }}
                 className="active-scale-95"
               >
                 Reset Draft
@@ -199,7 +201,7 @@ export function PromptEnhancer({
           <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '1.25rem' }}>
             {/* Left Column: Shortcomings & Solutions Critique */}
             <div style={{ ...stepSection, display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.5rem' }} className="glass-panel">
-              <h4 style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--foreground)', display: 'flex', alignItems: 'center', gap: '0.4rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.5rem', marginBottom: '0.25rem' }}>
+              <h4 style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--foreground)', display: 'flex', alignItems: 'center', gap: '0.4rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '0.25rem' }}>
                 <Info size={14} style={{ color: 'var(--accent)' }} />
                 Suggested Style & Layout Refinements
               </h4>
@@ -241,13 +243,37 @@ export function PromptEnhancer({
                   onChange={(val) => setSelectedTheme(val)}
                   options={Object.keys(themeStyles).map(themeName => ({ label: themeName, value: themeName }))}
                   triggerWidth="100%"
-                  style={{ background: '#08080c', border: '1px solid rgba(255,255,255,0.08)' }}
                 />
                 {selectedTheme && (
                   <p style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', marginTop: '0.5rem', lineHeight: '1.4' }}>
                     Style Keywords: <span style={{ color: 'var(--accent)' }}>{themeStyles[selectedTheme].keywords}</span>
                   </p>
                 )}
+              </div>
+              
+              {/* LLM Engine Selection */}
+              <div style={{ ...stepSection, padding: '1.25rem' }} className="glass-panel animate-fade-in">
+                <h4 style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--foreground)', marginBottom: '0.65rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Sparkles size={14} style={{ color: 'var(--accent)' }} />
+                  AI Generator Engine
+                </h4>
+                <ShadcnDropdown
+                  value={selectedModel || 'gemini'}
+                  onChange={(val) => {
+                    setSelectedModel(val);
+                    toast?.success ? toast.success(`Switched model to ${val === 'groq' ? 'Groq Llama 3.3' : 'Gemini 3.1 Pro'}`) : console.log("Switched model");
+                  }}
+                  options={[
+                    { label: 'Gemini 3.1 Pro (Flagship)', value: 'gemini' },
+                    { label: 'Groq Llama 3.3 70B (High Precision)', value: 'groq' }
+                  ]}
+                  triggerWidth="100%"
+                />
+                <p style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', marginTop: '0.5rem', lineHeight: '1.4' }}>
+                  {selectedModel === 'groq'
+                    ? "⚡ Running ultra-fast, high-precision Llama 3.3 70B prompt synthesis."
+                    : "✨ Running flagship, multi-modal Gemini 3.1 Pro synthesis."}
+                </p>
               </div>
 
               {/* Modify badges */}

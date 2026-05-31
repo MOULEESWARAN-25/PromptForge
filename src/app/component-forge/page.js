@@ -23,14 +23,14 @@ function renderMarkdown(text) {
     }
     if (line.startsWith('## ')) {
       return (
-        <h2 key={idx} style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ffffff', marginTop: '1.1rem', marginBottom: '0.5rem', fontFamily: 'var(--font-display)' }}>
+        <h2 key={idx} style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--foreground)', marginTop: '1.1rem', marginBottom: '0.5rem', fontFamily: 'var(--font-display)' }}>
           {parseInlineMarkdown(line.slice(3))}
         </h2>
       );
     }
     if (line.startsWith('# ')) {
       return (
-        <h1 key={idx} style={{ fontSize: '1.25rem', fontWeight: '800', color: '#ffffff', marginTop: '1.25rem', marginBottom: '0.6rem', fontFamily: 'var(--font-display)' }}>
+        <h1 key={idx} style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--foreground)', marginTop: '1.25rem', marginBottom: '0.6rem', fontFamily: 'var(--font-display)' }}>
           {parseInlineMarkdown(line.slice(2))}
         </h1>
       );
@@ -71,13 +71,13 @@ function parseInlineMarkdown(text) {
     }
     if (matchStr.startsWith('**') && matchStr.endsWith('**')) {
       parts.push(
-        <strong key={matchIdx} style={{ fontWeight: '700', color: '#ffffff' }}>
+        <strong key={matchIdx} style={{ fontWeight: '700', color: 'var(--foreground)' }}>
           {matchStr.slice(2, -2)}
         </strong>
       );
     } else if (matchStr.startsWith('`') && matchStr.endsWith('`')) {
       parts.push(
-        <code key={matchIdx} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', padding: '2px 5px', borderRadius: '4px', color: '#c084fc' }}>
+        <code key={matchIdx} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', background: 'var(--card)', padding: '2px 5px', borderRadius: '4px', color: '#c084fc' }}>
           {matchStr.slice(1, -1)}
         </code>
       );
@@ -297,7 +297,7 @@ export default function ComponentForgePage() {
                 >
                   <div style={cardHeaderRow}>
                     <span style={compNameText(active)}>{comp.name}</span>
-                    {active && <Sparkles size={12} style={{ color: '#fbbf24' }} />}
+                    {active && <Sparkles size={12} style={{ color: '#6843EC' }} />}
                   </div>
                   <p style={compDescText}>{comp.description.slice(0, 58)}...</p>
                 </div>
@@ -340,7 +340,7 @@ export default function ComponentForgePage() {
               {selectedComp?.examplePrompt && (
                 <div style={examplePromptBox}>
                   <div style={exampleLabelRow}>
-                    <Info size={14} style={{ color: '#fbbf24' }} />
+                    <Info size={14} style={{ color: '#6843EC' }} />
                     <span>Target Directive Example</span>
                   </div>
                   <p style={exampleText}>{selectedComp.examplePrompt}</p>
@@ -365,7 +365,7 @@ export default function ComponentForgePage() {
                     >
                       <div style={themeCardHeader}>
                         <span style={themeCardTitleStyle(isSelected)}>{themeName}</span>
-                        {isSelected && <CheckCircle2 size={15} style={{ color: '#fbbf24' }} />}
+                        {isSelected && <CheckCircle2 size={15} style={{ color: '#6843EC' }} />}
                       </div>
                       <p style={themeCardDescription}>{themeStyles[themeName].description}</p>
                     </div>
@@ -391,7 +391,7 @@ export default function ComponentForgePage() {
               <div style={promptHeader}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                   <div style={promptTitleWrap}>
-                    <Layers size={14} style={{ color: '#fbbf24' }} />
+                    <Layers size={14} style={{ color: '#6843EC' }} />
                     <span style={promptTitle}>Precision Component Prompt Blueprint</span>
                   </div>
                   <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center', marginTop: '2px' }}>
@@ -520,7 +520,7 @@ const noResults = {
 };
 
 const componentCard = (active) => ({
-  border: `1.5px solid ${active ? '#fbbf24' : 'var(--border)'}`,
+  border: `1.5px solid ${active ? '#6843EC' : 'var(--border)'}`,
   borderRadius: '10px',
   padding: '0.9rem 1.1rem',
   cursor: 'pointer',
@@ -528,8 +528,8 @@ const componentCard = (active) => ({
   display: 'flex',
   flexDirection: 'column',
   gap: '0.3rem',
-  background: active ? 'rgba(251, 191, 36, 0.05)' : 'rgba(255,255,255,0.01)',
-  boxShadow: active ? '0 4px 12px rgba(251, 191, 36, 0.04)' : 'none',
+  background: active ? 'rgba(104, 67, 236, 0.05)' : 'rgba(255,255,255,0.01)',
+  boxShadow: active ? '0 4px 12px rgba(104, 67, 236, 0.04)' : 'none',
 });
 
 const cardHeaderRow = {
@@ -561,7 +561,7 @@ const configWorkspacePanel = {
   display: 'flex',
   borderRadius: '16px',
   border: '1px solid var(--border)',
-  background: 'rgba(5, 5, 8, 0.35)',
+  background: 'rgba(26, 23, 64, 0.35)',
   overflow: 'hidden',
 };
 
@@ -582,9 +582,9 @@ const configBadge = {
   fontWeight: '700',
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
-  color: '#fbbf24',
-  background: 'rgba(251, 191, 36, 0.08)',
-  border: '1px solid rgba(251, 191, 36, 0.15)',
+  color: '#6843EC',
+  background: 'rgba(104, 67, 236, 0.08)',
+  border: '1px solid rgba(104, 67, 236, 0.15)',
   borderRadius: '6px',
   padding: '3px 8px',
   alignSelf: 'flex-start',
@@ -624,7 +624,7 @@ const tagRow = {
 
 const keywordTag = {
   fontSize: '0.72rem',
-  background: 'rgba(255,255,255,0.03)',
+  background: 'var(--card)',
   border: '1px solid var(--border)',
   color: 'var(--muted-foreground)',
   borderRadius: '6px',
@@ -632,8 +632,8 @@ const keywordTag = {
 };
 
 const examplePromptBox = {
-  background: 'rgba(251, 191, 36, 0.02)',
-  border: '1px solid rgba(251,191,36,0.1)',
+  background: 'rgba(104, 67, 236, 0.02)',
+  border: '1px solid rgba(104,67,236,0.1)',
   borderRadius: '12px',
   padding: '1.25rem',
   display: 'flex',
@@ -647,7 +647,7 @@ const exampleLabelRow = {
   gap: '0.4rem',
   fontSize: '0.78rem',
   fontWeight: '700',
-  color: '#fbbf24',
+  color: '#6843EC',
 };
 
 const exampleText = {
@@ -693,12 +693,12 @@ const themeCardList = {
 };
 
 const themeSelectCard = (isSelected) => ({
-  border: `1.5px solid ${isSelected ? '#fbbf24' : 'var(--border)'}`,
+  border: `1.5px solid ${isSelected ? '#6843EC' : 'var(--border)'}`,
   borderRadius: '10px',
   padding: '1rem',
   cursor: 'pointer',
   transition: 'all 0.2s ease',
-  background: isSelected ? 'rgba(251, 191, 36, 0.02)' : 'rgba(255,255,255,0.01)',
+  background: isSelected ? 'rgba(104, 67, 236, 0.02)' : 'rgba(255,255,255,0.01)',
   display: 'flex',
   flexDirection: 'column',
   gap: '0.35rem',
@@ -713,7 +713,7 @@ const themeCardHeader = {
 const themeCardTitleStyle = (isSelected) => ({
   fontSize: '0.82rem',
   fontWeight: '700',
-  color: isSelected ? '#fbbf24' : 'var(--foreground)',
+  color: isSelected ? '#6843EC' : 'var(--foreground)',
 });
 
 const themeCardDescription = {
@@ -780,9 +780,9 @@ const headerBadgeRow = {
 
 const themeStatusBadge = {
   fontSize: '0.68rem',
-  color: '#fbbf24',
-  backgroundColor: 'rgba(251, 191, 36, 0.06)',
-  border: '1px solid rgba(251, 191, 36, 0.15)',
+  color: '#6843EC',
+  backgroundColor: 'rgba(104, 67, 236, 0.06)',
+  border: '1px solid rgba(104, 67, 236, 0.15)',
   borderRadius: '6px',
   padding: '2px 8px',
   fontWeight: '600',
@@ -819,8 +819,8 @@ const msgBubble = (isModel) => ({
   maxWidth: '85%',
   padding: '1rem 1.25rem',
   lineHeight: '1.5',
-  backgroundColor: isModel ? 'rgba(255,255,255,0.02)' : 'rgba(251,191,36,0.07)',
-  border: isModel ? '1px solid var(--border)' : '1px solid rgba(251,191,36,0.15)',
+  backgroundColor: isModel ? 'rgba(255,255,255,0.02)' : 'rgba(104,67,236,0.07)',
+  border: isModel ? '1px solid var(--border)' : '1px solid rgba(104,67,236,0.15)',
   borderRadius: isModel ? '14px 14px 14px 2px' : '14px 14px 2px 14px',
 });
 
@@ -830,7 +830,7 @@ const msgBubbleSender = (isModel) => ({
   display: 'block',
   marginBottom: '6px',
   letterSpacing: '0.05em',
-  color: isModel ? 'var(--muted-foreground)' : '#fbbf24',
+  color: isModel ? 'var(--muted-foreground)' : '#6843EC',
 });
 
 const bubbleText = {
@@ -889,7 +889,7 @@ const promptTitleWrap = {
 const promptTitle = {
   fontSize: '0.8rem',
   fontWeight: '700',
-  color: '#ffffff',
+  color: 'var(--foreground)',
   fontFamily: 'var(--font-display)',
 };
 
@@ -944,14 +944,14 @@ const loadingSpinner = {
   height: '36px',
   borderRadius: '50%',
   border: '2.5px solid var(--border)',
-  borderTopColor: '#fbbf24',
+  borderTopColor: '#6843EC',
   animation: 'spin-slow 1s linear infinite',
 };
 
 const loadingHeaderTitle = {
   fontSize: '1.15rem',
   fontWeight: '700',
-  color: '#ffffff',
+  color: 'var(--foreground)',
   fontFamily: 'var(--font-display)',
   marginTop: '0.5rem',
 };

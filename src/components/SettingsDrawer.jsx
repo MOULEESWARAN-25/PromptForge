@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Award, Settings, ArrowRight, Sun, Moon, Key, LogOut, Keyboard, CheckCircle, AlertCircle, Wifi, WifiOff, TrendingUp, Shield, Mail } from 'lucide-react';
+import { X, User, Award, Settings, ArrowRight, Sun, Moon, Key, LogOut, Keyboard, CheckCircle, AlertCircle, Wifi, WifiOff, TrendingUp, Shield, Mail, Activity } from 'lucide-react';
 import Link from 'next/link';
 import { track, EVENTS } from '../lib/analytics';
+import { toast } from 'sonner';
 
 const KEYBOARD_SHORTCUTS = [
   { keys: ['⌘', 'K'], label: 'Open command palette' },
@@ -23,6 +24,26 @@ export default function SettingsDrawer({ isOpen, onClose }) {
   const [emailWelcome, setEmailWelcome] = useState(true);
   const [emailDraftRecovery, setEmailDraftRecovery] = useState(true);
   const [emailAnalytics, setEmailAnalytics] = useState(false);
+
+  // System status and AI telemetry states
+  const [telemetry, setTelemetry] = useState(null);
+  const [loadingTelemetry, setLoadingTelemetry] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setLoadingTelemetry(true);
+      fetch('http://localhost:8000/api/telemetry/stats')
+        .then(res => res.json())
+        .then(data => {
+          setTelemetry(data);
+          setLoadingTelemetry(false);
+        })
+        .catch(err => {
+          console.warn("Failed to fetch backend telemetry stats:", err);
+          setLoadingTelemetry(false);
+        });
+    }
+  }, [isOpen]);
 
 
   if (!user) return null;
@@ -102,49 +123,18 @@ export default function SettingsDrawer({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* ── Usage Limits ── */}
+              {/* ── Workspaces Compiled ── */}
               <div style={sectionCard(isDark)}>
                 <div style={cardHeaderRow}>
                   <TrendingUp size={15} style={{ color: 'var(--accent)' }} />
-                  <span style={sectionTitle}>Usage</span>
-                  <span style={{ marginLeft: 'auto', fontSize: '0.72rem', color: usage.isAtLimit ? '#ef4444' : 'var(--muted-foreground)', fontWeight: 600 }}>
-                    {usage.used} / {usage.max} workspaces
+                  <span style={sectionTitle}>Workspaces</span>
+                  <span style={{ marginLeft: 'auto', fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 600 }}>
+                    {usage.used} active
                   </span>
                 </div>
-                <div className="usage-bar" style={{ margin: '0.25rem 0' }}>
-                  <div
-                    className={`usage-bar-fill ${usage.isAtLimit ? 'danger' : ''}`}
-                    style={{ width: `${usage.percent}%` }}
-                  />
-                </div>
-                {usage.isNearLimit && (
-                  <p style={{ fontSize: '0.75rem', color: usage.isAtLimit ? '#ef4444' : 'var(--warning)', marginTop: '0.25rem' }}>
-                    {usage.isAtLimit
-                      ? "You've reached your free workspace limit."
-                      : "Almost at your limit — upgrade for unlimited workspaces."}
-                  </p>
-                )}
-              </div>
-
-              {/* ── Plan / Subscription ── */}
-              <div style={sectionCard(isDark)}>
-                <div style={cardHeaderRow}>
-                  <Award size={15} style={{ color: '#a855f7' }} />
-                  <span style={sectionTitle}>Subscription</span>
-                </div>
-                <div style={planDetailBox}>
-                  <div style={planHeader}>
-                    <span style={planBadge}>Hobby Tier</span>
-                    <span style={planPrice}>Free forever</span>
-                  </div>
-                  <p style={planDesc}>
-                    Core workspace compiler, design token search, and {usage.max} saved workspaces.
-                  </p>
-                  <Link href="/pricing/pro" style={upgradeBtn} onClick={handleUpgradeClick}>
-                    <span>Upgrade to Pro — $15/mo</span>
-                    <ArrowRight size={14} />
-                  </Link>
-                </div>
+                <p style={planDesc}>
+                  You have compiled {usage.used} prompt blueprints. PromptForge is completely free, so build as many workspaces as you want!
+                </p>
               </div>
 
               {/* ── Theme ── */}
@@ -155,7 +145,7 @@ export default function SettingsDrawer({ isOpen, onClose }) {
                 </div>
                 <button style={themeToggleBtn(isDark)} onClick={toggleTheme} aria-label="Toggle theme">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                    {isDark ? <Moon size={16} style={{ color: '#fbbf24' }} /> : <Sun size={16} style={{ color: '#f59e0b' }} />}
+                    {isDark ? <Moon size={16} style={{ color: '#6843EC' }} /> : <Sun size={16} style={{ color: '#6843EC' }} />}
                     <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--foreground)' }}>
                       {isDark ? 'Dark Mode' : 'Light Mode'}
                     </span>
@@ -213,6 +203,81 @@ export default function SettingsDrawer({ isOpen, onClose }) {
                     ? 'Your prompts are synced to the cloud and accessible across devices.'
                     : 'Cloud unavailable. Prompts are saved locally on this device only.'}
                 </p>
+              </div>
+
+              {/* ── Developer System Telemetry HUD ── */}
+              <div style={sectionCard(isDark)}>
+                <div style={cardHeaderRow}>
+                  <Activity size={15} style={{ color: 'var(--accent)' }} />
+                  <span style={sectionTitle}>
+                    {user.username?.toLowerCase() === 'admin' || user.role === 'admin' ? 'System Telemetry & AI Health' : 'System Status'}
+                  </span>
+                  <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: telemetry || !dbConnected ? '#22c55e' : '#f59e0b', animation: 'pulse 2s infinite' }} />
+                    <span style={{ fontSize: '0.68rem', fontWeight: 700, color: telemetry || !dbConnected ? 'var(--success)' : 'var(--muted-foreground)' }}>
+                      {telemetry || !dbConnected ? 'Active' : 'Connecting'}
+                    </span>
+                  </span>
+                </div>
+                {loadingTelemetry ? (
+                  <p style={planDesc}>Retrieving system status...</p>
+                ) : user.username?.toLowerCase() === 'admin' || user.role === 'admin' ? (
+                  telemetry ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.25rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem' }}>
+                        <span style={{ color: 'var(--muted-foreground)' }}>Gemini status:</span>
+                        <span style={{ fontWeight: 600, color: telemetry.gemini.status.includes('429') ? '#f59e0b' : 'var(--success)' }}>
+                          {telemetry.gemini.status} {telemetry.gemini.avgLatencyMs ? `(${telemetry.gemini.avgLatencyMs}ms)` : ''}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem' }}>
+                        <span style={{ color: 'var(--muted-foreground)' }}>Groq status:</span>
+                        <span style={{ fontWeight: 600, color: telemetry.groq.status === 'Operational' ? 'var(--success)' : 'var(--muted-foreground)' }}>
+                          {telemetry.groq.status} {telemetry.groq.avgLatencyMs ? `(${telemetry.groq.avgLatencyMs}ms)` : ''}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem' }}>
+                        <span style={{ color: 'var(--muted-foreground)' }}>pgvector DB Sync:</span>
+                        <span style={{ fontWeight: 600, color: telemetry.supabase.status === 'Operational' ? 'var(--success)' : '#ef4444' }}>
+                          {telemetry.supabase.status === 'Operational' ? 'Synced' : 'Offline'} {telemetry.supabase.lastLatencyMs ? `(${telemetry.supabase.lastLatencyMs}ms)` : ''}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem' }}>
+                        <span style={{ color: 'var(--muted-foreground)' }}>Local RAG Fallback:</span>
+                        <span style={{ fontWeight: 600, color: 'var(--accent)' }}>
+                          {telemetry.localRag.status} {telemetry.localRag.requests > 0 ? `(${telemetry.localRag.requests} queries)` : ''}
+                        </span>
+                      </div>
+                      <div style={{ borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`, paddingTop: '0.4rem', display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--muted-foreground)' }}>
+                        <span>Uptime: {telemetry.uptimeSeconds}s</span>
+                        <span>Total Requests: {telemetry.gemini.requests + telemetry.groq.requests}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p style={planDesc}>Failed to connect to backend telemetry service. Ensure backend is running.</p>
+                  )
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.25rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem' }}>
+                      <span style={{ color: 'var(--muted-foreground)' }}>AI Prompt Engine:</span>
+                      <span style={{ fontWeight: 600, color: 'var(--success)' }}>
+                        ● Operational
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem' }}>
+                      <span style={{ color: 'var(--muted-foreground)' }}>Workspace Sync:</span>
+                      <span style={{ fontWeight: 600, color: dbConnected ? 'var(--success)' : 'var(--muted-foreground)' }}>
+                        {dbConnected ? '● Active' : '○ Local Mode'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem' }}>
+                      <span style={{ color: 'var(--muted-foreground)' }}>Local Compiler:</span>
+                      <span style={{ fontWeight: 600, color: 'var(--success)' }}>
+                        ● Ready
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* ── Keyboard Shortcuts ── */}
@@ -332,7 +397,7 @@ const profileDetailBox = { display: 'flex', alignItems: 'center', gap: '0.85rem'
 
 const avatarCircle = (isDark) => ({
   width: '40px', height: '40px', borderRadius: '50%',
-  background: isDark ? '#fbbf24' : '#19398d', color: isDark ? '#000' : '#fff',
+  background: isDark ? '#6843EC' : '#6843EC', color: isDark ? '#000' : '#fff',
   fontSize: '0.85rem', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center',
   flexShrink: 0,
 });
@@ -354,7 +419,7 @@ const planDesc = { fontSize: '0.8rem', color: 'var(--muted-foreground)', lineHei
 
 const upgradeBtn = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem',
-  background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+  background: 'linear-gradient(135deg, #6843EC, #D2FF3A)',
   color: '#000', borderRadius: '8px', padding: '0.55rem 1rem',
   fontSize: '0.82rem', fontWeight: '700', textDecoration: 'none', marginTop: '0.25rem',
   transition: 'opacity 0.2s ease',
@@ -401,8 +466,8 @@ const showBtn = (isDark) => ({
 const saveKeyBtn = (saved) => ({
   display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
   padding: '0.45rem 1rem', borderRadius: '8px', cursor: 'pointer',
-  background: saved ? 'rgba(34,197,94,0.12)' : 'rgba(251,191,36,0.12)',
-  border: `1px solid ${saved ? 'rgba(34,197,94,0.25)' : 'rgba(251,191,36,0.25)'}`,
+  background: saved ? 'rgba(34,197,94,0.12)' : 'rgba(104,67,236,0.12)',
+  border: `1px solid ${saved ? 'rgba(34,197,94,0.25)' : 'rgba(104,67,236,0.25)'}`,
   color: saved ? 'var(--success)' : 'var(--accent)',
   fontSize: '0.8rem', fontWeight: 700, fontFamily: 'var(--font-sans)',
   transition: 'all 0.2s ease', marginTop: '0.25rem',

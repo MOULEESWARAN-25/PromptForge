@@ -20,7 +20,6 @@ const PRIVATE_LINKS = [
 
 const PUBLIC_LINKS = [
   { href: '/features/prompt-builder', label: 'Features', icon: Zap },
-  { href: '/pricing/pro', label: 'Pricing', icon: Zap },
 ];
 
 export default function Navigation() {
@@ -58,7 +57,7 @@ export default function Navigation() {
   const isDark = theme === 'dark';
   const initials = user?.username?.slice(0, 2).toUpperCase() || 'PF';
   const isDemo = user?.username === 'demo_engineer';
-  const isPrivatePage = user && pathname !== '/' && !pathname.startsWith('/features') && !pathname.startsWith('/pricing');
+  const isPrivatePage = user && pathname !== '/' && !pathname.startsWith('/features');
 
   return (
     <>
@@ -73,7 +72,7 @@ export default function Navigation() {
         {/* Left Side: Brand Logo */}
         <Link href={user ? "/dashboard" : "/"} style={brandStyle} aria-label="PromptForge home">
           <div style={logoMark}>
-            <Sparkles size={15} style={{ color: '#fbbf24' }} />
+            <Sparkles size={15} style={{ color: '#6843EC' }} />
           </div>
           <span style={brandText(isDark)}>PromptForge</span>
           {isDemo && <span className="demo-banner">DEMO</span>}
@@ -139,14 +138,14 @@ export default function Navigation() {
                   exit={{ rotate: 90, opacity: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  {isDark ? <Sun size={16} style={{ color: '#fbbf24' }} /> : <Moon size={16} style={{ color: '#19398d' }} />}
+                  {isDark ? <Sun size={16} style={{ color: '#6843EC' }} /> : <Moon size={16} style={{ color: '#6843EC' }} />}
                 </motion.div>
               </AnimatePresence>
             </motion.button>
           )}
 
           {user ? (
-            (pathname === '/' || pathname.startsWith('/features') || pathname.startsWith('/pricing')) ? (
+            (pathname === '/' || pathname.startsWith('/features')) ? (
               !isMobile && (
                 <Link href="/dashboard" style={loginBtnStyle(isDark)} className="active-scale-95">
                   Go to Dashboard
@@ -225,12 +224,12 @@ export default function Navigation() {
 
               {/* Theme Selector inside mobile menu — always visible */}
               <button onClick={toggleTheme} style={mobileActionBtn(isDark)} aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}>
-                {isDark ? <Sun size={16} style={{ color: '#fbbf24' }} /> : <Moon size={16} />}
+                {isDark ? <Sun size={16} style={{ color: '#6843EC' }} /> : <Moon size={16} />}
                 <span>{isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}</span>
               </button>
 
               {user ? (
-                (pathname === '/' || pathname.startsWith('/features') || pathname.startsWith('/pricing')) ? (
+                (pathname === '/' || pathname.startsWith('/features')) ? (
                   <Link href="/dashboard" style={mobileLoginBtn(isDark)}>Go to Dashboard</Link>
                 ) : (
                   <>
@@ -291,7 +290,7 @@ const brandStyle = { display: 'flex', alignItems: 'center', gap: '0.625rem', tex
 
 const logoMark = {
   width: '28px', height: '28px', borderRadius: '7px',
-  background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)',
+  background: 'rgba(104,67,236,0.1)', border: '1px solid rgba(104,67,236,0.2)',
   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
 };
 
@@ -307,15 +306,15 @@ const navLink = (isActive, isDark) => ({
   textDecoration: 'none', fontSize: '0.83rem', fontWeight: '600',
   padding: '0.45rem 0.9rem', borderRadius: '10px', position: 'relative',
   transition: 'all 0.2s ease',
-  color: isActive ? '#fbbf24' : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.5)'),
-  background: isActive ? 'rgba(251,191,36,0.08)' : 'transparent',
-  border: isActive ? '1px solid rgba(251,191,36,0.15)' : '1px solid transparent',
+  color: isActive ? '#6843EC' : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.5)'),
+  background: isActive ? 'rgba(104,67,236,0.08)' : 'transparent',
+  border: isActive ? '1px solid rgba(104,67,236,0.15)' : '1px solid transparent',
 });
 
 const activeIndicator = {
   position: 'absolute', bottom: '-2px', left: '50%',
   transform: 'translateX(-50%)', width: '16px', height: '2px',
-  borderRadius: '2px', background: '#fbbf24', zIndex: 2,
+  borderRadius: '2px', background: '#6843EC', zIndex: 2,
 };
 
 const actionsContainer = { display: 'flex', alignItems: 'center', gap: '0.5rem' };
@@ -346,7 +345,7 @@ const userPill = (isDark) => ({
 
 const avatarCircle = (isDark) => ({
   width: '26px', height: '26px', borderRadius: '50%',
-  background: isDark ? '#fbbf24' : '#19398d', color: isDark ? '#000' : '#fff',
+  background: '#6843EC', color: '#ffffff',
   fontSize: '0.62rem', fontWeight: '700', display: 'flex',
   alignItems: 'center', justifyContent: 'center', flexShrink: 0,
 });
@@ -359,7 +358,7 @@ const usernameText = (isDark) => ({
 
 const loginBtnStyle = (isDark) => ({
   fontSize: '0.85rem', fontWeight: '700', padding: '0.5rem 1.1rem',
-  background: isDark ? '#fbbf24' : '#19398d', color: isDark ? '#000' : '#fff',
+  background: '#6843EC', color: '#ffffff',
   border: 'none', borderRadius: '8px', textDecoration: 'none', cursor: 'pointer', minHeight: '36px',
   display: 'inline-flex', alignItems: 'center',
 });
@@ -379,9 +378,9 @@ const mobileLinkStyle = (isActive, isDark) => ({
   display: 'flex', alignItems: 'center', gap: '0.75rem',
   padding: '0.75rem 1rem', borderRadius: '10px', textDecoration: 'none',
   fontSize: '0.9rem', fontWeight: '600',
-  color: isActive ? '#fbbf24' : (isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)'),
-  background: isActive ? 'rgba(251,191,36,0.08)' : 'transparent',
-  border: `1px solid ${isActive ? 'rgba(251,191,36,0.15)' : 'transparent'}`,
+  color: isActive ? '#6843EC' : (isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)'),
+  background: isActive ? 'rgba(104,67,236,0.08)' : 'transparent',
+  border: `1px solid ${isActive ? 'rgba(104,67,236,0.15)' : 'transparent'}`,
   minHeight: '44px',
 });
 
@@ -397,6 +396,7 @@ const mobileActionBtn = (isDark) => ({
 const mobileLoginBtn = (isDark) => ({
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   padding: '0.75rem', borderRadius: '10px', minHeight: '44px',
-  background: isDark ? '#fbbf24' : '#19398d', color: isDark ? '#000' : '#fff',
+  background: '#6843EC', color: '#ffffff',
   fontSize: '0.9rem', fontWeight: '700', textDecoration: 'none', textAlign: 'center', marginTop: '0.5rem',
 });
+

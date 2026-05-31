@@ -87,7 +87,7 @@ function ForgeWizardContent() {
   const draftYesBtn = {
     padding: '4px 12px',
     background: '#7c3aed',
-    color: '#ffffff',
+    color: 'var(--foreground)',
     border: 'none',
     borderRadius: '6px',
     fontSize: '0.78rem',
@@ -110,7 +110,7 @@ function ForgeWizardContent() {
     width: '44px',
     height: '44px',
     borderRadius: '12px',
-    background: 'rgba(255, 255, 255, 0.02)',
+    background: 'var(--card)',
     border: '1px solid rgba(255, 255, 255, 0.06)',
     display: 'flex',
     alignItems: 'center',
@@ -171,7 +171,7 @@ function ForgeWizardContent() {
           <div style={wizardIconWrap}>
             {activeMode === 'application' && <Monitor size={22} style={{ color: '#7c3aed' }} />}
             {activeMode === 'page' && <Layout size={22} style={{ color: '#0891b2' }} />}
-            {activeMode === 'component' && <Code2 size={22} style={{ color: '#ec4899' }} />}
+            {activeMode === 'component' && <Code2 size={22} style={{ color: '#6843EC' }} />}
             {activeMode === 'enhance' && <Wand2 size={22} style={{ color: '#059669' }} />}
           </div>
           <div>

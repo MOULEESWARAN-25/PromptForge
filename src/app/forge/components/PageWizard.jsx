@@ -7,8 +7,50 @@ import { ThemeSelector } from './ThemeSelector';
 import { TypographyPicker } from './TypographyPicker';
 import { SyncBranchSelector } from './SyncBranchSelector';
 import { ThemePreview } from './ThemePreview';
+import ShadcnDropdown from '@/components/ShadcnDropdown';
 
 const STEPS = ['Page Type', 'Components', 'Theme', 'Typography', 'Live Preview', 'Project Setup', 'Generate'];
+
+const AI_SUGGESTIONS_DICT = {
+  'Dashboard Panel': [
+    'Real-time Activity Log Feed',
+    'Interactive Command Terminal',
+    'Export to PDF/CSV Tool',
+    'Predictive AI Insights Banner',
+    'System Load Shimmer Cards'
+  ],
+  'Landing Homepage': [
+    'Interactive Dark/Light Switcher',
+    'Live Support Chat Widget',
+    'Newsletter Subscription Form',
+    'Interactive Feature Configurator',
+    'Dynamic Client Testimonial slider'
+  ],
+  'Login Page': [
+    'WebAuthn Biometric Login Button',
+    'Remember Me Persistent Checkbox',
+    'Single Sign-On (Google/Github)',
+    'Magic Passwordless Link Router'
+  ],
+  'Signup Page': [
+    'Dynamic Password Strength Meter',
+    'Live Username Availability Check',
+    'Promo/Discount Coupon Code Input',
+    'Success Celebration Confetti Screen'
+  ],
+  'Settings Page': [
+    'API Access Token Creator',
+    'Session History Security Audit Logs',
+    'System Status Webhook Tester',
+    'Export Personal Workspace Archive'
+  ],
+  'Profile Page': [
+    'Skill Endorsement Tags Board',
+    'Portfolio Link Tree Card',
+    'Direct Messaging Chat Panel',
+    'Interactive Resume PDF Embedder'
+  ]
+};
 
 const slideVariants = {
   enter: (dir) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
@@ -18,11 +60,11 @@ const slideVariants = {
 
 const sectionWrap = {
   padding: '2rem',
-  background: 'rgba(255,255,255,0.01)',
+  background: 'var(--card)',
   backdropFilter: 'blur(20px)',
-  border: '1px solid rgba(255,255,255,0.04)',
+  border: '1px solid var(--border)',
   borderRadius: '24px',
-  boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+  boxShadow: 'var(--shadow-md)',
 };
 const stepTitle = { fontSize: '1.25rem', fontWeight: '800', color: 'var(--foreground)', letterSpacing: '-0.02em' };
 const stepDesc  = { fontSize: '0.88rem', color: 'var(--muted-foreground)', marginTop: '0.35rem', lineHeight: '1.4' };
@@ -30,6 +72,8 @@ const stepDesc  = { fontSize: '0.88rem', color: 'var(--muted-foreground)', margi
 export function PageWizard({ forgeState, promptGeneration, apiKey }) {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
   const {
     pageType, setPageType,
@@ -49,7 +93,8 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
     database, setDatabase,
     authOption, setAuthOption,
     deployment, setDeployment,
-    additionalFeatures, setAdditionalFeatures
+    additionalFeatures, setAdditionalFeatures,
+    selectedModel, setSelectedModel
   } = forgeState;
 
   const { isGenerating, handleForgeSubmit } = promptGeneration;
@@ -60,7 +105,7 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
     if (step === 3) return !!selectedTheme;
     if (step === 4) return !!selectedTypography;
     if (step === 5) return true; // Live Preview step can always advance
-    if (step === 6) return !!projectIntegration;
+    if (step === 6) return true; // Project Setup is always valid (defaults to 'new')
     return true;
   };
 
@@ -69,17 +114,49 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
 
   const categoryCard = (isSelected) => ({
     position: 'relative', borderRadius: '12px',
-    border: isSelected ? '2px solid #0891b2' : '1px solid rgba(255,255,255,0.06)',
-    background: isSelected ? 'rgba(8,145,178,0.06)' : 'rgba(255,255,255,0.01)',
+    border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border)',
+    background: isSelected ? 'rgba(104,67,236,0.08)' : 'var(--card)',
     overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s ease',
     display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-    boxShadow: isSelected ? '0 0 16px rgba(8,145,178,0.2)' : 'none',
+    boxShadow: isSelected ? '0 0 16px rgba(104,67,236,0.2)' : 'none',
   });
   const checkboxCard = (isChecked) => ({
     display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.65rem 0.85rem',
-    borderRadius: '10px', border: isChecked ? '1px solid #0891b2' : '1px solid rgba(255,255,255,0.04)',
-    background: isChecked ? 'rgba(8,145,178,0.05)' : 'rgba(255,255,255,0.01)',
+    borderRadius: '10px', border: isChecked ? '1px solid var(--accent)' : '1px solid var(--border)',
+    background: isChecked ? 'rgba(104,67,236,0.08)' : 'transparent',
     cursor: 'pointer', transition: 'all 0.2s ease',
+  });
+
+  const getCategory = (comp) => {
+    const c = comp.toLowerCase();
+    if (c.includes('chart') || c.includes('stats') || c.includes('table') || c.includes('metric') || c.includes('data')) return 'Data & Analytics';
+    if (c.includes('form') || c.includes('calculator') || c.includes('contact') || c.includes('input') || c.includes('uploader') || c.includes('register') || c.includes('login') || c.includes('signup')) return 'Forms & Entry';
+    if (c.includes('sidebar') || c.includes('header') || c.includes('footer') || c.includes('navigation') || c.includes('layout') || c.includes('gallery') || c.includes('panel')) return 'Layout & Navigation';
+    return 'Interactive Modules';
+  };
+
+  const aiSuggestionsBox = {
+    background: 'rgba(104, 67, 236, 0.04)',
+    border: '1px solid rgba(104, 67, 236, 0.12)',
+    borderRadius: '12px',
+    padding: '0.75rem 1rem',
+    marginBottom: '0.5rem',
+  };
+
+  const aiSuggestionPill = (isAdded) => ({
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.35rem',
+    fontSize: '0.72rem',
+    fontWeight: '600',
+    color: isAdded ? '#ef4444' : '#e4e4e7',
+    background: isAdded ? 'rgba(239, 68, 68, 0.05)' : 'rgba(255, 255, 255, 0.04)',
+    border: isAdded ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid rgba(255, 255, 255, 0.06)',
+    borderRadius: '20px',
+    padding: '0.3rem 0.65rem',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    fontFamily: 'var(--font-sans)',
   });
 
   return (
@@ -92,12 +169,12 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
           return (
             <React.Fragment key={label}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem' }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: '700', transition: 'all 0.3s ease', background: done ? '#0891b2' : active ? 'rgba(8,145,178,0.15)' : 'rgba(255,255,255,0.04)', border: active ? '2px solid #0891b2' : done ? '2px solid #0891b2' : '1px solid rgba(255,255,255,0.1)', color: done || active ? '#fff' : 'var(--muted-foreground)' }}>
+                <div style={{ width: '24px', height: '24px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: '700', transition: 'all 0.3s ease', background: done ? 'var(--accent)' : active ? 'rgba(104,67,236,0.15)' : 'var(--muted)', border: active ? '2px solid var(--accent)' : done ? '2px solid var(--accent)' : '1px solid var(--border)', color: done ? '#ffffff' : active ? 'var(--accent)' : 'var(--muted-foreground)' }}>
                   {done ? <CheckCircle2 size={11} /> : n}
                 </div>
-                <span style={{ fontSize: '0.55rem', color: active ? '#0891b2' : 'var(--muted-foreground)', fontWeight: active ? 700 : 400, whiteSpace: 'nowrap' }}>{label}</span>
+                <span style={{ fontSize: '0.55rem', color: active ? 'var(--accent)' : 'var(--muted-foreground)', fontWeight: active ? 700 : 400, whiteSpace: 'nowrap' }}>{label}</span>
               </div>
-              {i < STEPS.length - 1 && <div style={{ width: '20px', height: '1px', background: step > n ? '#0891b2' : 'rgba(255,255,255,0.08)', marginBottom: '16px', transition: 'background 0.3s ease' }} />}
+              {i < STEPS.length - 1 && <div style={{ width: '20px', height: '1px', background: step > n ? 'var(--accent)' : 'var(--border)', marginBottom: '16px', transition: 'background 0.3s ease' }} />}
             </React.Fragment>
           );
         })}
@@ -118,11 +195,11 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
                     return (
                       <div key={page.id} style={categoryCard(isSelected)} onClick={() => setPageType(page.id)} className="category-card bento-card-premium glow-card-spotlight active-scale-95">
                         {page.image && <img src={page.image} alt={page.label} className="card-artwork" />}
-                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '75%', background: 'linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.4), transparent)', zIndex: 1 }} />
-                        {isSelected && <div style={{ position: 'absolute', top: '0.6rem', right: '0.6rem', zIndex: 3 }}><CheckCircle2 size={15} style={{ color: '#fbbf24' }} /></div>}
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '75%', background: 'linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.4), transparent)', zIndex: 1 }} />
+                        {isSelected && <div style={{ position: 'absolute', top: '0.6rem', right: '0.6rem', zIndex: 3 }}><CheckCircle2 size={15} style={{ color: 'var(--accent)' }} /></div>}
                         <div style={{ padding: '0.85rem', zIndex: 2 }}>
-                          <span style={{ fontSize: '0.95rem', fontWeight: '800', color: '#fff', display: 'block', textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>{page.label}</span>
-                          <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.75)', marginTop: '0.25rem', lineHeight: '1.4', textShadow: '0 1px 2px rgba(0,0,0,0.6)', margin: 0 }}>{page.desc}</p>
+                          <span style={{ fontSize: '0.95rem', fontWeight: '800', color: '#ffffff', display: 'block', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>{page.label}</span>
+                          <p style={{ fontSize: '0.72rem', color: '#e4e4e7', marginTop: '0.25rem', lineHeight: '1.4', textShadow: '0 1px 2px rgba(0,0,0,0.6)', margin: 0 }}>{page.desc}</p>
                         </div>
                       </div>
                     );
@@ -133,20 +210,124 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
 
             {/* Step 2 */}
             {step === 2 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div><h3 style={stepTitle}>Select Components</h3><p style={stepDesc}>Choose the modular blocks for this page.</p></div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '0.5rem' }}>
-                  {(PAGE_COMPONENTS[pageType] || []).map((comp, idx) => {
-                    const isChecked = selectedComponents.includes(comp);
-                    return (
-                      <div key={idx} style={checkboxCard(isChecked)} onClick={() => handleComponentToggle(comp)} className="active-scale-95">
-                        <CheckCircle2 size={13} style={{ color: isChecked ? '#0891b2' : 'rgba(255,255,255,0.1)', flexShrink: 0 }} />
-                        <span style={{ fontSize: '0.8rem', color: 'var(--foreground)', fontWeight: '500' }}>{comp}</span>
-                      </div>
-                    );
-                  })}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                  <h3 style={stepTitle}>Select Components</h3>
+                  <p style={stepDesc}>Choose or search modular blocks, and review custom AI recommendations.</p>
                 </div>
-                <form onSubmit={handleAddCustomComponent} style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+
+                {/* AI Suggestions Section */}
+                <div style={aiSuggestionsBox}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                    <Sparkles size={13} style={{ color: '#D2FF3A' }} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--foreground)' }}>
+                      AI-Suggested Extras (Recommended for {pageType})
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                    {AI_SUGGESTIONS_DICT[pageType]?.map((rec) => {
+                      const isAdded = selectedComponents.includes(rec);
+                      return (
+                        <button
+                          key={rec}
+                          type="button"
+                          onClick={() => handleComponentToggle(rec)}
+                          style={aiSuggestionPill(isAdded)}
+                          className="active-scale-95"
+                        >
+                          <Plus size={10} style={{ transform: isAdded ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s ease', color: isAdded ? '#ef4444' : '#D2FF3A' }} />
+                          <span>{rec}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Search and Category Filters */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                  <input 
+                    type="text" 
+                    placeholder="🔍 Search components..." 
+                    value={searchQuery} 
+                    onChange={(e) => setSearchQuery(e.target.value)} 
+                    style={{ 
+                      width: '100%', 
+                      background: 'rgba(0,0,0,0.15)', 
+                      border: '1px solid var(--border)', 
+                      borderRadius: '8px', 
+                      padding: '0.45rem 0.75rem', 
+                      fontSize: '0.78rem', 
+                      color: 'var(--foreground)', 
+                      outline: 'none' 
+                    }} 
+                    className="glass-input" 
+                  />
+
+                  {/* Categories Row */}
+                  <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+                    {['All', 'Interactive Modules', 'Forms & Entry', 'Layout & Navigation', 'Data & Analytics'].map((cat) => {
+                      const isActive = selectedCategory === cat;
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setSelectedCategory(cat)}
+                          style={{
+                            fontSize: '0.68rem',
+                            fontWeight: isActive ? '700' : '500',
+                            color: isActive ? 'var(--accent-foreground)' : 'var(--muted-foreground)',
+                            background: isActive ? 'var(--accent)' : 'rgba(255,255,255,0.03)',
+                            border: '1px solid ' + (isActive ? 'var(--accent)' : 'var(--border)'),
+                            borderRadius: '20px',
+                            padding: '0.2rem 0.65rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease'
+                          }}
+                          className="active-scale-95"
+                        >
+                          {cat}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Components Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.5rem', maxHeight: '200px', overflowY: 'auto', paddingRight: '4px' }}>
+                  {(() => {
+                    const predefined = PAGE_COMPONENTS[pageType] || [];
+                    const displayed = [...predefined, ...selectedComponents.filter(c => !predefined.includes(c))];
+                    
+                    const filtered = displayed.filter(comp => {
+                      const matchesSearch = comp.toLowerCase().includes(searchQuery.toLowerCase());
+                      const matchesCategory = selectedCategory === 'All' || getCategory(comp) === selectedCategory;
+                      return matchesSearch && matchesCategory;
+                    });
+
+                    if (filtered.length === 0) {
+                      return (
+                        <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '1.5rem', color: 'var(--muted-foreground)', fontSize: '0.78rem' }}>
+                          No matching components found. Type in the input below to add a custom one!
+                        </div>
+                      );
+                    }
+
+                    return filtered.map((comp, idx) => {
+                      const isChecked = selectedComponents.includes(comp);
+                      return (
+                        <div key={idx} style={checkboxCard(isChecked)} onClick={() => handleComponentToggle(comp)} className="active-scale-95">
+                          <CheckCircle2 size={13} style={{ color: isChecked ? 'var(--accent)' : 'var(--border)', flexShrink: 0 }} />
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontSize: '0.78rem', color: 'var(--foreground)', fontWeight: '500' }}>{comp}</span>
+                            <span style={{ fontSize: '0.62rem', color: 'var(--muted-foreground)' }}>{getCategory(comp)}</span>
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+
+                <form onSubmit={handleAddCustomComponent} style={{ display: 'flex', gap: '0.75rem', marginTop: '0.25rem' }}>
                   <input type="text" placeholder="Add custom component..." value={customComponentInput} onChange={(e) => setCustomComponentInput(e.target.value)} style={{ flex: 1, background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.4rem 0.65rem', fontSize: '0.8rem', color: 'var(--foreground)', outline: 'none' }} className="glass-input" />
                   <button type="submit" style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }} className="btn-secondary btn-sm"><Plus size={14} />Add</button>
                 </form>
@@ -229,11 +410,31 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
                 <div><h3 style={stepTitle}>Ready to Compile</h3><p style={stepDesc}>Review your selections and generate the prompt.</p></div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   {[{ label: 'Page', value: pageType }, { label: 'Components', value: `${selectedComponents.length} selected` }, { label: 'Theme', value: selectedTheme }, { label: 'Font', value: selectedTypography }, { label: 'Project', value: projectIntegration === 'existing' ? `Existing · ${framework}` : 'New' }].map(({ label, value }) => value && (
-                    <span key={label} style={{ fontSize: '0.72rem', fontWeight: '600', color: '#0891b2', background: 'rgba(8,145,178,0.08)', border: '1px solid rgba(8,145,178,0.2)', borderRadius: '8px', padding: '3px 10px' }}>{label}: {value}</span>
+                    <span key={label} style={{ fontSize: '0.72rem', fontWeight: '600', color: 'var(--accent)', background: 'rgba(104,67,236,0.08)', border: '1px solid rgba(104,67,236,0.2)', borderRadius: '8px', padding: '3px 10px' }}>{label}: {value}</span>
                   ))}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--muted-foreground)', justifyContent: 'center' }}><Info size={15} />{apiKey ? 'Live Gemini Compiler active.' : 'Offline Prompt Compiler active.'}</div>
-                <button onClick={handleForgeSubmit} className="btn-accent shine-effect" disabled={isGenerating} style={{ width: '100%', padding: '0.85rem', fontSize: '0.95rem', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#0891b2', color: '#fff', transition: 'all 0.2s ease' }}>
+                {/* AI Generator Engine Selector */}
+                <div style={{ border: '1px solid var(--border)', borderRadius: '12px', padding: '0.85rem 1rem', background: 'rgba(255,255,255,0.01)', display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', marginBottom: '0.5rem' }} className="animate-fade-in">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: '700', color: 'var(--foreground)' }}>
+                    <Sparkles size={13} style={{ color: 'var(--accent)' }} />
+                    AI Generator Engine
+                  </div>
+                  <ShadcnDropdown
+                    value={selectedModel || 'gemini'}
+                    onChange={(val) => setSelectedModel(val)}
+                    options={[
+                      { label: 'Gemini 3.1 Pro (Flagship)', value: 'gemini' },
+                      { label: 'Groq Llama 3.3 70B (High Precision)', value: 'groq' }
+                    ]}
+                    triggerWidth="100%"
+                  />
+                  <p style={{ fontSize: '0.68rem', color: 'var(--muted-foreground)', margin: 0 }}>
+                    {selectedModel === 'groq' ? "⚡ Running Groq Llama 3.3 for faster, high-fidelity synthesis." : "✨ Running flagship Gemini 3.1 Pro synthesis."}
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--muted-foreground)', justifyContent: 'center' }}><Info size={15} />{apiKey ? 'Live Compiler active.' : 'Offline Compiler active.'}</div>
+                <button onClick={handleForgeSubmit} className="btn-accent shine-effect" disabled={isGenerating} style={{ width: '100%', padding: '0.85rem', fontSize: '0.95rem', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'var(--accent)', color: 'var(--accent-foreground)', transition: 'all 0.2s ease' }}>
                   {isGenerating ? <><Sliders size={18} className="animate-spin" />Forging Page Blueprint...</> : <><Sparkles size={18} />Generate Page Prompt</>}
                 </button>
               </div>
@@ -245,10 +446,10 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
       {/* Navigation */}
       {step < 7 && step !== 6 && (
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <button onClick={goBack} disabled={step === 1} className="active-scale-95" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.25rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)', color: step === 1 ? 'rgba(255,255,255,0.2)' : 'var(--muted-foreground)', fontSize: '0.85rem', fontWeight: '600', cursor: step === 1 ? 'default' : 'pointer', transition: 'all 0.2s ease' }}>
+          <button onClick={goBack} disabled={step === 1} className="active-scale-95" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.25rem', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', opacity: step === 1 ? 0.35 : 1, fontSize: '0.85rem', fontWeight: '600', cursor: step === 1 ? 'default' : 'pointer', transition: 'all 0.2s ease' }}>
             <ArrowLeft size={15} />Back
           </button>
-          <button onClick={goNext} disabled={!canAdvance()} className="active-scale-95" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.5rem', borderRadius: '10px', border: 'none', background: canAdvance() ? '#0891b2' : 'rgba(255,255,255,0.05)', color: canAdvance() ? '#fff' : 'rgba(255,255,255,0.2)', fontSize: '0.85rem', fontWeight: '700', cursor: canAdvance() ? 'pointer' : 'default', transition: 'all 0.2s ease' }}>
+          <button onClick={goNext} disabled={!canAdvance()} className="active-scale-95" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.5rem', borderRadius: '10px', border: 'none', background: canAdvance() ? 'var(--accent)' : 'var(--muted)', color: canAdvance() ? 'var(--accent-foreground)' : 'var(--muted-foreground)', fontSize: '0.85rem', fontWeight: '700', cursor: canAdvance() ? 'pointer' : 'default', transition: 'all 0.2s ease' }}>
             {step === 6 ? 'Review' : 'Continue'}<ArrowRight size={15} />
           </button>
         </div>

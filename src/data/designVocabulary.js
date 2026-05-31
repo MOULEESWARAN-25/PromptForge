@@ -286,24 +286,46 @@ export const themeStyles = {
   "Sleek Dark Glassmorphic": {
     name: "Sleek Dark Glassmorphic",
     description: "Deep obsidian backdrops, frosted semi-transparent containers, neon-violet glow highlights, and minimal card borders.",
-    keywords: "glassmorphism, dark obsidian background, backdrop-filter blur, subtle neon border glow, premium dark mode, rich transparency effects",
+    keywords: "glassmorphism, dark obsidian background, backdrop-filter blur, subtle neon border glow, premium dark mode, rich transparency effects, raycast, linear",
     background: "rgba(10, 5, 22, 0.95)",
     surface: "rgba(255, 255, 255, 0.05)",
     primary: "#7c3aed",
     secondary: "#a78bfa",
     textPrimary: "#ffffff",
-    textSecondary: "#a1a1aa"
+    textSecondary: "#a1a1aa",
+    family: "Visual Style",
+    bestFor: "Premium developer workstations and AI SaaS portals",
+    typography: "Geist",
+    motion: "Subtle Spring",
+    density: "Compact",
+    whyItWorks: [
+      "Frosted glass backdrops reduce structural background noise.",
+      "Vibrant neon outlines clearly prioritize interactive target areas.",
+      "High ambient contrast supports premium, developer-first aesthetic branding."
+    ],
+    aliases: ["Glassmorphism", "Modern SaaS", "Vercel", "Ambient", "Holographic"]
   },
   "Wes Anderson": {
     name: "Wes Anderson Retro",
-    description: "Warm pastel palettes, centered compositions, distinctive retro typography (Futura-like bold), warm muted margins, and vintage illustrations.",
+    description: "Warm pastel palettes, centered compositions, distinctive retro typography, warm muted margins, and vintage illustrations.",
     keywords: "wes anderson theme, vintage pastel colors, symmetrical layout, sharp borders, warm organic background, retro serif typography, high-character aesthetic",
     background: "#ffedd5",
     surface: "#fed7aa",
     primary: "#ea580c",
     secondary: "#fdba74",
     textPrimary: "#431407",
-    textSecondary: "#854d0e"
+    textSecondary: "#854d0e",
+    family: "Creative Theme",
+    bestFor: "Artistic portfolios, editorial sites, and storybooks",
+    typography: "Outfit",
+    motion: "Snappy Slide",
+    density: "Spacious",
+    whyItWorks: [
+      "Highly symmetrical structures evoke immediate design balance.",
+      "Warm pastel base reduces flat digital canvas coldness.",
+      "Retro high-character fonts establish strong individual branding personalities."
+    ],
+    aliases: ["Retro", "Framer", "Editorial", "Consumer", "Storybook"]
   },
   "Cyberpunk Neon": {
     name: "Cyberpunk Neon",
@@ -314,18 +336,40 @@ export const themeStyles = {
     primary: "#00ffff",
     secondary: "#ff00ff",
     textPrimary: "#00ffff",
-    textSecondary: "#ff00ff"
+    textSecondary: "#ff00ff",
+    family: "Visual Style",
+    bestFor: "Hacker consoles, data dashboards, and gaming workspaces",
+    typography: "JetBrains Mono",
+    motion: "Instant Glitch",
+    density: "Compact",
+    whyItWorks: [
+      "Laser neon colors support excellent element scanning against pitch black.",
+      "Cybernetic grid lines structure high volumes of parallel system feeds.",
+      "High-energy glowing highlights mimic tactile terminal hardware panels."
+    ],
+    aliases: ["Cyberpunk", "Raycast", "Interactive Terminal", "Synthwave", "Dark Tech"]
   },
   "Brutalist Bold": {
     name: "Brutalist Bold",
     description: "Aggressive thick black borders, stark white or high-contrast primary backdrops, solid offset block drop shadows, and heavy monospace fonts.",
     keywords: "brutalist design, thick black solid borders, offset block drop shadows, high contrast flat palette, monospace typography, raw unpolished grids",
     background: "#18181b",
-    surface: "#fbbf24",
-    primary: "#fbbf24",
+    surface: "#6843EC",
+    primary: "#6843EC",
     secondary: "#000000",
     textPrimary: "#ffffff",
-    textSecondary: "#d4d4d8"
+    textSecondary: "#d4d4d8",
+    family: "Visual Style",
+    bestFor: "Edgy consumer applications and graphic-forward layouts",
+    typography: "IBM Plex Sans",
+    motion: "Stiff Snap",
+    density: "Standard",
+    whyItWorks: [
+      "Heavy black perimeters enforce clear bounding container shapes.",
+      "Flat raw color blocks capture immediate focus without gradient gradients.",
+      "Offset hard shadows create powerful tactile cardboard physical depths."
+    ],
+    aliases: ["Brutalism", "Framer", "Webflow", "Flat Design", "Stark Contrast"]
   },
   "Minimalist Typography": {
     name: "Minimalist Typography",
@@ -336,7 +380,18 @@ export const themeStyles = {
     primary: "#18181b",
     secondary: "#78716c",
     textPrimary: "#1c1917",
-    textSecondary: "#78716c"
+    textSecondary: "#78716c",
+    family: "Visual Style",
+    bestFor: "Information portals, personal essays, and agency presentations",
+    typography: "Inter",
+    motion: "Soft Fade",
+    density: "Standard",
+    whyItWorks: [
+      "Stark whitespace channels 100% of user focus to core copy paragraphs.",
+      "Zero shadow elements remove visual depth clutter.",
+      "Neutral slate and sand shades invoke calm, professional trust."
+    ],
+    aliases: ["Minimalist", "Notion", "Clean Simple", "Corporate", "Slate"]
   },
   "Luxury Gold": {
     name: "Luxury Gold",
@@ -347,7 +402,18 @@ export const themeStyles = {
     primary: "#d4af37",
     secondary: "#aa7c11",
     textPrimary: "#f5f5f0",
-    textSecondary: "#a1a1aa"
+    textSecondary: "#a1a1aa",
+    family: "Creative Theme",
+    bestFor: "High-end landing pages, luxury items, and executive summaries",
+    typography: "Outfit",
+    motion: "Elegant Glide",
+    density: "Standard",
+    whyItWorks: [
+      "Muted brass outlines create a warm, premium visual frame.",
+      "Subtle deep elevations suggest high-end, layered structural value.",
+      "Crisp gold details highlight strategic focal elements."
+    ],
+    aliases: ["Luxury", "Apple", "Premium", "Sophisticated", "Dark Brass"]
   },
   "Modern Dashboard": {
     name: "Modern Dashboard",
@@ -358,7 +424,18 @@ export const themeStyles = {
     primary: "#3b82f6",
     secondary: "#60a5fa",
     textPrimary: "#f8fafc",
-    textSecondary: "#94a3b8"
+    textSecondary: "#94a3b8",
+    family: "Modern SaaS",
+    bestFor: "Enterprise B2B dashboards, statistics, and system nodes",
+    typography: "Inter",
+    motion: "Gentle Spring",
+    density: "Compact",
+    whyItWorks: [
+      "Deep navy canvases support comfortable readability under dim lights.",
+      "Corporate blue details project reliable technical precision.",
+      "Structured border outlines split metric matrices elegantly."
+    ],
+    aliases: ["Modern SaaS", "Stripe", "Linear", "Tailwind", "Corporate Slate"]
   },
   "Analytics Platform": {
     name: "Analytics Platform",
@@ -369,7 +446,18 @@ export const themeStyles = {
     primary: "#10b981",
     secondary: "#34d399",
     textPrimary: "#f9fafb",
-    textSecondary: "#9ca3af"
+    textSecondary: "#9ca3af",
+    family: "Modern SaaS",
+    bestFor: "Fintech panels, active server stats, and telemetry metrics",
+    typography: "Geist",
+    motion: "Fast Snap",
+    density: "Compact",
+    whyItWorks: [
+      "Emerald green pulses immediately communicate active live data operations.",
+      "Graphite grid cards split high volumes of numerical information cleanly.",
+      "Dense font sizing supports high datagrid dashboard scanner-ability."
+    ],
+    aliases: ["Modern SaaS", "Vercel", "Fintech", "Compact Grid", "Data Feed"]
   },
   "Stripe Inspired": {
     name: "Stripe Inspired",
@@ -380,7 +468,18 @@ export const themeStyles = {
     primary: "#6366f1",
     secondary: "#818cf8",
     textPrimary: "#0f172a",
-    textSecondary: "#475569"
+    textSecondary: "#475569",
+    family: "Modern SaaS",
+    bestFor: "SaaS websites, billing screens, and light marketing apps",
+    typography: "DM Sans",
+    motion: "Premium Glide",
+    density: "Standard",
+    whyItWorks: [
+      "Delicate ambient page shadows give containers a sleek floating dimension.",
+      "Warm background and indigo lines keep layout clean.",
+      "Vibrant linear gradient accents suggest progressive, modern SaaS flow."
+    ],
+    aliases: ["Stripe", "Modern SaaS", "Clean Simple", "Minimalist Light", "Indigo Glow"]
   },
   "Terminal": {
     name: "Terminal Workspace",
@@ -391,7 +490,18 @@ export const themeStyles = {
     primary: "#22c55e",
     secondary: "#15803d",
     textPrimary: "#22c55e",
-    textSecondary: "#4ade80"
+    textSecondary: "#4ade80",
+    family: "Visual Style",
+    bestFor: "Developer sandboxes, SSH logs, and command prompts",
+    typography: "JetBrains Mono",
+    motion: "Static",
+    density: "Compact",
+    whyItWorks: [
+      "Monospaced neon text mimics nostalgic retro command line interfaces.",
+      "Total black backdrops completely minimize battery power draw.",
+      "Simplistic outline grids structure dense lines of syntax code cleanly."
+    ],
+    aliases: ["Raycast", "Interactive Terminal", "Developer Tool", "Retro CLI", "Amber Console"]
   },
   "Gaming Console": {
     name: "Gaming Console",
@@ -402,7 +512,18 @@ export const themeStyles = {
     primary: "#ea580c",
     secondary: "#f97316",
     textPrimary: "#f4f4f5",
-    textSecondary: "#a1a1aa"
+    textSecondary: "#a1a1aa",
+    family: "Creative Theme",
+    bestFor: "Gamified dashboards, matchmaking queues, and stats trackers",
+    typography: "Sora",
+    motion: "Impactful Spring",
+    density: "Compact",
+    whyItWorks: [
+      "Sharp angular container shapes evoke strong, high-contrast action.",
+      "Energetic crimson and orange accents highlight telemetry milestones.",
+      "Pill-shaped stats badges structure player levels clearly."
+    ],
+    aliases: ["Creative", "Gaming HUD", "Dynamic Action", "Stats Panel"]
   },
   "Data Visualization": {
     name: "Data Visualization",
@@ -413,7 +534,18 @@ export const themeStyles = {
     primary: "#f43f5e",
     secondary: "#fb7185",
     textPrimary: "#f8fafc",
-    textSecondary: "#94a3b8"
+    textSecondary: "#94a3b8",
+    family: "Modern SaaS",
+    bestFor: "High-density database grids and interactive charts",
+    typography: "Inter",
+    motion: "Fast Snap",
+    density: "Compact",
+    whyItWorks: [
+      "Deep midnight hues contrast highly with colorful multi-track graphs.",
+      "Cyan alerts guide immediately to system anomalies.",
+      "Dense tabular grid designs make visual data comparison seamless."
+    ],
+    aliases: ["Modern SaaS", "Vercel", "Telemetry", "Data Grids", "Dense Stats"]
   },
   "Notion Style": {
     name: "Notion Style",
@@ -424,7 +556,18 @@ export const themeStyles = {
     primary: "#37352f",
     secondary: "#acaba9",
     textPrimary: "#37352f",
-    textSecondary: "#6b6a67"
+    textSecondary: "#6b6a67",
+    family: "Enterprise Theme",
+    bestFor: "Knowledge hubs, documentation wikis, and system reports",
+    typography: "Manrope",
+    motion: "Static",
+    density: "Standard",
+    whyItWorks: [
+      "Thin dark-grey borders separate document scopes like clean notebook grids.",
+      "Zero unnecessary elevations deliver a pure white document layout.",
+      "Approachable font weights establish comfortable document reading environments."
+    ],
+    aliases: ["Notion", "Clean Simple", "Minimalist Light", "Wiki Layout"]
   },
   "Linear Style": {
     name: "Linear Style",
@@ -435,7 +578,18 @@ export const themeStyles = {
     primary: "#5b21b6",
     secondary: "#8b5cf6",
     textPrimary: "#f3f4f6",
-    textSecondary: "#9ca3af"
+    textSecondary: "#9ca3af",
+    family: "Modern SaaS",
+    bestFor: "Professional issue tracking, project timelines, and sprint boards",
+    typography: "Geist",
+    motion: "Premium Glide",
+    density: "Compact",
+    whyItWorks: [
+      "Glowing neon track perimeters highlight selected active lines.",
+      "Ultra-fine borders deliver a highly professional design style.",
+      "Crisp navigation tabs segment administrative tasks seamlessly."
+    ],
+    aliases: ["Linear", "Modern SaaS", "Vercel", "Dark Tech", "Sleek Workspace"]
   },
   "Apple Inspired": {
     name: "Apple Inspired",
@@ -446,7 +600,18 @@ export const themeStyles = {
     primary: "#0071e3",
     secondary: "#86868b",
     textPrimary: "#1d1d1f",
-    textSecondary: "#86868b"
+    textSecondary: "#86868b",
+    family: "Creative Theme",
+    bestFor: "Consumer hardware dashboards, storefronts, and system reviews",
+    typography: "Plus Jakarta Sans",
+    motion: "Premium Glide",
+    density: "Standard",
+    whyItWorks: [
+      "Ambient frosted-glass backdrops emulate luxurious natural materials.",
+      "Very smooth shadow gradients elevate cards from light canvases.",
+      "Aesthetic typography pairings deliver clean, high-prestige headlines."
+    ],
+    aliases: ["Apple", "Minimalist Light", "Clean Premium", "Premium Glow", "Frosted Glass"]
   },
   "Material Design": {
     name: "Material Design",
@@ -457,7 +622,18 @@ export const themeStyles = {
     primary: "#1e1b4b",
     secondary: "#6366f1",
     textPrimary: "#1e1b4b",
-    textSecondary: "#4b5563"
+    textSecondary: "#4b5563",
+    family: "Visual Style",
+    bestFor: "Android-styled apps, public service systems, and utilities",
+    typography: "Poppins",
+    motion: "Ripple Impact",
+    density: "Standard",
+    whyItWorks: [
+      "Layered pastel colored elevations guide users through component hierarchies.",
+      "Substantial corner rounding establishes approachable utility feels.",
+      "High-contrast action areas simplify mobile finger targets."
+    ],
+    aliases: ["Material Design", "Framer", "Consumer", "Utility Panel"]
   },
   "Neo Brutalism": {
     name: "Neo Brutalism",
@@ -468,7 +644,18 @@ export const themeStyles = {
     primary: "#000000",
     secondary: "#374151",
     textPrimary: "#000000",
-    textSecondary: "#374151"
+    textSecondary: "#374151",
+    family: "Visual Style",
+    bestFor: "Edgy newsletter landings, modern Web3 sites, and tech tools",
+    typography: "Space Grotesk",
+    motion: "Impactful Spring",
+    density: "Standard",
+    whyItWorks: [
+      "Unblended raw color palettes generate immediate energetic visual interest.",
+      "Hard, zero-blur drop shadows pop components out like physical stickers.",
+      "Monolithic headings deliver highly legible, graphic messaging structures."
+    ],
+    aliases: ["Neo Brutalism", "Framer", "Webflow", "Creative", "Tactile Pop"]
   },
   "Healthcare Clean": {
     name: "Healthcare Clean",
@@ -479,7 +666,18 @@ export const themeStyles = {
     primary: "#0284c7",
     secondary: "#bae6fd",
     textPrimary: "#0f172a",
-    textSecondary: "#475569"
+    textSecondary: "#475569",
+    family: "Enterprise Theme",
+    bestFor: "Patient telemetry portals, telehealth tools, and medical charts",
+    typography: "Nunito",
+    motion: "Soft Fade",
+    density: "Standard",
+    whyItWorks: [
+      "Aquamarine accents project clean, sterile safety and calmness.",
+      "Pill-shaped badge items deliver rounded, comforting interfaces.",
+      "Accessible high contrast levels support absolute reading accuracy."
+    ],
+    aliases: ["Enterprise", "Healthcare Clean", "Light Premium", "Clinical Slate"]
   },
   "Education Classic": {
     name: "Education Classic",
@@ -490,7 +688,18 @@ export const themeStyles = {
     primary: "#991b1b",
     secondary: "#f59e0b",
     textPrimary: "#1c1917",
-    textSecondary: "#57534e"
+    textSecondary: "#57534e",
+    family: "Creative Theme",
+    bestFor: "University portfolios, digital libraries, and academic reports",
+    typography: "Sora",
+    motion: "Static",
+    density: "Standard",
+    whyItWorks: [
+      "Serif typefaces simulate classic high-status paper books.",
+      "Ivy green highlights promote reading concentration.",
+      "Soft beige backgrounds reduce white page screen glare."
+    ],
+    aliases: ["Retro", "Classic Education", "Academic Beige", "Book Layout"]
   },
   "Enterprise Slate": {
     name: "Enterprise Slate",
@@ -501,7 +710,18 @@ export const themeStyles = {
     primary: "#475569",
     secondary: "#64748b",
     textPrimary: "#0f172a",
-    textSecondary: "#475569"
+    textSecondary: "#475569",
+    family: "Enterprise Theme",
+    bestFor: "Industrial logs, supply chains, and standard administrative grids",
+    typography: "DM Sans",
+    motion: "Subtle Spring",
+    density: "Compact",
+    whyItWorks: [
+      "Highly structured slate gray components suggest professional industrial trust.",
+      "Dense spreadsheet matrices present maximum raw metrics on one fold.",
+      "Clear grid alignments guide administrators through visual indices."
+    ],
+    aliases: ["Enterprise", "Atlassian", "Corporate Slate", "Compact Grid"]
   },
   "Cyberpunk Red": {
     name: "Cyberpunk Red",
@@ -512,7 +732,18 @@ export const themeStyles = {
     primary: "#ef4444",
     secondary: "#b91c1c",
     textPrimary: "#ef4444",
-    textSecondary: "#b91c1c"
+    textSecondary: "#b91c1c",
+    family: "Visual Style",
+    bestFor: "Intrusion detectors, firewalls, and server logs",
+    typography: "JetBrains Mono",
+    motion: "Instant Glitch",
+    density: "Compact",
+    whyItWorks: [
+      "Crimson glowing lines direct visual attention to security warning priorities.",
+      "Dense monospaced code aligns code structure logs beautifully.",
+      "Low light dark interfaces minimize ocular strain during long system audits."
+    ],
+    aliases: ["Cyberpunk", "Terminal Console", "Hacker Sandbox", "Red Alert"]
   },
   "Nordic Forest": {
     name: "Nordic Forest",
@@ -523,7 +754,18 @@ export const themeStyles = {
     primary: "#34d399",
     secondary: "#6ee7b7",
     textPrimary: "#ecfdf5",
-    textSecondary: "#a7f3d0"
+    textSecondary: "#a7f3d0",
+    family: "Creative Theme",
+    bestFor: "Agriculture hubs, nature apps, and carbon trackers",
+    typography: "Urbanist",
+    motion: "Soft Fade",
+    density: "Standard",
+    whyItWorks: [
+      "Organic pine and sage greens provide comforting nature feelings.",
+      "Highly readable geometric typefaces present statistical yields clearly.",
+      "Warm golden alerts highlight priority metrics without looking aggressive."
+    ],
+    aliases: ["Creative", "Nordic Forest", "Sage Green", "Natural Theme"]
   },
   "Sunset Warmth": {
     name: "Sunset Warmth",
@@ -534,7 +776,18 @@ export const themeStyles = {
     primary: "#ea580c",
     secondary: "#f97316",
     textPrimary: "#431407",
-    textSecondary: "#7c2d12"
+    textSecondary: "#7c2d12",
+    family: "Consumer Theme",
+    bestFor: "Approach-friendly startups, recipes, and travel blogs",
+    typography: "Poppins",
+    motion: "Gentle Spring",
+    density: "Standard",
+    whyItWorks: [
+      "Warm peach overlays create happy, sunshine-feeling canvas atmospheres.",
+      "Bright sunset orange highlights invite immediate button clicks.",
+      "Soft shadows layer layout sections elegantly."
+    ],
+    aliases: ["Consumer", "Stripe", "Airbnb", "Sunset Warmth", "Bright Startup"]
   },
   "Ocean Breeze": {
     name: "Ocean Breeze",
@@ -545,7 +798,18 @@ export const themeStyles = {
     primary: "#0284c7",
     secondary: "#bae6fd",
     textPrimary: "#0369a1",
-    textSecondary: "#075985"
+    textSecondary: "#075985",
+    family: "Consumer Theme",
+    bestFor: "Clean water dashboards, summer stores, and user portfolios",
+    typography: "Urbanist",
+    motion: "Smooth Glide",
+    density: "Standard",
+    whyItWorks: [
+      "Cool sky and water blue tones project calm, professional security.",
+      "Floating pure white components look light and fresh.",
+      "Deep ocean blue text provides outstanding contrast readability."
+    ],
+    aliases: ["Consumer", "Oceanic Breeze", "Clean Light", "Aquamarine Theme"]
   },
   "Cyber Grid": {
     name: "Cyber Grid",
@@ -556,6 +820,18 @@ export const themeStyles = {
     primary: "#06b6d4",
     secondary: "#22d3ee",
     textPrimary: "#06b6d4",
-    textSecondary: "#0891b2"
+    textSecondary: "#0891b2",
+    family: "Visual Style",
+    bestFor: "Cloud monitors, AI command lines, and network portals",
+    typography: "IBM Plex Sans",
+    motion: "Fast Snap",
+    density: "Compact",
+    whyItWorks: [
+      "Cyan perimeters highlight active terminal interfaces cleanly.",
+      "Underlying grid overlay patterns structure dashboard telemetry grids.",
+      "Technically dense font layouts provide rapid visual scanner-ability."
+    ],
+    aliases: ["Cyberpunk", "Raycast", "Developer Tool", "Cloud Portal", "Grid Neon"]
   }
 };
+

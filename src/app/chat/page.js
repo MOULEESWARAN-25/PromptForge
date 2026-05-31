@@ -46,7 +46,7 @@ function parseInlineMarkdown(text) {
     const matchIdx = match.index;
     if (matchIdx > currentIdx) parts.push(text.slice(currentIdx, matchIdx));
     if (matchStr.startsWith('**')) {
-      parts.push(<strong key={matchIdx} style={{ fontWeight: '700', color: '#ffffff' }}>{matchStr.slice(2, -2)}</strong>);
+      parts.push(<strong key={matchIdx} style={{ fontWeight: '700', color: 'var(--foreground)' }}>{matchStr.slice(2, -2)}</strong>);
     } else if (matchStr.startsWith('`')) {
       parts.push(<code key={matchIdx} style={mdCode}>{matchStr.slice(1, -1)}</code>);
     }
@@ -212,9 +212,9 @@ function TermChip({ term }) {
         style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
           fontSize: '0.7rem', fontWeight: '600',
-          color: expanded ? '#ffffff' : 'var(--accent)',
-          background: expanded ? 'rgba(124,58,237,0.2)' : 'rgba(124,58,237,0.08)',
-          border: `1px solid ${expanded ? 'rgba(124,58,237,0.5)' : 'rgba(124,58,237,0.2)'}`,
+          color: expanded ? 'var(--accent-foreground)' : 'var(--accent)',
+          background: expanded ? 'rgba(104,67,236,0.20)' : 'rgba(104,67,236,0.08)',
+          border: `1px solid ${expanded ? 'rgba(104,67,236,0.5)' : 'rgba(104,67,236,0.2)'}`,
           borderRadius: '6px', padding: '3px 10px',
           cursor: 'pointer', fontFamily: 'var(--font-sans)',
           transition: 'all 0.2s ease',
@@ -253,43 +253,43 @@ function TermChip({ term }) {
                 <div style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.2rem' }}>
                   What it is
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.85)', lineHeight: '1.5' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--foreground)', lineHeight: '1.5' }}>
                   {knowledge.explanation}
                 </div>
               </div>
 
               {/* What it looks like */}
               <div>
-                <div style={{ fontSize: '0.65rem', fontWeight: '700', color: '#c084fc', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.2rem' }}>
+                <div style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.2rem' }}>
                   What it looks like
                 </div>
-                <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.65)', lineHeight: '1.5', fontStyle: 'italic' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', lineHeight: '1.5', fontStyle: 'italic' }}>
                   {knowledge.visualDescription}
                 </div>
               </div>
 
               {/* Why it was used */}
               <div>
-                <div style={{ fontSize: '0.65rem', fontWeight: '700', color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.2rem' }}>
+                <div style={{ fontSize: '0.65rem', fontWeight: '700', color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.2rem' }}>
                   Why it was injected
                 </div>
-                <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.75)', lineHeight: '1.5' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--foreground)', lineHeight: '1.5' }}>
                   {knowledge.why}
                 </div>
               </div>
 
               {/* CSS Tokens */}
               <div>
-                <div style={{ fontSize: '0.65rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.35rem' }}>
+                <div style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.35rem' }}>
                   Tailwind CSS tokens
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
                   {knowledge.designTokens.map((token, i) => (
                     <code key={i} style={{
                       fontSize: '0.62rem', fontFamily: 'var(--font-mono)',
-                      color: '#c084fc', background: 'rgba(255,255,255,0.04)',
+                      color: 'var(--accent)', background: 'var(--muted)',
                       borderRadius: '4px', padding: '2px 5px',
-                      border: '1px solid rgba(255,255,255,0.06)',
+                      border: '1px solid var(--border)',
                     }}>
                       {token}
                     </code>
@@ -322,9 +322,9 @@ function AITransparencyPanel({ ragDetails, theme, mode }) {
         <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{
             fontSize: '0.65rem',
-            background: 'rgba(251,191,36,0.1)',
+            background: 'rgba(104,67,236,0.1)',
             color: 'var(--accent)',
-            border: '1px solid rgba(251,191,36,0.2)',
+            border: '1px solid rgba(104,67,236,0.2)',
             borderRadius: '4px',
             padding: '1px 6px'
           }}>
@@ -348,7 +348,7 @@ function AITransparencyPanel({ ragDetails, theme, mode }) {
                 <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: '500', marginBottom: '0.2rem' }}>
                   INFERRED DEVELOPER INTENT
                 </div>
-                <div style={{ fontSize: '0.85rem', color: '#ffffff', fontWeight: '700' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--foreground)', fontWeight: '700' }}>
                   {ragDetails.inferredIntent || "Custom Visual Page Segment"}
                 </div>
               </div>
@@ -384,7 +384,7 @@ function AITransparencyPanel({ ragDetails, theme, mode }) {
                         fontSize: '0.65rem',
                         fontFamily: 'var(--font-mono)',
                         color: '#c084fc',
-                        background: 'rgba(255,255,255,0.03)',
+                        background: 'var(--card)',
                         borderRadius: '4px',
                         padding: '2px 6px',
                         border: '1px solid rgba(255,255,255,0.04)'
@@ -404,7 +404,7 @@ function AITransparencyPanel({ ragDetails, theme, mode }) {
                   </div>
                   <ul style={{ margin: 0, paddingLeft: '1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                     {frameworkRules.slice(0, 3).map((rule, i) => (
-                      <li key={i} style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.4' }}>
+                      <li key={i} style={{ fontSize: '0.7rem', color: 'var(--muted-foreground)', lineHeight: '1.4' }}>
                         {rule}
                       </li>
                     ))}
@@ -422,7 +422,7 @@ function AITransparencyPanel({ ragDetails, theme, mode }) {
                     {promptPatterns.slice(0, 2).map((pattern, i) => (
                       <div key={i} style={{
                         fontSize: '0.68rem',
-                        color: 'rgba(255,255,255,0.65)',
+                        color: 'var(--muted-foreground)',
                         background: 'rgba(255,255,255,0.01)',
                         borderLeft: '2px solid var(--accent)',
                         padding: '0.3rem 0.5rem',
@@ -571,6 +571,7 @@ function ChatContent() {
         category: promptRecord.category, pageType: promptRecord.pageType,
         components: promptRecord.components, componentName: promptRecord.componentName,
         history: apiHistory, apiKey,
+        modelProvider: promptRecord.ragDetails?.modelProvider || 'gemini',
       });
       const finalMessages = [...updatedMessages, { role: 'model', content: response.prompt }];
       setChatMessages(finalMessages);
@@ -597,6 +598,7 @@ function ChatContent() {
         mode: promptRecord.mode, query: promptRecord.query,
         theme: promptRecord.theme, category: promptRecord.category,
         pageType: promptRecord.pageType, components: promptRecord.components, apiKey,
+        modelProvider: promptRecord.ragDetails?.modelProvider || 'gemini',
       });
       const regenMessages = [...chatMessages, { role: 'user', content: '[Regenerated]' }, { role: 'model', content: response.prompt }];
       setChatMessages(regenMessages);
@@ -762,7 +764,7 @@ function ChatContent() {
                       border: 'none',
                       padding: 0,
                       fontWeight: '700',
-                      color: '#ffffff',
+                      color: 'var(--foreground)',
                       fontSize: '0.75rem',
                       fontFamily: 'var(--font-sans)',
                       minWidth: '150px'
@@ -831,7 +833,7 @@ function ChatContent() {
                             if (btn) btn.click();
                           }, 100);
                         }}
-                        whileHover={{ scale: 1.02, borderColor: 'rgba(251,191,36,0.2)', background: 'rgba(255,255,255,0.03)' }}
+                        whileHover={{ scale: 1.02, borderColor: 'rgba(104,67,236,0.2)', background: 'rgba(255,255,255,0.03)' }}
                         whileTap={{ scale: 0.98 }}
                       >
                         {suggestion.label} →
@@ -906,14 +908,14 @@ const singleColumnLayout = {
 };
 
 const workspacePanel = {
-  flex: 1, background: 'rgba(255,255,255,0.01)',
-  border: '1px solid rgba(255,255,255,0.04)', borderRadius: 'var(--radius-lg)',
+  flex: 1, background: 'var(--card)',
+  border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)',
   display: 'flex', flexDirection: 'column', overflow: 'hidden',
-  boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
 };
 
 const workspaceHeader = {
-  padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)',
+  padding: '1rem 1.5rem', borderBottom: '1px solid var(--border)',
   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
   flexWrap: 'wrap', gap: '1rem', flexShrink: 0,
 };
@@ -921,8 +923,8 @@ const workspaceHeader = {
 const headerLeft = { display: 'flex', flexDirection: 'column', gap: '0.4rem' };
 
 const backBtn = {
-  background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
-  borderRadius: '7px', color: 'var(--muted-foreground)', fontSize: '0.75rem',
+  background: 'var(--muted)', border: '1px solid var(--border)',
+  borderRadius: '7px', color: 'var(--foreground)', fontSize: '0.75rem',
   fontWeight: '600', cursor: 'pointer', display: 'inline-flex', alignItems: 'center',
   gap: '0.35rem', padding: '0.3rem 0.65rem', fontFamily: 'var(--font-sans)',
   width: 'fit-content', transition: 'all 0.25s ease',
@@ -938,8 +940,8 @@ const workspaceTitle = {
 };
 
 const themeBadge = {
-  fontSize: '0.68rem', fontWeight: '600', color: 'var(--muted-foreground)',
-  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+  fontSize: '0.68rem', fontWeight: '600', color: 'var(--accent)',
+  background: 'rgba(104,67,236,0.08)', border: '1px solid rgba(104,67,236,0.2)',
   borderRadius: '999px', padding: '2px 8px',
 };
 
@@ -950,9 +952,10 @@ const headerActions = {
 const actionBtn = {
   display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
   padding: '0.4rem 0.75rem', borderRadius: '8px', cursor: 'pointer',
-  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
-  color: 'var(--muted-foreground)', fontSize: '0.78rem', fontWeight: '600',
+  background: 'var(--muted)', border: '1px solid var(--border)',
+  color: 'var(--foreground)', fontSize: '0.78rem', fontWeight: '600',
   fontFamily: 'var(--font-sans)', transition: 'all 0.2s ease', minHeight: '34px',
+  whiteSpace: 'nowrap',
 };
 
 const actionBtnLabel = { fontSize: '0.78rem' };
@@ -965,7 +968,7 @@ const copyBtn = {
 
 const workspaceBody = {
   flex: 1, overflowY: 'auto', padding: '1.5rem',
-  background: 'rgba(0,0,0,0.2)', position: 'relative',
+  background: 'var(--background)', position: 'relative',
 };
 
 const skeletonContainer = { display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' };
@@ -973,13 +976,13 @@ const skeletonHeader = { display: 'flex', alignItems: 'center', gap: '0.65rem', 
 const skeletonLinesGrid = { display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1 };
 const skeletonLine = (w) => ({
   width: w, height: '12px', borderRadius: '6px',
-  background: 'rgba(255,255,255,0.04)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.02)',
+  background: 'var(--card)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.02)',
 });
 const refiningText = { fontSize: '0.85rem', color: 'var(--muted-foreground)', fontWeight: '500' };
 
 // RAG / AI Panel styles
 const ragPanel = {
-  borderTop: '1px solid rgba(255,255,255,0.05)',
+  borderTop: '1px solid var(--border)',
   padding: '0.75rem 1.5rem', flexShrink: 0,
 };
 const ragToggleBtn = {
@@ -991,7 +994,7 @@ const ragToggleBtn = {
 const ragContent = {
   display: 'flex', flexDirection: 'column', gap: '0.5rem',
   marginTop: '0.75rem', padding: '0.75rem',
-  background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)',
+  background: 'var(--card)', border: '1px solid var(--border)',
   borderRadius: '8px',
 };
 const ragRow = { display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
@@ -1000,8 +1003,8 @@ const ragValue = { fontSize: '0.72rem', color: 'var(--foreground)', fontWeight: 
 
 const bottomInputRow = (focused) => ({
   padding: '1.15rem 1.5rem',
-  borderTop: `1px solid ${focused ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`,
-  boxShadow: focused ? '0 -4px 24px rgba(124,58,237,0.06)' : 'none',
+  borderTop: `1px solid ${focused ? 'var(--accent)' : 'var(--border)'}`,
+  boxShadow: focused ? '0 -4px 24px rgba(104,67,236,0.08)' : 'none',
   display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0,
   transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)', className: 'safe-bottom',
 });
@@ -1009,7 +1012,7 @@ const bottomInputRow = (focused) => ({
 const sparklesIconWrap = {
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   width: '32px', height: '32px', borderRadius: '8px',
-  background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', flexShrink: 0,
+  background: 'var(--card)', border: '1px solid var(--border)', flexShrink: 0,
 };
 
 const chatField = { flex: 1 };
@@ -1019,21 +1022,21 @@ const sendBtn = {
 };
 
 // Markdown styles
-const mdH1 = { fontSize: '1.25rem', fontWeight: '800', color: '#fff', marginTop: '1.25rem', marginBottom: '0.6rem', fontFamily: 'var(--font-display)' };
-const mdH2 = { fontSize: '1.1rem', fontWeight: '800', color: '#fff', marginTop: '1.1rem', marginBottom: '0.5rem', fontFamily: 'var(--font-display)' };
+const mdH1 = { fontSize: '1.25rem', fontWeight: '800', color: 'var(--foreground)', marginTop: '1.25rem', marginBottom: '0.6rem', fontFamily: 'var(--font-display)' };
+const mdH2 = { fontSize: '1.1rem', fontWeight: '800', color: 'var(--foreground)', marginTop: '1.1rem', marginBottom: '0.5rem', fontFamily: 'var(--font-display)' };
 const mdH3 = { fontSize: '0.98rem', fontWeight: '800', color: 'var(--accent)', marginTop: '0.85rem', marginBottom: '0.4rem', fontFamily: 'var(--font-display)' };
-const mdP = { margin: '0 0 0.4rem 0', fontSize: '0.8rem', color: 'rgba(255,255,255,0.88)', lineHeight: '1.55' };
-const mdLi = { display: 'flex', gap: '0.5rem', paddingLeft: '0.5rem', marginBottom: '0.3rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.85)', lineHeight: '1.5' };
-const mdHr = { border: 'none', borderTop: '1px solid rgba(255,255,255,0.06)', margin: '0.75rem 0' };
-const mdCode = { fontFamily: 'var(--font-mono)', fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', padding: '2px 5px', borderRadius: '4px', color: '#c084fc' };
+const mdP = { margin: '0 0 0.4rem 0', fontSize: '0.8rem', color: 'var(--foreground)', lineHeight: '1.55' };
+const mdLi = { display: 'flex', gap: '0.5rem', paddingLeft: '0.5rem', marginBottom: '0.3rem', fontSize: '0.8rem', color: 'var(--foreground)', lineHeight: '1.5' };
+const mdHr = { border: 'none', borderTop: '1px solid var(--border)', margin: '0.75rem 0' };
+const mdCode = { fontFamily: 'var(--font-mono)', fontSize: '0.75rem', background: 'var(--muted)', padding: '2px 5px', borderRadius: '4px', color: 'var(--accent)' };
 
 // ─── Revision Styles ──────────────────────────────────────────
 const revisionRow = {
   display: 'flex',
   alignItems: 'center',
   gap: '0.5rem',
-  background: 'rgba(255,255,255,0.02)',
-  border: '1px solid rgba(255,255,255,0.04)',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
   borderRadius: '8px',
   padding: '0.35rem 0.75rem',
   marginBottom: '1rem',
@@ -1051,7 +1054,7 @@ const revisionSelect = {
   border: 'none',
   fontSize: '0.75rem',
   fontWeight: '700',
-  color: '#ffffff',
+  color: 'var(--foreground)',
   outline: 'none',
   cursor: 'pointer',
   fontFamily: 'var(--font-sans)',
@@ -1062,8 +1065,8 @@ const revisionSelect = {
 const lastEditedBadge = {
   fontSize: '0.68rem',
   color: 'var(--muted-foreground)',
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.06)',
+  background: 'var(--muted)',
+  border: '1px solid var(--border)',
   borderRadius: '5px',
   padding: '2px 8px',
   fontFamily: 'var(--font-mono)',
@@ -1075,8 +1078,8 @@ const insightBadge = {
   marginBottom: '0.25rem',
   padding: '0.5rem 0.85rem',
   borderRadius: '8px',
-  background: 'rgba(124,58,237,0.05)',
-  border: '1px solid rgba(124,58,237,0.12)',
+  background: 'rgba(104,67,236,0.08)',
+  border: '1px solid rgba(104,67,236,0.18)',
   display: 'inline-flex',
   alignItems: 'center',
 };
@@ -1084,7 +1087,7 @@ const insightBadge = {
 const insightBadgeText = {
   fontSize: '0.75rem',
   fontWeight: '600',
-  color: 'rgba(167,139,250,0.9)',
+  color: 'var(--accent)',
   fontFamily: 'var(--font-sans)',
 };
 
@@ -1094,9 +1097,8 @@ const smartSuggestionsBox = {
   marginBottom: '1rem',
   padding: '1.25rem',
   borderRadius: '12px',
-  background: 'rgba(255,255,255,0.01)',
-  border: '1px solid rgba(255,255,255,0.04)',
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.02)',
+  background: 'var(--muted)',
+  border: '1px solid var(--border)',
 };
 
 const smartSuggestionsHead = {
@@ -1125,12 +1127,12 @@ const smartSuggestionChip = {
   alignItems: 'center',
   justifyContent: 'space-between',
   padding: '0.55rem 0.85rem',
-  background: 'rgba(255,255,255,0.01)',
-  border: '1px solid rgba(255,255,255,0.05)',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
   borderRadius: '8px',
   fontSize: '0.76rem',
   fontWeight: '600',
-  color: 'var(--muted-foreground)',
+  color: 'var(--foreground)',
   cursor: 'pointer',
   fontFamily: 'var(--font-sans)',
   textAlign: 'left',

@@ -37,19 +37,31 @@ export async function compileForgePrompt({
   authOption,
   deployment,
   additionalFeatures,
-  apiKey
+  apiKey,
+  modelProvider = 'gemini'
 }) {
   let finalQuery = '';
   let title = '';
 
   // Typography system specification injected into all prompt modes
   const TYPOGRAPHY_SIGNALS = {
-    'Inter':    'Use Inter for all body copy and UI controls. Optimize hierarchy for information-dense, functional interfaces. font-weight 400–600.',
-    'Geist':    'Use Geist for all typography. Apply mono-inspired precision with tight letter-spacing. Ideal for developer-facing SaaS tools.',
-    'Manrope':  'Use Manrope for all typography. Apply geometric, approachable styling with comfortable line-height for readable dashboards.',
-    'Poppins':  'Use Poppins for all typography. Apply rounded, consumer-facing warmth. font-weight 500–700 for headings. Friendly modern SaaS.',
-    'DM Sans':  'Use DM Sans for all typography. Apply compact, information-dense hierarchy. Excellent for data-rich admin panels.',
-    'Outfit':   'Use Outfit for all typography. Apply bold editorial display with high-contrast heading weights. Design-forward, expressive.',
+    'Inter':             'Use Inter for all body copy and UI controls. Optimize hierarchy for information-dense, functional interfaces. font-weight 400-600.',
+    'Geist':             'Use Geist for all typography. Apply mono-inspired precision with tight letter-spacing. Ideal for developer-facing SaaS tools.',
+    'Manrope':           'Use Manrope for all typography. Apply geometric, approachable styling with comfortable line-height for readable dashboards.',
+    'Poppins':           'Use Poppins for all typography. Apply rounded, consumer-facing warmth. font-weight 500-700 for headings. Friendly modern SaaS.',
+    'DM Sans':           'Use DM Sans for all typography. Apply compact, information-dense hierarchy. Excellent for data-rich admin panels.',
+    'Outfit':            'Use Outfit for all typography. Apply bold editorial display with high-contrast heading weights. Design-forward, expressive.',
+    'Plus Jakarta Sans': 'Use Plus Jakarta Sans for all typography. Apply elegant neo-grotesque structure with clean curve terminals and wide lettering, popular in modern SaaS platforms.',
+    'Space Grotesk':     'Use Space Grotesk for headings and tech fonts. Apply quirky geometric details that pop. Energetic, Web3, and highly tech-forward.',
+    'Sora':              'Use Sora for high-visibility digital UI typography. Apply broad, high-character shapes and high-visibility weighting.',
+    'Nunito':            'Use Nunito for soft, approachable healthcare and educational apps. Apply rounded geometric curves for visual comfort.',
+    'Urbanist':          'Use Urbanist for creative and lifestyle SaaS. Apply geometric sans-serif shapes with soft modern curves.',
+    'IBM Plex Sans':     'Use IBM Plex Sans for technical systems and dashboards. Blends scientific precision and clear letter spacing for a high-performance look.',
+    'JetBrains Mono':    'Use JetBrains Mono for monospace code blocks and developer telemetry layouts. Clean, structured, highly readable monospace coding font.',
+    'Recursive':         'Use Recursive for sandbox environments. Apply a casual, brush-like handwriting character with monospace spacing.',
+    'Syne':              'Use Syne for avant-garde, creative, and highly design-forward headers. Bold and uniquely wide display layouts.',
+    'Playfair Display':  'Use Playfair Display for classic high-prestige editorial serif layouts. Evokes high authority, trust, and premium newsprint styles.',
+    'Lexend':            'Use Lexend for highly accessible SaaS tools. Specifically engineered to improve visual readability, reading fluency, and visual cognitive ease.'
   };
   const typographyInstruction = TYPOGRAPHY_SIGNALS[selectedTypography] || TYPOGRAPHY_SIGNALS['Inter'];
 
@@ -125,7 +137,8 @@ ${projectSetupDetails}`;
     mode: activeMode,
     query: enrichedQuery,
     theme: selectedTheme || 'Sleek Dark Glassmorphic',
-    apiKey
+    apiKey,
+    modelProvider
   };
 
   if (activeMode === 'application') {

@@ -19,11 +19,11 @@ const CATEGORY_META = {
   'Layout':             { icon: LayoutGrid, color: '#0ea5e9', bg: 'rgba(14,165,233,0.1)', border: 'rgba(14,165,233,0.2)' },
   'Component':          { icon: Box,        color: '#f43f5e', bg: 'rgba(244,63,94,0.1)',  border: 'rgba(244,63,94,0.2)' },
   'Navigation Pattern': { icon: Navigation2,color: '#10b981', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.2)' },
-  'Animation & Motion': { icon: Zap,        color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.2)' },
+  'Animation & Motion': { icon: Zap,        color: '#6843EC', bg: 'rgba(104,67,236,0.1)', border: 'rgba(245,158,11,0.2)' },
   'Modern AI/SaaS Terms':{ icon: Cpu,       color: '#6366f1', bg: 'rgba(99,102,241,0.1)', border: 'rgba(99,102,241,0.2)' },
 };
 
-const getCatMeta = (cat) => CATEGORY_META[cat] || { icon: Sparkles, color: '#fbbf24', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.2)' };
+const getCatMeta = (cat) => CATEGORY_META[cat] || { icon: Sparkles, color: '#6843EC', bg: 'rgba(104,67,236,0.1)', border: 'rgba(104,67,236,0.2)' };
 
 // ─── Animation Variants ──────────────────────────────────────
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
@@ -345,7 +345,7 @@ const searchInputStyle = {
 
 const clearSearchBtn = {
   width: '28px', height: '28px', borderRadius: '8px',
-  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+  background: 'var(--card)', border: '1px solid rgba(255,255,255,0.08)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   cursor: 'pointer', color: 'var(--muted-foreground)',
 };
@@ -412,7 +412,7 @@ const cardStyle = (meta) => ({
   padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem',
   borderRadius: '16px',
   background: 'rgba(255,255,255,0.01)',
-  border: '1px solid rgba(255,255,255,0.04)',
+  border: '1px solid var(--border)',
   boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
   transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
 });
@@ -439,7 +439,7 @@ const cardActions = { display: 'flex', alignItems: 'center', gap: '0.35rem' };
 
 const copyBtnStyle = (copied) => ({
   width: '28px', height: '28px', borderRadius: '7px',
-  background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
+  background: 'var(--card)', border: '1px solid rgba(255,255,255,0.06)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   cursor: 'pointer', color: copied ? '#10b981' : 'var(--muted-foreground)',
   transition: 'all 0.2s ease',
@@ -464,7 +464,7 @@ const cardDesc = {
 const keywordRow = { display: 'flex', flexWrap: 'wrap', gap: '0.3rem' };
 const keywordChip = (meta) => ({
   fontSize: '0.66rem', fontWeight: '600', padding: '2px 7px',
-  borderRadius: '4px', background: 'rgba(255,255,255,0.02)',
+  borderRadius: '4px', background: 'var(--card)',
   border: '1px solid rgba(255,255,255,0.06)', color: 'var(--muted-foreground)',
   fontFamily: 'var(--font-mono)',
 });
@@ -477,7 +477,7 @@ const expandedContent = {
 };
 
 const codeBlock = (meta) => ({
-  background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)',
+  background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)',
   borderRadius: '10px', padding: '1rem',
   display: 'flex', flexDirection: 'column', gap: '0.5rem',
 });
@@ -524,7 +524,7 @@ const emptyWrap = {
 };
 const emptyIconWrap = {
   width: '56px', height: '56px', borderRadius: '14px',
-  background: 'rgba(255,255,255,0.02)', display: 'flex',
+  background: 'var(--card)', display: 'flex',
   alignItems: 'center', justifyContent: 'center',
   color: 'var(--muted-foreground)',
 };

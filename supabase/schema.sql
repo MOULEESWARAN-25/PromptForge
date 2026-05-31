@@ -17,6 +17,22 @@ CREATE TABLE design_vocabulary (
   embedding vector(3072) -- 3072 dimensions for Gemini gemini-embedding-001/gemini-embedding-2
 );
 
+-- 3b. NOTE: HNSW vector index is intentionally omitted.
+--     pgvector HNSW supports a maximum of 2000 dimensions.
+--     gemini-embedding-001 produces 3072-dim vectors — applying HNSW will error:
+--       ERROR 54000: column cannot have more than 2000 dimensions for hnsw index
+--     At current corpus size (~30-100 rows) sequential scan is <10ms — no index needed.
+--     FUTURE PATH when corpus exceeds ~5k rows:
+--       ALTER TABLE design_vocabulary ALTER COLUMN embedding TYPE halfvec(3072);
+--       CREATE INDEX ON design_vocabulary USING hnsw (embedding halfvec_cosine_ops)
+--         WITH (m = 16, ef_construction = 64);
+
+-- 3c. GIN index on keywords array for fast category/keyword filtering (safe at any dim)
+CREATE INDEX IF NOT EXISTS design_vocab_keywords_gin_idx
+  ON design_vocabulary
+  USING gin (keywords);
+
+
 -- 4. Enable Row Level Security (RLS)
 ALTER TABLE design_vocabulary ENABLE ROW LEVEL SECURITY;
 

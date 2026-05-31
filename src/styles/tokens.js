@@ -6,10 +6,10 @@
 
 export const colors = {
   // Brand
-  accent: '#fbbf24',
+  accent: '#6843EC',
   accentForeground: '#000000',
-  accentGlow: 'rgba(251,191,36,0.15)',
-  accentSubtle: 'rgba(251,191,36,0.06)',
+  accentGlow: 'rgba(104,67,236,0.15)',
+  accentSubtle: 'rgba(104,67,236,0.06)',
 
   // Semantic
   success: '#22c55e',
@@ -47,8 +47,8 @@ export const colors = {
 };
 
 export const typography = {
-  fontDisplay: "'Bricolage Grotesque', system-ui, sans-serif",
-  fontSans: "'Plus Jakarta Sans', system-ui, sans-serif",
+  fontDisplay: "'Darker Grotesque', system-ui, sans-serif",
+  fontSans: "'Work Sans', system-ui, sans-serif",
   fontMono: "'Geist Mono', 'Fira Code', ui-monospace, monospace",
 
   // Scale
@@ -87,7 +87,7 @@ export const shadows = {
   md: '0 4px 16px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)',
   lg: '0 8px 32px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06)',
   xl: '0 20px 60px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.08)',
-  glow: '0 0 0 1px rgba(251,191,36,0.3), 0 0 30px rgba(251,191,36,0.1)',
+  glow: '0 0 0 1px rgba(104,67,236,0.3), 0 0 30px rgba(104,67,236,0.1)',
 };
 
 export const motion = {

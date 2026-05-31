@@ -4,8 +4,7 @@ export const PAGE_TYPES = [
   { id: 'Login Page', label: 'Login Page', desc: 'Glassmorphic login entry card with transitions.', image: '/pages/login.png' },
   { id: 'Signup Page', label: 'Signup Page', desc: 'Form wizards, secure validation checkmarks.', image: '/pages/login.png' },
   { id: 'Settings Page', label: 'Settings Page', desc: 'Vertical menu navigation tabs, settings forms.', image: '/pages/settings.png' },
-  { id: 'Profile Page', label: 'Profile Page', desc: 'User information header grids, feed stream widgets.', image: '/pages/profile.png' },
-  { id: 'SaaS Pricing Matrix', label: 'Pricing Matrix', desc: 'Spotlight subscription tiers, feature checklists.', image: '/pages/pricing.png' }
+  { id: 'Profile Page', label: 'Profile Page', desc: 'User information header grids, feed stream widgets.', image: '/pages/profile.png' }
 ];
 
 export const PAGE_COMPONENTS = {
@@ -14,6 +13,5 @@ export const PAGE_COMPONENTS = {
   'Login Page': ['Glassmorphism Entry Card', 'Floating Input Labels', 'OTP Verification Code Input', 'Spring Scale Checkmark Bounces', 'Switch Mode Toggle', 'Error Validation States'],
   'Signup Page': ['Multi-step Registration Form', 'Password Strength Estimator', 'Terms of Service Checkbox', 'Oauth Social Logins', 'Success Animation Screen', 'Email Verification Code'],
   'Settings Page': ['Vertical Tab Navigation', 'Profile Avatar Uploader', 'Toggle Notification Switches', 'API Key Management Board', 'Danger Zone Deactivation Card', 'Preferences Form'],
-  'Profile Page': ['User Profile Header', 'Activity Stream Feed', 'Follower/Connection Stats', 'Editable Contact Details', 'Bio Summary Box', 'Recent Uploads Gallery', 'Social Media Links'],
-  'SaaS Pricing Matrix': ['Spotlight Pricing Cards', 'Animated Border Glow Highlights', 'Switch Billing Toggle (Annual/Monthly)', 'Checkmark Feature Lists', 'Interactive CTA Buttons', 'Accordion FAQ']
+  'Profile Page': ['User Profile Header', 'Activity Stream Feed', 'Follower/Connection Stats', 'Editable Contact Details', 'Bio Summary Box', 'Recent Uploads Gallery', 'Social Media Links']
 };

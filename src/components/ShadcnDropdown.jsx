@@ -38,19 +38,18 @@ export default function ShadcnDropdown({
           justifyContent: 'space-between',
           gap: '0.5rem',
           padding: '0.45rem 0.85rem',
-          background: 'rgba(255, 255, 255, 0.02)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          background: 'var(--card)',
+          border: '1px solid var(--border)',
           borderRadius: '8px',
           fontSize: '0.78rem',
           fontWeight: '600',
-          color: '#ffffff',
+          color: 'var(--foreground)',
           fontFamily: 'var(--font-sans)',
           cursor: 'pointer',
           outline: 'none',
           width: '100%',
           textAlign: 'left',
           transition: 'all 0.2s ease',
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.02)',
           ...style
         }}
         className="glass-panel active-scale-98"
@@ -83,12 +82,12 @@ export default function ShadcnDropdown({
               zIndex: 1000,
               minWidth: '160px',
               width: '100%',
-              background: 'rgba(10, 10, 14, 0.96)',
+              background: 'var(--popover)',
               backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              border: '1px solid var(--border)',
               borderRadius: '10px',
               padding: '4px',
-              boxShadow: '0 12px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
+              boxShadow: 'var(--shadow-lg)',
               display: 'flex',
               flexDirection: 'column',
               gap: '2px',
@@ -111,12 +110,12 @@ export default function ShadcnDropdown({
                     gap: '0.5rem',
                     width: '100%',
                     padding: '0.45rem 0.65rem',
-                    background: isSelected ? 'rgba(255, 255, 255, 0.06)' : 'transparent',
+                    background: isSelected ? 'rgba(104, 67, 236, 0.12)' : 'transparent',
                     border: 'none',
                     borderRadius: '6px',
                     fontSize: '0.76rem',
                     fontWeight: isSelected ? '700' : '500',
-                    color: isSelected ? '#ffffff' : 'var(--muted-foreground)',
+                    color: isSelected ? 'var(--accent)' : 'var(--foreground)',
                     cursor: 'pointer',
                     textAlign: 'left',
                     fontFamily: 'var(--font-sans)',
@@ -124,14 +123,14 @@ export default function ShadcnDropdown({
                   }}
                   onMouseEnter={(e) => {
                     if (!isSelected) {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
-                      e.currentTarget.style.color = '#ffffff';
+                      e.currentTarget.style.background = 'rgba(104, 67, 236, 0.08)';
+                      e.currentTarget.style.color = 'var(--accent)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isSelected) {
                       e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.color = 'var(--muted-foreground)';
+                      e.currentTarget.style.color = 'var(--foreground)';
                     }
                   }}
                 >

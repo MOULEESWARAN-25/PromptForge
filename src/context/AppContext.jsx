@@ -11,6 +11,8 @@ import {
 } from '../services/supabase';
 import { track, EVENTS } from '../lib/analytics';
 import { FREE_TIER_LIMITS } from '../styles/tokens';
+import { toast } from 'sonner';
+
 
 const AppContext = createContext(null);
 
