@@ -7,7 +7,7 @@
 export const colors = {
   // Brand
   accent: '#6843EC',
-  accentForeground: '#000000',
+  accentForeground: '#ffffff',
   accentGlow: 'rgba(104,67,236,0.15)',
   accentSubtle: 'rgba(104,67,236,0.06)',
 

@@ -63,6 +63,22 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
     >
       <head>
+        <script
+          id="theme-initializer"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: `
+            (function() {
+              try {
+                var savedTheme = localStorage.getItem('promptforge_theme') || 'dark';
+                if (savedTheme === 'dark') {
+                  document.documentElement.classList.add('dark');                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (e) {}
+            })();
+          ` }}
+        />
         <style dangerouslySetInnerHTML={{ __html: `
           body, button, input, textarea, select, label, p, span, li, a {
             font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;

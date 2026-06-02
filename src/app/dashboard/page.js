@@ -16,7 +16,7 @@ import { track, EVENTS } from '@/lib/analytics';
 import HelpKeyboardOverlay from '@/components/HelpKeyboardOverlay';
 import ShadcnDropdown from '@/components/ShadcnDropdown';
 import WelcomeBotMessage from '@/components/WelcomeBotMessage';
-import ActivityTracker from '@/components/ActivityTracker';
+import DashboardHUD from '@/components/DashboardHUD';
 
 // ─── Animation Variants ────────────────────────────────────────
 const fadeUp = {
@@ -42,8 +42,7 @@ const WORKFLOWS = [
     icon: Monitor,
     label: 'SaaS Application',
     desc: 'Multi-page routing, state management, sidebars, and premium data architecture — fully described.',
-    accent: '#7c3aed',
-    accentBg: 'rgba(124,58,237,0.08)',
+    accent: 'var(--accent)',
     badge: 'Full-Stack',
   },
   {
@@ -52,8 +51,7 @@ const WORKFLOWS = [
     icon: Layout,
     label: 'Web Page Design',
     desc: '1. Select type of page, 2. Select components, 3. Select theme, 4. Generate prompt.',
-    accent: '#0891b2',
-    accentBg: 'rgba(8,145,178,0.08)',
+    accent: '#0284c7',
     badge: 'v0 Ready',
   },
   {
@@ -63,7 +61,6 @@ const WORKFLOWS = [
     label: 'Single Component',
     desc: 'Describe modular UI elements. Inject full codebase context, custom design tokens, and framework APIs.',
     accent: '#db2777',
-    accentBg: 'rgba(219,39,119,0.08)',
     badge: 'Custom Stack',
   },
   {
@@ -72,15 +69,14 @@ const WORKFLOWS = [
     icon: Wand2,
     label: 'Prompt Enhancer',
     desc: 'Paste any rough idea and inject Framer motions, HSL tokens, and professional terminology instantly.',
-    accent: '#059669',
-    accentBg: 'rgba(5,150,105,0.08)',
+    accent: 'var(--success)',
     badge: 'Quick',
   },
 ];
 
 const MODE_ICONS = { application: Monitor, page: Layout, component: Code2, enhance: Wand2 };
 const MODE_COLORS = {
-  application: '#7c3aed', page: '#0891b2', component: '#db2777', enhance: '#059669',
+  application: 'var(--accent)', page: '#0284c7', component: '#db2777', enhance: 'var(--success)',
 };
 const MODE_LABELS = {
   application: 'Full-Stack App',
@@ -98,7 +94,7 @@ const ROTATING_PLACEHOLDERS = [
 ];
 
 export default function DashboardPage() {
-  const { user, history, deletePromptRecord, clearHistory, loading, updatePromptCollection, getUsageStats, activityStats, recordActivity } = useApp();
+  const { user, history, deletePromptRecord, clearHistory, loading, updatePromptCollection, getUsageStats, activityStats, recordActivity, theme } = useApp();
   const router = useRouter();
   const [copiedId, setCopiedId] = useState(null);
   const [quickInput, setQuickInput] = useState('');
@@ -112,6 +108,7 @@ export default function DashboardPage() {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showInterceptModal, setShowInterceptModal] = useState(false);
+  const [activeDropdownId, setActiveDropdownId] = useState(null);
   // ── Re-engagement nudge
   const [reengagementNudge, setReengagementNudge] = useState(null); // { type, message, cta, href }
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
@@ -127,6 +124,7 @@ export default function DashboardPage() {
   const [selectedCollection, setSelectedCollection] = useState('all');
   const [newCollectionName, setNewCollectionName] = useState('');
   const [activeFolderPromptId, setActiveFolderPromptId] = useState(null);
+  const [folderToDelete, setFolderToDelete] = useState(null);
 
   const clearTimerRef = useRef(null);
   const [, startTransition] = useTransition();
@@ -154,6 +152,28 @@ export default function DashboardPage() {
     setNewCollectionName('');
     toast.success(`Created folder: ${newCollectionName.trim()}`);
     track('collection_created', { name: newCollectionName.trim() });
+  };
+
+  const handleDeleteCollection = () => {
+    if (!folderToDelete) return;
+    const updated = collections.filter(c => c !== folderToDelete);
+    setCollections(updated);
+    localStorage.setItem('pf_collections', JSON.stringify(updated));
+
+    // Clean up collection assignment for workspaces
+    history.forEach(item => {
+      if (item.collection === folderToDelete) {
+        updatePromptCollection(item.id, '');
+      }
+    });
+
+    if (selectedCollection === folderToDelete) {
+      setSelectedCollection('all');
+    }
+
+    toast.success(`Deleted folder: ${folderToDelete}`);
+    track('collection_deleted', { name: folderToDelete });
+    setFolderToDelete(null);
   };
 
   // Load favorites from local storage
@@ -421,7 +441,7 @@ export default function DashboardPage() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flex: 1 }}>
               <Zap size={14} style={{ color: reengagementNudge.type === 'milestone' ? '#f59e0b' : 'var(--accent)', flexShrink: 0 }} />
-              <span style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.85)' }}>{reengagementNudge.message}</span>
+              <span style={{ fontSize: '0.82rem', color: 'var(--foreground)', fontWeight: '600' }}>{reengagementNudge.message}</span>
             </div>
             <motion.button
               style={nudgeCta}
@@ -435,62 +455,8 @@ export default function DashboardPage() {
         )}
       </AnimatePresence>
 
-      {/* ── Welcome Guided HUD ── */}
-      <motion.section
-        style={welcomeHUD}
-        variants={stagger}
-        initial="hidden"
-        animate="show"
-      >
-        <motion.div variants={fadeUp}>
-          <div className="premium-badge animate-pulse-slow" style={{ marginBottom: '1.25rem' }}>
-            <Sparkles size={11} className="text-purple-400" />
-            <span>Prompt Architect v2.0</span>
-          </div>
-        </motion.div>
-
-        <motion.h1 variants={fadeUp} style={welcomeHeadline}>
-          Welcome back, <span className="hero-gradient">{user.username}</span>.
-        </motion.h1>
-
-        <motion.p variants={fadeUp} style={welcomeSub}>
-          Select a blueprint pipeline below to start compiling structural grids, theme tokens, and dynamic interactions for your project.
-        </motion.p>
-
-        {/* Activity tracker (sessions + blueprints this month) */}
-        <motion.div variants={fadeUp}>
-          <ActivityTracker />
-        </motion.div>
-      </motion.section>
-
-      {/* ── Your Vault — Lifetime Stats Strip ── */}
-      {history.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          style={vaultStrip}
-          className="glass-panel"
-        >
-          {[
-            { icon: FileText, label: 'Blueprints Compiled', value: vaultStats.blueprints, color: '#6843EC' },
-            { icon: Folder, label: 'Collections Organized', value: vaultStats.collections, color: '#0891b2' },
-            { icon: Brain, label: 'AI Refinements Applied', value: vaultStats.refinements, color: '#6843EC' },
-            { icon: Zap, label: 'Est. Hours Saved', value: `~${vaultStats.hoursSaved}h`, color: '#6843EC', isText: true },
-          ].map(stat => {
-            const Icon = stat.icon;
-            return (
-              <div key={stat.label} style={vaultStat}>
-                <div style={vaultStatIcon(stat.color)}><Icon size={14} style={{ color: stat.color }} /></div>
-                <div>
-                  <div style={vaultStatValue}>{stat.value}</div>
-                  <div style={vaultStatLabel}>{stat.label}</div>
-                </div>
-              </div>
-            );
-          })}
-        </motion.div>
-      )}
+      {/* ── Dynamic Widescreen Dashboard HUD ── */}
+      <DashboardHUD />
 
 
       {/* ── Primary Workflows Bento Grid ── */}
@@ -551,102 +517,98 @@ export default function DashboardPage() {
 
 
         {optimisticHistory.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
-            {/* Folder Collections Filter Row */}
-            <div style={foldersTabRow}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', flex: 1 }}>
-                <button
-                  style={folderTabBtn(selectedCollection === 'all')}
-                  onClick={() => setSelectedCollection('all')}
-                >
-                  <Compass size={13} />
-                  <span>All Spaces</span>
-                </button>
-                {collections.map(col => {
-                  const count = optimisticHistory.filter(h => h.collection === col).length;
-                  return (
-                    <button
-                      key={col}
-                      style={folderTabBtn(selectedCollection === col)}
-                      onClick={() => setSelectedCollection(col)}
-                    >
-                      <Folder size={13} fill={selectedCollection === col ? 'var(--accent)' : 'none'} style={{ color: selectedCollection === col ? 'var(--accent)' : 'inherit' }} />
-                      <span>{col}</span>
-                      {count > 0 && <span style={folderCountBadge}>{count}</span>}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Dynamic Folder Creator */}
-              <form onSubmit={handleCreateCollection} style={folderCreateForm}>
-                <input
-                  type="text"
-                  placeholder="New Folder..."
-                  value={newCollectionName}
-                  onChange={e => setNewCollectionName(e.target.value)}
-                  style={folderCreateInput}
-                />
-                <button type="submit" style={folderCreateBtn} title="Create Folder">
-                  <FolderPlus size={13} />
-                </button>
-              </form>
+          <div style={explorerToolbar} className="glass-panel">
+            {/* Left: Search input */}
+            <div style={toolbarSearchWrap}>
+              <Search size={14} style={{ color: 'var(--muted-foreground)' }} />
+              <input
+                type="text"
+                placeholder="Search prompt blueprints..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={toolbarSearchInput}
+              />
             </div>
 
-            <div style={filterBar}>
-              {/* Search Input */}
-              <div style={searchWrap} className="glass-panel">
-                <Search size={14} style={{ color: 'var(--muted-foreground)' }} />
-                <input
-                  type="text"
-                  placeholder="Search prompt blueprints..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  style={searchInput}
-                />
-              </div>
+            {/* Middle: Collection Folder Selector */}
+            <div style={toolbarDropdownWrap}>
+              <Folder size={13} style={{ color: 'var(--accent)' }} />
+              <ShadcnDropdown
+                value={selectedCollection}
+                onChange={(val) => {
+                  setSelectedCollection(val);
+                  if (val === 'all') {
+                    setSearchQuery('');
+                    setFilterMode('all');
+                    setShowFavoritesOnly(false);
+                  }
+                }}
+                options={[
+                  { label: '📁 All Collections', value: 'all' },
+                  ...collections.map(c => ({ label: `📁 ${c}`, value: c }))
+                ]}
+                style={toolbarDropdownSelect}
+              />
+              {selectedCollection !== 'all' && (
+                <button
+                  type="button"
+                  onClick={() => setFolderToDelete(selectedCollection)}
+                  style={toolbarDeleteFolderBtn}
+                  title={`Delete active folder "${selectedCollection}"`}
+                >
+                  <X size={12} />
+                  <span>Delete Folder</span>
+                </button>
+              )}
+            </div>
 
-              {/* Mode Filters */}
-              <div style={filterGroup}>
-                {['all', 'application', 'page', 'enhance'].map(mode => (
-                  <button
-                    key={mode}
-                    style={filterChipBtn(filterMode === mode)}
-                    onClick={() => setFilterMode(mode)}
-                  >
-                    {mode === 'all' ? 'All' : mode === 'application' ? 'Apps' : mode === 'page' ? 'Pages' : 'Enhance'}
-                  </button>
-                ))}
-              </div>
+            {/* Middle-Right: Inline Folder Creator */}
+            <form onSubmit={handleCreateCollection} style={toolbarFolderForm}>
+              <input
+                type="text"
+                placeholder="New Folder..."
+                value={newCollectionName}
+                onChange={e => setNewCollectionName(e.target.value)}
+                style={toolbarFolderInput}
+              />
+              <button type="submit" style={toolbarFolderBtn} title="Create Folder">
+                <FolderPlus size={13} />
+              </button>
+            </form>
 
-              {/* Favorites Toggle */}
+            {/* Right: Mode Filter Chips */}
+            <div style={toolbarChipGroup}>
+              {['all', 'application', 'page', 'enhance'].map(mode => (
+                <button
+                  key={mode}
+                  style={toolbarChip(filterMode === mode)}
+                  onClick={() => setFilterMode(mode)}
+                >
+                  {mode === 'all' ? 'All' : mode === 'application' ? 'Apps' : mode === 'page' ? 'Pages' : 'Enhance'}
+                </button>
+              ))}
+            </div>
+
+            {/* Right: Favorites & Sort Group */}
+            <div style={toolbarActionGroup}>
               <button
-                style={filterChipBtn(showFavoritesOnly, true)}
+                style={toolbarChip(showFavoritesOnly, true)}
                 onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
               >
-                <Star size={12} fill={showFavoritesOnly ? '#6843EC' : 'none'} style={{ color: showFavoritesOnly ? '#6843EC' : 'inherit' }} />
-                <span>Favorites</span>
+                <Star size={12} fill={showFavoritesOnly ? 'var(--accent)' : 'none'} style={{ color: showFavoritesOnly ? 'var(--accent)' : 'inherit' }} />
+                <span>Starred</span>
               </button>
 
-              {/* Sort Toggle */}
-              <div style={sortWrap}>
-                <Calendar size={12} />
+              <div style={toolbarSortWrap}>
+                <Calendar size={12} style={{ color: 'var(--muted-foreground)' }} />
                 <ShadcnDropdown
                   value={sortBy}
                   onChange={(val) => setSortBy(val)}
                   options={[
-                    { label: 'Recent', value: 'recent' },
+                    { label: 'Recent First', value: 'recent' },
                     { label: 'Alphabetical', value: 'title' }
                   ]}
-                  style={{
-                    background: 'var(--card)',
-                    border: '1px solid var(--border)',
-                    padding: '0.4rem 0.65rem',
-                    fontSize: '0.78rem',
-                    color: 'var(--foreground)',
-                    fontFamily: 'var(--font-sans)',
-                    minWidth: '100px'
-                  }}
+                  style={toolbarSortSelect}
                 />
               </div>
             </div>
@@ -675,7 +637,13 @@ export default function DashboardPage() {
 
           if (filtered.length === 0) {
             return (
-              <motion.div variants={fadeUp} style={emptyState} className="glass-panel">
+              <motion.div
+                variants={fadeUp}
+                initial="hidden"
+                animate="show"
+                style={emptyState}
+                className="glass-panel"
+              >
                 <div style={emptyIconWrap} className="glass-panel">
                   <Sparkles size={28} style={{ color: 'var(--accent)' }} />
                 </div>
@@ -684,17 +652,51 @@ export default function DashboardPage() {
                   <p style={emptyDesc}>
                     Try clearing your search query or choosing a different category workflow.
                   </p>
+                  <motion.button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setFilterMode('all');
+                      setShowFavoritesOnly(false);
+                      setSelectedCollection('all');
+                      toast.success('All filters reset');
+                    }}
+                    style={{
+                      marginTop: '1.25rem',
+                      padding: '0.45rem 1rem',
+                      borderRadius: '8px',
+                      fontSize: '0.78rem',
+                      fontWeight: '600',
+                      background: 'var(--accent)',
+                      border: 'none',
+                      color: '#ffffff',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      transition: 'all 0.2s ease',
+                      fontFamily: 'var(--font-sans)',
+                    }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    Reset all filters
+                  </motion.button>
                 </div>
               </motion.div>
             );
           }
 
           return (
-            <motion.div variants={stagger} style={historyGrid}>
+            <motion.div
+              variants={stagger}
+              initial="hidden"
+              animate="show"
+              style={historyGrid}
+            >
               <AnimatePresence mode="popLayout">
                 {filtered.map((log) => {
                   const ModeIcon = MODE_ICONS[log.mode] || Sparkles;
-                  const modeColor = MODE_COLORS[log.mode] || '#6843EC';
+                  const modeColor = MODE_COLORS[log.mode] || 'var(--accent)';
                   const modeLabel = MODE_LABELS[log.mode] || log.mode;
                   const isCopied = copiedId === log.id;
                   const isFav = favorites.includes(log.id);
@@ -703,8 +705,12 @@ export default function DashboardPage() {
                       key={log.id}
                       variants={cardVariant}
                       layout
-                      style={historyCard}
-                      className="glass-panel card-hover"
+                      style={{
+                        ...historyCard,
+                        position: 'relative',
+                        zIndex: activeDropdownId === log.id ? 50 : 1
+                      }}
+                      className="glass-panel card-hover pf-blueprint-card"
                       onClick={() => router.push(`/chat?id=${log.id}`)}
                       whileHover={{ y: -4 }}
                       exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
@@ -714,68 +720,84 @@ export default function DashboardPage() {
                       onKeyDown={(e) => e.key === 'Enter' && router.push(`/chat?id=${log.id}`)}
                     >
                       <div style={historyCardTop}>
-                        <div style={{ ...historyModeBadge, background: `${modeColor}12`, color: modeColor, borderColor: `${modeColor}25` }}>
+                        <div style={{ ...historyModeBadge, background: `color-mix(in srgb, ${modeColor} 12%, transparent)`, color: modeColor, borderColor: `color-mix(in srgb, ${modeColor} 25%, transparent)` }}>
                           <ModeIcon size={12} />
                           <span>{modeLabel}</span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <motion.button
-                            onClick={(e) => toggleFavorite(log.id, e)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: isFav ? '#6843EC' : 'var(--muted-foreground)' }}
-                            whileHover={{ scale: 1.15 }}
-                            title={isFav ? "Remove from favorites" : "Add to favorites"}
-                          >
-                            <Star size={13} fill={isFav ? '#6843EC' : 'none'} />
-                          </motion.button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                           <span style={historyDate}>
                             <Clock size={11} />
                             {new Date(log.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                           </span>
+                          <motion.button
+                            onClick={(e) => toggleFavorite(log.id, e)}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              padding: '2px',
+                              color: isFav ? 'var(--accent)' : 'var(--muted-foreground)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              opacity: isFav ? 1 : 0.45,
+                              transition: 'opacity 0.2s ease',
+                            }}
+                            whileHover={{ scale: 1.18, opacity: 1 }}
+                            title={isFav ? "Remove from favorites" : "Add to favorites"}
+                          >
+                            <Star size={13} fill={isFav ? 'var(--accent)' : 'none'} style={{ color: isFav ? 'var(--accent)' : 'inherit' }} />
+                          </motion.button>
                         </div>
                       </div>
 
                       <h3 style={historyTitle}>{log.title}</h3>
                       <p style={historyQuery} className="truncate-2">{log.query || 'No query recorded.'}</p>
 
-                      <div style={historyActions}>
+                      {/* Premium Hover Actions Overlay */}
+                      <div 
+                        style={{
+                          ...cardHoverActions,
+                          opacity: activeDropdownId === log.id ? 1 : undefined
+                        }}
+                        className="pf-hover-actions"
+                        onClick={e => e.stopPropagation()}
+                      >
+                        {/* Copy Trigger */}
                         <motion.button
-                          style={{ ...historyActionBtn, color: isCopied ? '#16a34a' : 'var(--muted-foreground)' }}
+                          style={{ ...cardActionIconBtn, color: isCopied ? 'var(--success)' : 'var(--muted-foreground)' }}
                           onClick={e => handleCopy(log.id, e, log.resolvedPrompt)}
-                          whileHover={{ scale: 1.04 }}
-                          whileTap={{ scale: 0.96 }}
+                          whileHover={{ scale: 1.08 }}
+                          whileTap={{ scale: 0.92 }}
+                          title="Copy resolved prompt"
                         >
                           {isCopied ? <Check size={13} /> : <Copy size={13} />}
-                          {isCopied ? 'Copied' : 'Copy'}
                         </motion.button>
-                        <motion.button
-                          style={{ ...historyActionBtn, color: '#ef4444' }}
-                          onClick={e => handleDelete(log.id, e)}
-                          whileHover={{ scale: 1.04, background: 'rgba(239,68,68,0.06)', borderColor: 'rgba(239,68,68,0.15)' }}
-                          whileTap={{ scale: 0.96 }}
-                        >
-                          <Trash2 size={13} />
-                        </motion.button>
-                        
-                        <div onClick={e => e.stopPropagation()}>
+
+                        {/* Move folder Dropdown */}
+                        <div onClick={e => e.stopPropagation()} style={{ position: 'relative' }}>
                           <ShadcnDropdown
                             value={log.collection || ''}
                             onChange={(val) => updatePromptCollection(log.id, val)}
+                            onOpenChange={(open) => setActiveDropdownId(open ? log.id : null)}
                             options={[
-                              { label: '📁 Move to...', value: '' },
-                              ...collections.map(c => ({ label: c, value: c }))
+                              { label: '📁 Move Folder...', value: '' },
+                              ...collections.map(c => ({ label: `📁 ${c}`, value: c }))
                             ]}
-                            style={{
-                              background: 'rgba(255,255,255,0.01)',
-                              border: '1px solid var(--border)',
-                              padding: '0.25rem 0.5rem',
-                              fontSize: '0.72rem',
-                              color: 'var(--muted-foreground)',
-                              borderRadius: '6px',
-                              fontFamily: 'var(--font-sans)',
-                              minWidth: '110px'
-                            }}
+                            style={cardFolderDropdown}
                           />
                         </div>
+
+                        {/* Delete Trigger */}
+                        <motion.button
+                          style={{ ...cardActionIconBtn, color: 'var(--destructive)' }}
+                          onClick={e => handleDelete(log.id, e)}
+                          whileHover={{ scale: 1.08, background: 'color-mix(in srgb, var(--destructive) 6%, transparent)' }}
+                          whileTap={{ scale: 0.92 }}
+                          title="Delete workspace"
+                        >
+                          <Trash2 size={13} />
+                        </motion.button>
                         
                         <div style={{ flex: 1 }} />
                         <span style={historyOpen}>
@@ -792,70 +814,7 @@ export default function DashboardPage() {
       </motion.section>
 
       {/* ── Secondary Sandbox Console (Manual Prompt Enhancer) ── */}
-      <motion.section
-        variants={stagger}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, margin: '-60px' }}
-        style={sandboxConsoleContainer}
-        className="glass-panel"
-      >
-        <div style={sandboxHeaderRow}>
-          <div style={sandboxTitleBox}>
-            <div style={sandboxIconWrap}>
-              <Sparkles size={15} style={{ color: 'var(--accent)' }} />
-            </div>
-            <div>
-              <h3 style={sandboxTitleText}>Quick Sandbox Enhancer</h3>
-              <p style={sandboxSubtitleText}>Already have a draft idea? Paste it below to manually enhance layout and color configurations.</p>
-            </div>
-          </div>
-        </div>
 
-        <motion.form
-          onSubmit={handleQuickForge}
-          style={sandboxConsoleForm(inputFocused)}
-          className="dashboard-console-form"
-        >
-          <input
-            type="text"
-            placeholder={ROTATING_PLACEHOLDERS[placeholderIdx]}
-            value={quickInput}
-            onChange={e => setQuickInput(e.target.value)}
-            onFocus={() => setInputFocused(true)}
-            onBlur={() => setInputFocused(false)}
-            style={consoleInput}
-            autoComplete="off"
-            aria-label="Describe what you want to build"
-          />
-          <motion.button
-            type="submit"
-            className="btn-accent shine-effect"
-            style={forgeBtn}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
-            disabled={!quickInput.trim()}
-          >
-            Forge Specs
-            <CornerDownLeft size={13} />
-          </motion.button>
-        </motion.form>
-
-        {/* Suggestions */}
-        <div style={sandboxSuggestRow}>
-          <span style={suggestLabel}>Try sandbox examples:</span>
-          {SUGGESTIONS.map((s, i) => (
-            <button
-              key={i}
-              type="button"
-              style={suggestChip}
-              onClick={() => setQuickInput(`A premium ${s} with modern dark glassmorphic aesthetics and responsive layout.`)}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-      </motion.section>
 
 
       {/* Keyboard Shortcuts Help Button */}
@@ -869,6 +828,120 @@ export default function DashboardPage() {
 
       {/* Help Keyboard Overlay Modal */}
       <HelpKeyboardOverlay isOpen={showHelp} onClose={() => setShowHelp(false)} />
+
+      {/* Delete Folder Confirmation Dialog */}
+      <AnimatePresence>
+        {folderToDelete && (
+          <div 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(0,0,0,0.4)',
+              backdropFilter: 'blur(8px)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '1.5rem',
+            }}
+            onClick={() => setFolderToDelete(null)}
+          >
+            <motion.div
+              style={{
+                width: '100%',
+                maxWidth: '400px',
+                background: 'var(--card)',
+                border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-xl)',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+              className="glass-panel"
+              onClick={e => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.65rem',
+                padding: '1.25rem 1.5rem',
+                borderBottom: '1px solid var(--border)',
+              }}>
+                <AlertTriangle size={18} style={{ color: 'var(--destructive)' }} />
+                <h3 style={{
+                  fontSize: '0.98rem',
+                  fontWeight: '700',
+                  color: 'var(--foreground)',
+                  margin: 0,
+                  fontFamily: 'var(--font-display)',
+                }}>Delete Folder?</h3>
+              </div>
+              
+              <div style={{ padding: '1.25rem 1.5rem', fontSize: '0.82rem', color: 'var(--muted-foreground)', lineHeight: '1.5' }}>
+                Are you sure you want to delete the folder <strong style={{ color: 'var(--foreground)' }}>"{folderToDelete}"</strong>?
+                <p style={{ marginTop: '0.5rem', color: 'var(--muted-foreground)' }}>
+                  All prompt blueprints inside this folder will remain safe in your workspaces, but will be uncategorised. This action cannot be undone.
+                </p>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                gap: '0.6rem',
+                padding: '1rem 1.5rem',
+                background: 'color-mix(in srgb, var(--foreground) 2%, transparent)',
+                borderTop: '1px solid var(--border)',
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setFolderToDelete(null)}
+                  style={{
+                    padding: '0.45rem 1rem',
+                    borderRadius: '8px',
+                    fontSize: '0.78rem',
+                    fontWeight: '600',
+                    background: 'transparent',
+                    border: '1px solid var(--border)',
+                    color: 'var(--foreground)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                  className="hover-bg-muted"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteCollection}
+                  style={{
+                    padding: '0.45rem 1rem',
+                    borderRadius: '8px',
+                    fontSize: '0.78rem',
+                    fontWeight: '700',
+                    background: 'var(--destructive)',
+                    border: 'none',
+                    color: '#ffffff',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                  className="active-scale-95"
+                >
+                  Delete Folder
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <style dangerouslySetInnerHTML={{ __html: `
         @media (max-width: 640px) {
@@ -958,15 +1031,15 @@ const nudgeBanner = (type) => ({
   padding: '0.75rem 1rem',
   marginBottom: '1.5rem',
   borderRadius: '12px',
-  background: type === 'milestone' ? 'rgba(245,158,11,0.05)' : 'rgba(124,58,237,0.05)',
-  border: `1px solid ${type === 'milestone' ? 'rgba(245,158,11,0.18)' : 'rgba(124,58,237,0.18)'}`,
+  background: type === 'milestone' ? 'color-mix(in srgb, var(--warning) 5%, transparent)' : 'color-mix(in srgb, var(--accent) 5%, transparent)',
+  border: `1px solid ${type === 'milestone' ? 'color-mix(in srgb, var(--warning) 18%, transparent)' : 'color-mix(in srgb, var(--accent) 18%, transparent)'}`,
 });
 
 const nudgeCta = {
   display: 'flex', alignItems: 'center', gap: '0.35rem',
   fontSize: '0.78rem', fontWeight: '700',
-  color: 'var(--accent)', background: 'rgba(104,67,236,0.15)',
-  border: '1px solid rgba(124,58,237,0.2)',
+  color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 15%, transparent)',
+  border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)',
   borderRadius: '8px', padding: '0.4rem 0.8rem',
   cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'var(--font-sans)',
 };
@@ -978,64 +1051,9 @@ const nudgeDismissBtn = {
 };
 
 // \u2500\u2500 Your Vault stats strip
-const vaultStrip = {
-  display: 'flex', flexWrap: 'wrap', gap: '0.5rem',
-  padding: '0.85rem 1.1rem',
-  borderRadius: '14px',
-  marginBottom: '1.25rem',
-  background: 'var(--muted)',
-  border: '1px solid var(--border)',
-};
+const vaultStrip = {};
 
-const vaultStat = {
-  display: 'flex', alignItems: 'center', gap: '0.55rem',
-  paddingRight: '1rem',
-  borderRight: '1px solid var(--border)',
-};
-
-const vaultStatIcon = (color) => ({
-  width: 28, height: 28, borderRadius: '7px', flexShrink: 0,
-  background: `${color}12`,
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-});
-
-const vaultStatValue = {
-  fontSize: '1.05rem', fontWeight: '800',
-  fontFamily: 'var(--font-display)',
-  color: 'var(--foreground)', lineHeight: 1,
-};
-
-const vaultStatLabel = {
-  fontSize: '0.65rem', color: 'var(--muted-foreground)', marginTop: '0.15rem',
-};
-
-const welcomeHUD = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  textAlign: 'center',
-  paddingTop: '3.5rem',
-  paddingBottom: '2rem',
-  maxWidth: '900px',
-  margin: '0 auto',
-};
-
-const welcomeHeadline = {
-  fontSize: '2.8rem',
-  fontWeight: '800',
-  letterSpacing: '-0.04em',
-  color: 'var(--foreground)',
-  fontFamily: 'var(--font-display)',
-  marginBottom: '0.75rem',
-};
-
-const welcomeSub = {
-  fontSize: '0.94rem',
-  color: 'var(--muted-foreground)',
-  lineHeight: '1.65',
-  maxWidth: '540px',
-  marginBottom: '1rem',
-};
+// Legacy styles removed
 
 const sandboxConsoleContainer = {
   background: 'var(--card)',
@@ -1046,7 +1064,7 @@ const sandboxConsoleContainer = {
   flexDirection: 'column',
   gap: '1.25rem',
   marginBottom: '3rem',
-  boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+  boxShadow: 'var(--shadow-md)',
 };
 
 const sandboxHeaderRow = {
@@ -1065,8 +1083,8 @@ const sandboxIconWrap = {
   width: '32px',
   height: '32px',
   borderRadius: '8px',
-  background: 'rgba(104, 67, 236, 0.08)',
-  border: '1px solid rgba(104, 67, 236, 0.15)',
+  background: 'color-mix(in srgb, var(--accent) 8%, transparent)',
+  border: '1px solid color-mix(in srgb, var(--accent) 15%, transparent)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -1098,7 +1116,7 @@ const sandboxConsoleForm = (focused) => ({
   border: `1px solid ${focused ? 'var(--accent)' : 'var(--border)'}`,
   borderRadius: '10px',
   boxShadow: focused
-    ? '0 0 0 1px var(--accent), 0 4px 24px rgba(104,67,236,0.08)'
+    ? '0 0 0 1px var(--accent), 0 4px 24px color-mix(in srgb, var(--accent) 8%, transparent)'
     : 'none',
   transition: 'all 0.2s ease',
 });
@@ -1152,7 +1170,7 @@ const suggestLabel = {
 const suggestChip = {
   padding: '0.35rem 0.85rem',
   background: 'var(--card)',
-  border: '1px solid rgba(255,255,255,0.06)',
+  border: '1px solid var(--border)',
   borderRadius: '999px',
   fontSize: '0.78rem',
   color: 'var(--muted-foreground)',
@@ -1194,12 +1212,12 @@ const bentoCard = (hovered, accent) => ({
   position: 'relative',
   overflow: 'hidden',
   background: 'var(--card)',
-  border: `1px solid ${hovered ? `${accent}40` : 'var(--border)'}`,
+  border: `1px solid ${hovered ? `color-mix(in srgb, ${accent} 40%, transparent)` : 'var(--border)'}`,
   transition: 'all var(--duration-base) var(--ease-spring)',
   transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
   boxShadow: hovered
-    ? `0 20px 40px ${accent}12, 0 8px 16px rgba(0,0,0,0.1)`
-    : '0 4px 12px rgba(0,0,0,0.05)',
+    ? `0 20px 40px color-mix(in srgb, ${accent} 12%, transparent), var(--shadow-sm)`
+    : 'var(--shadow-sm)',
 });
 
 const bentoGlow = (accent, hovered) => ({
@@ -1209,7 +1227,7 @@ const bentoGlow = (accent, hovered) => ({
   width: '200px',
   height: '200px',
   borderRadius: '50%',
-  background: `radial-gradient(circle, ${accent}15 0%, transparent 70%)`,
+  background: `radial-gradient(circle, color-mix(in srgb, ${accent} 15%, transparent) 0%, transparent 70%)`,
   opacity: hovered ? 1 : 0,
   transition: 'opacity 0.4s ease',
   pointerEvents: 'none',
@@ -1225,8 +1243,8 @@ const bentoIconWrap = (accent, accentBg, hovered) => ({
   width: '38px',
   height: '38px',
   borderRadius: '10px',
-  background: hovered ? `${accent}18` : accentBg,
-  border: `1px solid ${accent}25`,
+  background: hovered ? `color-mix(in srgb, ${accent} 18%, transparent)` : `color-mix(in srgb, ${accent} 8%, transparent)`,
+  border: `1px solid color-mix(in srgb, ${accent} 25%, transparent)`,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -1239,8 +1257,8 @@ const bentoBadge = (accent) => ({
   letterSpacing: '0.06em',
   textTransform: 'uppercase',
   color: accent,
-  background: `${accent}10`,
-  border: `1px solid ${accent}20`,
+  background: `color-mix(in srgb, ${accent} 10%, transparent)`,
+  border: `1px solid color-mix(in srgb, ${accent} 20%, transparent)`,
   padding: '2px 8px',
   borderRadius: '999px',
 });
@@ -1277,12 +1295,12 @@ const clearBtn = (isConfirm) => ({
   alignItems: 'center',
   gap: '0.4rem',
   padding: '0.4rem 0.85rem',
-  background: isConfirm ? 'rgba(239,68,68,0.08)' : 'transparent',
-  border: `1px solid ${isConfirm ? 'rgba(239,68,68,0.25)' : 'var(--border)'}`,
+  background: isConfirm ? 'color-mix(in srgb, var(--destructive) 8%, transparent)' : 'transparent',
+  border: `1px solid ${isConfirm ? 'color-mix(in srgb, var(--destructive) 25%, transparent)' : 'var(--border)'}`,
   borderRadius: '8px',
   fontSize: '0.78rem',
   fontWeight: '600',
-  color: isConfirm ? '#ef4444' : 'var(--muted-foreground)',
+  color: isConfirm ? 'var(--destructive)' : 'var(--muted-foreground)',
   cursor: 'pointer',
   fontFamily: 'var(--font-sans)',
   transition: 'all 0.2s ease',
@@ -1305,8 +1323,8 @@ const emptyIconWrap = {
   width: '80px',
   height: '80px',
   borderRadius: '20px',
-  background: 'rgba(104,67,236,0.06)',
-  border: '1px solid rgba(104,67,236,0.15)',
+  background: 'color-mix(in srgb, var(--accent) 6%, transparent)',
+  border: '1px solid color-mix(in srgb, var(--accent) 15%, transparent)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -1476,30 +1494,35 @@ const loadingText = {
   fontWeight: '500',
 };
 
-// ─── New History Filters & Keyboard Help Styles ───────────────
+// ─── Unified Explorer Toolbar Premium Styling ───────────────────
 
-const filterBar = {
+const explorerToolbar = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  gap: '1rem',
-  marginBottom: '1.25rem',
+  gap: '0.85rem',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
+  borderRadius: '14px',
+  padding: '0.65rem 1.1rem',
+  marginBottom: '1.75rem',
   flexWrap: 'wrap',
+  boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
 };
 
-const searchWrap = {
+const toolbarSearchWrap = {
   display: 'flex',
   alignItems: 'center',
-  gap: '0.5rem',
-  background: 'var(--card)',
+  gap: '0.55rem',
+  background: 'var(--input)',
   border: '1px solid var(--border)',
   borderRadius: '8px',
   padding: '0.4rem 0.75rem',
-  flex: 1,
-  minWidth: '220px',
+  flex: '1 1 200px',
+  minWidth: '180px',
 };
 
-const searchInput = {
+const toolbarSearchInput = {
   background: 'transparent',
   border: 'none',
   fontSize: '0.8rem',
@@ -1509,47 +1532,171 @@ const searchInput = {
   width: '100%',
 };
 
-const filterGroup = {
+const toolbarDropdownWrap = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.45rem',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
+  borderRadius: '8px',
+  padding: '0.15rem 0.5rem',
+};
+
+const toolbarDropdownSelect = {
+  background: 'transparent',
+  border: 'none',
+  padding: '0.25rem 0.45rem',
+  fontSize: '0.78rem',
+  color: 'var(--foreground)',
+  fontFamily: 'var(--font-sans)',
+  minWidth: '130px',
+  cursor: 'pointer',
+};
+
+const toolbarDeleteFolderBtn = {
+  background: 'color-mix(in srgb, var(--destructive) 8%, transparent)',
+  border: '1px solid var(--border)',
+  color: 'var(--destructive)',
+  padding: '0.25rem 0.55rem',
+  borderRadius: '6px',
+  fontSize: '0.72rem',
+  fontWeight: '600',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.3rem',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+};
+
+const toolbarFolderForm = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.25rem',
+  background: 'var(--input)',
+  border: '1px solid var(--border)',
+  borderRadius: '8px',
+  padding: '2px 4px',
+};
+
+const toolbarFolderInput = {
+  background: 'transparent',
+  border: 'none',
+  fontSize: '0.75rem',
+  color: 'var(--foreground)',
+  outline: 'none',
+  padding: '2px 6px',
+  width: '95px',
+  fontFamily: 'var(--font-sans)',
+};
+
+const toolbarFolderBtn = {
+  background: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+  color: 'var(--muted-foreground)',
+  padding: '4px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
+const toolbarChipGroup = {
   display: 'flex',
   alignItems: 'center',
   gap: '0.35rem',
+  flexWrap: 'wrap',
 };
 
-const filterChipBtn = (active, isStar = false) => ({
+const toolbarChip = (active, isStar = false) => ({
   display: 'inline-flex',
   alignItems: 'center',
   gap: '0.35rem',
-  padding: '0.4rem 0.8rem',
+  padding: '0.45rem 0.85rem',
   borderRadius: '8px',
-  fontSize: '0.78rem',
+  fontSize: '0.76rem',
   fontWeight: active ? '700' : '500',
   cursor: 'pointer',
   background: active
-    ? (isStar ? 'rgba(104,67,236,0.1)' : 'var(--accent)')
-    : 'var(--card)',
-  border: `1px solid ${active ? (isStar ? 'rgba(104,67,236,0.25)' : 'var(--accent)') : 'var(--border)'}`,
-  color: active ? (isStar ? '#6843EC' : 'var(--accent-foreground)') : 'var(--muted-foreground)',
+    ? (isStar ? 'color-mix(in srgb, var(--accent) 8%, transparent)' : 'var(--accent)')
+    : 'var(--input)',
+  border: `1px solid ${active ? (isStar ? 'color-mix(in srgb, var(--accent) 18%, transparent)' : 'var(--accent)') : 'var(--border)'}`,
+  color: active ? (isStar ? 'var(--accent)' : 'var(--accent-foreground)') : 'var(--muted-foreground)',
   fontFamily: 'var(--font-sans)',
   transition: 'all 0.2s ease',
 });
 
-const sortWrap = {
+const toolbarActionGroup = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.5rem',
+};
+
+const toolbarSortWrap = {
   display: 'flex',
   alignItems: 'center',
   gap: '0.4rem',
-  fontSize: '0.78rem',
-  color: 'var(--muted-foreground)',
-};
-
-const sortSelect = {
   background: 'var(--card)',
   border: '1px solid var(--border)',
   borderRadius: '8px',
-  padding: '0.4rem 0.65rem',
+  padding: '0.15rem 0.55rem',
+};
+
+const toolbarSortSelect = {
+  background: 'transparent',
+  border: 'none',
+  padding: '0.25rem 0.45rem',
   fontSize: '0.78rem',
   color: 'var(--foreground)',
   fontFamily: 'var(--font-sans)',
-  outline: 'none',
+  minWidth: '105px',
+  cursor: 'pointer',
+};
+
+// ─── Blueprint Cards Premium Styling ───
+
+const cardStarBtn = (isFav) => ({
+  position: 'absolute',
+  top: '1rem',
+  right: '1rem',
+  background: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+  padding: 4,
+  color: isFav ? 'var(--accent)' : 'var(--muted-foreground)',
+  zIndex: 10,
+});
+
+const cardHoverActions = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.5rem',
+  marginTop: '1.1rem',
+  paddingTop: '0.9rem',
+  borderTop: '1px solid var(--border)',
+};
+
+const cardActionIconBtn = {
+  background: 'var(--input)',
+  border: '1px solid var(--border)',
+  borderRadius: '6px',
+  width: '26px',
+  height: '26px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+};
+
+const cardFolderDropdown = {
+  background: 'var(--input)',
+  border: '1px solid var(--border)',
+  padding: '0.25rem 0.45rem',
+  fontSize: '0.7rem',
+  color: 'var(--muted-foreground)',
+  borderRadius: '6px',
+  fontFamily: 'var(--font-sans)',
+  minWidth: '105px',
   cursor: 'pointer',
 };
 
@@ -1572,86 +1719,6 @@ const floatingHelpBtn = {
   transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
 };
 
-// ─── Folder Collections Styles ────────────────────────────────
-
-const foldersTabRow = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: '1rem',
-  borderBottom: '1px solid var(--border)',
-  paddingBottom: '0.75rem',
-  flexWrap: 'wrap',
-};
-
-const folderTabBtn = (active) => ({
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '0.4rem',
-  padding: '0.35rem 0.7rem',
-  borderRadius: '6px',
-  fontSize: '0.78rem',
-  fontWeight: active ? '700' : '500',
-  color: active ? 'var(--accent)' : 'var(--muted-foreground)',
-  background: active ? 'rgba(104,67,236,0.08)' : 'transparent',
-  border: 'none',
-  cursor: 'pointer',
-  transition: 'all 0.2s ease',
-});
-
-const folderCountBadge = {
-  fontSize: '0.65rem',
-  background: 'var(--muted)',
-  padding: '1px 5px',
-  borderRadius: '4px',
-  marginLeft: '0.2rem',
-  color: 'var(--muted-foreground)',
-};
-
-const folderCreateForm = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.25rem',
-  background: 'var(--card)',
-  border: '1px solid var(--border)',
-  borderRadius: '6px',
-  padding: '2px 4px',
-};
-
-const folderCreateInput = {
-  background: 'transparent',
-  border: 'none',
-  fontSize: '0.72rem',
-  color: 'var(--foreground)',
-  outline: 'none',
-  padding: '2px 6px',
-  width: '90px',
-  fontFamily: 'var(--font-sans)',
-};
-
-const folderCreateBtn = {
-  background: 'transparent',
-  border: 'none',
-  cursor: 'pointer',
-  color: 'var(--muted-foreground)',
-  padding: '2px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};
-
-const folderSelectorCard = {
-  background: 'var(--card)',
-  border: '1px solid var(--border)',
-  borderRadius: '6px',
-  padding: '0.25rem 0.5rem',
-  fontSize: '0.72rem',
-  color: 'var(--muted-foreground)',
-  fontFamily: 'var(--font-sans)',
-  outline: 'none',
-  cursor: 'pointer',
-  maxWidth: '90px',
-};
 
 
 

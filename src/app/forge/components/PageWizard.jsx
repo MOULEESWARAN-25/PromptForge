@@ -115,15 +115,15 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
   const categoryCard = (isSelected) => ({
     position: 'relative', borderRadius: '12px',
     border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border)',
-    background: isSelected ? 'rgba(104,67,236,0.08)' : 'var(--card)',
+    background: isSelected ? 'color-mix(in srgb, var(--accent) 8%, transparent)' : 'var(--card)',
     overflow: 'hidden', cursor: 'pointer', transition: 'all 0.25s ease',
     display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-    boxShadow: isSelected ? '0 0 16px rgba(104,67,236,0.2)' : 'none',
+    boxShadow: isSelected ? '0 0 16px color-mix(in srgb, var(--accent) 20%, transparent)' : 'none',
   });
   const checkboxCard = (isChecked) => ({
     display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.65rem 0.85rem',
     borderRadius: '10px', border: isChecked ? '1px solid var(--accent)' : '1px solid var(--border)',
-    background: isChecked ? 'rgba(104,67,236,0.08)' : 'transparent',
+    background: isChecked ? 'color-mix(in srgb, var(--accent) 8%, transparent)' : 'transparent',
     cursor: 'pointer', transition: 'all 0.2s ease',
   });
 
@@ -149,9 +149,9 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
     gap: '0.35rem',
     fontSize: '0.72rem',
     fontWeight: '600',
-    color: isAdded ? '#ef4444' : '#e4e4e7',
-    background: isAdded ? 'rgba(239, 68, 68, 0.05)' : 'rgba(255, 255, 255, 0.04)',
-    border: isAdded ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid rgba(255, 255, 255, 0.06)',
+    color: isAdded ? 'var(--destructive)' : 'var(--muted-foreground)',
+    background: isAdded ? 'rgba(239, 68, 68, 0.05)' : 'var(--input)',
+    border: isAdded ? '1px solid var(--destructive)' : '1px solid var(--border)',
     borderRadius: '20px',
     padding: '0.3rem 0.65rem',
     cursor: 'pointer',
@@ -159,28 +159,100 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
     fontFamily: 'var(--font-sans)',
   });
 
-  return (
+// Helper style maps for premium progress bar and spotlight selection cards
+const CATEGORY_TAGS = {
+  'Dashboard Panel': ['Admin', 'KPIs', 'Charts'],
+  'Landing Homepage': ['Hero', 'CTA', 'Bento'],
+  'Login Page': ['Auth', 'SSO', 'Glass'],
+  'Signup Page': ['Form', 'Validation', 'SSO'],
+  'Settings Page': ['Tabs', 'API Keys', 'Danger'],
+  'Profile Page': ['Bio', 'Stream', 'Gallery']
+};
+
+const StepperWrapper = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
+  borderRadius: '16px',
+  padding: '0.75rem 1.25rem',
+  width: '100%',
+  gap: '0.45rem',
+  flexWrap: 'wrap',
+  boxShadow: 'var(--shadow-sm)',
+  boxSizing: 'border-box',
+};
+
+const stepItemStyle = (isActive, isDone) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.45rem',
+  padding: '0.35rem 0.75rem',
+  borderRadius: '10px',
+  background: isActive 
+    ? 'var(--accent)' 
+    : isDone 
+      ? 'rgba(16,185,129,0.06)' 
+      : 'var(--input)',
+  border: isActive 
+    ? '1px solid var(--accent)' 
+    : isDone 
+      ? '1px solid var(--success)' 
+      : '1px solid transparent',
+  color: isActive 
+    ? 'var(--accent-foreground)' 
+    : isDone 
+      ? 'var(--success)' 
+      : 'var(--muted-foreground)',
+  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+  cursor: 'default',
+});
+
+const connectorStyle = (isPassed) => ({
+  flex: '1 1 10px',
+  height: '2px',
+  background: isPassed 
+    ? 'linear-gradient(90deg, var(--success), var(--accent))' 
+    : 'var(--border)',
+  minWidth: '8px',
+  maxWidth: '32px',
+  transition: 'all 0.3s ease',
+});
+
+return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', width: '100%' }}>
-      {/* Step progress */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+      {/* Stripe-style horizontal progress stepper */}
+      <div style={StepperWrapper}>
         {STEPS.map((label, i) => {
           const n = i + 1;
-          const done = step > n; const active = step === n;
+          const done = step > n;
+          const active = step === n;
           return (
             <React.Fragment key={label}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem' }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: '700', transition: 'all 0.3s ease', background: done ? 'var(--accent)' : active ? 'rgba(104,67,236,0.15)' : 'var(--muted)', border: active ? '2px solid var(--accent)' : done ? '2px solid var(--accent)' : '1px solid var(--border)', color: done ? '#ffffff' : active ? 'var(--accent)' : 'var(--muted-foreground)' }}>
-                  {done ? <CheckCircle2 size={11} /> : n}
+              <div style={stepItemStyle(active, done)}>
+                <div style={{
+                  width: '16px', height: '16px', borderRadius: '50%', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center',
+                  fontSize: '0.62rem', fontWeight: '800', transition: 'all 0.3s ease',
+                  background: done ? 'var(--success)' : active ? 'var(--accent-foreground)' : 'var(--input)',
+                  color: done ? '#ffffff' : active ? 'var(--accent)' : 'var(--muted-foreground)',
+                }}>
+                  {done ? <CheckCircle2 size={10} style={{ color: '#ffffff' }} /> : n}
                 </div>
-                <span style={{ fontSize: '0.55rem', color: active ? 'var(--accent)' : 'var(--muted-foreground)', fontWeight: active ? 700 : 400, whiteSpace: 'nowrap' }}>{label}</span>
+                <span style={{ fontSize: '0.72rem', fontWeight: active ? 700 : 500, whiteSpace: 'nowrap' }}>
+                  {label}
+                </span>
               </div>
-              {i < STEPS.length - 1 && <div style={{ width: '20px', height: '1px', background: step > n ? 'var(--accent)' : 'var(--border)', marginBottom: '16px', transition: 'background 0.3s ease' }} />}
+              {i < STEPS.length - 1 && (
+                <div style={connectorStyle(step > n)} />
+              )}
             </React.Fragment>
           );
         })}
       </div>
 
-      {/* Animated panel */}
+      {/* Animated step panel */}
       <div style={{ ...sectionWrap, overflow: 'hidden', minHeight: '260px', padding: '1.25rem' }}>
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div key={step} custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}>
@@ -193,11 +265,29 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
                   {PAGE_TYPES.map((page) => {
                     const isSelected = pageType === page.id;
                     return (
-                      <div key={page.id} style={categoryCard(isSelected)} onClick={() => setPageType(page.id)} className="category-card bento-card-premium glow-card-spotlight active-scale-95">
+                      <div key={page.id} style={categoryCard(isSelected)} onClick={() => setPageType(page.id)} className={`category-card bento-card-premium glow-card-spotlight active-scale-95 ${isSelected ? 'selected' : ''}`}>
                         {page.image && <img src={page.image} alt={page.label} className="card-artwork" />}
-                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '75%', background: 'linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.4), transparent)', zIndex: 1 }} />
-                        {isSelected && <div style={{ position: 'absolute', top: '0.6rem', right: '0.6rem', zIndex: 3 }}><CheckCircle2 size={15} style={{ color: 'var(--accent)' }} /></div>}
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '75%', background: 'linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.3), transparent)', zIndex: 1 }} />
+                        {isSelected && <div style={{ position: 'absolute', top: '0.6rem', right: '0.6rem', zIndex: 3 }}><CheckCircle2 size={15} style={{ color: '#ffffff' }} /></div>}
                         <div style={{ padding: '0.85rem', zIndex: 2 }}>
+                          {/* Visual Curated Badges */}
+                          <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
+                            {CATEGORY_TAGS[page.id]?.map(tag => (
+                              <span key={tag} style={{
+                                fontSize: '0.58rem',
+                                background: isSelected ? 'rgba(255, 255, 255, 0.16)' : 'rgba(255, 255, 255, 0.08)',
+                                border: isSelected ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid rgba(255, 255, 255, 0.1)',
+                                color: '#ffffff',
+                                borderRadius: '4px',
+                                padding: '1px 5px',
+                                fontWeight: '700',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.02em'
+                              }}>
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
                           <span style={{ fontSize: '0.95rem', fontWeight: '800', color: '#ffffff', display: 'block', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>{page.label}</span>
                           <p style={{ fontSize: '0.72rem', color: '#e4e4e7', marginTop: '0.25rem', lineHeight: '1.4', textShadow: '0 1px 2px rgba(0,0,0,0.6)', margin: 0 }}>{page.desc}</p>
                         </div>
@@ -219,7 +309,7 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
                 {/* AI Suggestions Section */}
                 <div style={aiSuggestionsBox}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
-                    <Sparkles size={13} style={{ color: '#D2FF3A' }} />
+                    <Sparkles size={13} style={{ color: 'var(--accent-green)' }} />
                     <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--foreground)' }}>
                       AI-Suggested Extras (Recommended for {pageType})
                     </span>
@@ -235,7 +325,7 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
                           style={aiSuggestionPill(isAdded)}
                           className="active-scale-95"
                         >
-                          <Plus size={10} style={{ transform: isAdded ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s ease', color: isAdded ? '#ef4444' : '#D2FF3A' }} />
+                          <Plus size={10} style={{ transform: isAdded ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s ease', color: isAdded ? '#ef4444' : 'var(--accent-green)' }} />
                           <span>{rec}</span>
                         </button>
                       );
@@ -276,7 +366,7 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
                             fontSize: '0.68rem',
                             fontWeight: isActive ? '700' : '500',
                             color: isActive ? 'var(--accent-foreground)' : 'var(--muted-foreground)',
-                            background: isActive ? 'var(--accent)' : 'rgba(255,255,255,0.03)',
+                            background: isActive ? 'var(--accent)' : 'var(--input)',
                             border: '1px solid ' + (isActive ? 'var(--accent)' : 'var(--border)'),
                             borderRadius: '20px',
                             padding: '0.2rem 0.65rem',
@@ -414,7 +504,7 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
                   ))}
                 </div>
                 {/* AI Generator Engine Selector */}
-                <div style={{ border: '1px solid var(--border)', borderRadius: '12px', padding: '0.85rem 1rem', background: 'rgba(255,255,255,0.01)', display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', marginBottom: '0.5rem' }} className="animate-fade-in">
+                <div style={{ border: '1px solid var(--border)', borderRadius: '12px', padding: '0.85rem 1rem', background: 'var(--card)', display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', marginBottom: '0.5rem' }} className="animate-fade-in">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: '700', color: 'var(--foreground)' }}>
                     <Sparkles size={13} style={{ color: 'var(--accent)' }} />
                     AI Generator Engine
@@ -449,13 +539,26 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
           <button onClick={goBack} disabled={step === 1} className="active-scale-95" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.25rem', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', opacity: step === 1 ? 0.35 : 1, fontSize: '0.85rem', fontWeight: '600', cursor: step === 1 ? 'default' : 'pointer', transition: 'all 0.2s ease' }}>
             <ArrowLeft size={15} />Back
           </button>
-          <button onClick={goNext} disabled={!canAdvance()} className="active-scale-95" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.5rem', borderRadius: '10px', border: 'none', background: canAdvance() ? 'var(--accent)' : 'var(--muted)', color: canAdvance() ? 'var(--accent-foreground)' : 'var(--muted-foreground)', fontSize: '0.85rem', fontWeight: '700', cursor: canAdvance() ? 'pointer' : 'default', transition: 'all 0.2s ease' }}>
-            {step === 6 ? 'Review' : 'Continue'}<ArrowRight size={15} />
+          <button
+            onClick={goNext}
+            disabled={!canAdvance()}
+            className={`active-scale-95 ${canAdvance() ? 'glow-pulse' : ''}`}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.5rem', borderRadius: '10px', border: 'none', background: canAdvance() ? 'var(--accent)' : 'var(--muted)', color: canAdvance() ? 'var(--accent-foreground)' : 'var(--muted-foreground)', fontSize: '0.85rem', fontWeight: '700', cursor: canAdvance() ? 'pointer' : 'default', transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}
+          >
+            {step === 6 ? 'Review' : 'Continue'} <ArrowRight size={15} />
           </button>
         </div>
       )}
 
       <style>{`
+        @keyframes glowPulse {
+          0% { box-shadow: 0 0 8px rgba(104,67,236,0.3); }
+          50% { box-shadow: 0 0 20px rgba(104,67,236,0.65), 0 0 30px rgba(104, 67, 236, 0.35); }
+          100% { box-shadow: 0 0 8px rgba(104,67,236,0.3); }
+        }
+        .glow-pulse {
+          animation: glowPulse 2s infinite ease-in-out;
+        }
         .category-grid {
           display: grid;
         }
@@ -463,10 +566,21 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
           position: relative;
           overflow: hidden;
           cursor: pointer;
-          transition: all 0.25s ease;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
           display: flex;
           flex-direction: column;
           justify-content: flex-end;
+          border-radius: 16px !important;
+          border: 1px solid var(--border) !important;
+        }
+        .category-card:hover {
+          transform: translateY(-5px) scale(1.015) !important;
+          box-shadow: 0 12px 32px rgba(0,0,0,0.15), 0 0 16px rgba(104,67,236,0.25) !important;
+          border-color: var(--accent) !important;
+        }
+        .category-card.selected {
+          border: 2px solid var(--accent) !important;
+          box-shadow: 0 8px 24px rgba(104,67,236,0.3), 0 0 20px rgba(104,67,236,0.2) !important;
         }
         .card-artwork {
           position: absolute;
@@ -475,18 +589,22 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
           height: 100%;
           object-fit: cover;
           object-position: center;
-          opacity: 0.50;
-          transition: transform 0.4s ease;
+          opacity: 0.38;
+          transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
         }
         .category-card:hover .card-artwork {
-          transform: scale(1.06);
+          transform: scale(1.08);
+          opacity: 0.50;
+        }
+        .category-card.selected .card-artwork {
+          opacity: 0.52;
         }
         @media (min-width: 1401px) {
           .category-grid {
             grid-template-columns: repeat(3, 1fr);
           }
           .category-card {
-            height: 150px;
+            height: 155px;
           }
         }
         @media (min-width: 1101px) and (max-width: 1400px) {
@@ -494,7 +612,7 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
             grid-template-columns: repeat(3, 1fr);
           }
           .category-card {
-            height: 140px;
+            height: 145px;
           }
         }
         @media (min-width: 601px) and (max-width: 1100px) {
@@ -502,7 +620,7 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
             grid-template-columns: repeat(2, 1fr);
           }
           .category-card {
-            height: 130px;
+            height: 135px;
           }
         }
         @media (max-width: 600px) {
@@ -511,7 +629,7 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
           }
           .category-card {
             height: auto;
-            min-height: 120px;
+            min-height: 125px;
           }
         }
       `}</style>

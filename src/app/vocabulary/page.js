@@ -15,15 +15,40 @@ import {
 
 // ─── Category Config ─────────────────────────────────────────
 const CATEGORY_META = {
-  'Visual Design Style': { icon: Paintbrush, color: '#a855f7', bg: 'rgba(168,85,247,0.1)', border: 'rgba(168,85,247,0.2)' },
-  'Layout':             { icon: LayoutGrid, color: '#0ea5e9', bg: 'rgba(14,165,233,0.1)', border: 'rgba(14,165,233,0.2)' },
-  'Component':          { icon: Box,        color: '#f43f5e', bg: 'rgba(244,63,94,0.1)',  border: 'rgba(244,63,94,0.2)' },
-  'Navigation Pattern': { icon: Navigation2,color: '#10b981', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.2)' },
-  'Animation & Motion': { icon: Zap,        color: '#6843EC', bg: 'rgba(104,67,236,0.1)', border: 'rgba(245,158,11,0.2)' },
-  'Modern AI/SaaS Terms':{ icon: Cpu,       color: '#6366f1', bg: 'rgba(99,102,241,0.1)', border: 'rgba(99,102,241,0.2)' },
+  'Visual Design Style': { icon: Paintbrush, color: '#a855f7' },
+  'Layout':             { icon: LayoutGrid, color: '#0ea5e9' },
+  'Component':          { icon: Box,        color: '#f43f5e' },
+  'Navigation Pattern': { icon: Navigation2,color: '#10b981' },
+  'Animation & Motion': { icon: Zap,        color: 'var(--accent)' },
+  'Modern AI/SaaS Terms':{ icon: Cpu,       color: '#6366f1' },
 };
 
-const getCatMeta = (cat) => CATEGORY_META[cat] || { icon: Sparkles, color: '#6843EC', bg: 'rgba(104,67,236,0.1)', border: 'rgba(104,67,236,0.2)' };
+const getThemeColor = (color, isDark) => {
+  if (isDark) {
+    if (color === 'var(--accent)') return '#6843EC';
+    return color;
+  }
+  switch (color) {
+    case '#10b981': return '#15803d'; // green
+    case '#0ea5e9': return '#0284c7'; // cyan
+    case '#a855f7': return '#7c3aed'; // purple
+    case '#f43f5e': return '#dc2626'; // rose
+    case '#6366f1': return '#4f46e5'; // indigo
+    case 'var(--accent)': return '#6843EC'; // accent purple
+    default: return color;
+  }
+};
+
+const getCatMeta = (cat, isDark) => {
+  const meta = CATEGORY_META[cat] || { icon: Sparkles, color: 'var(--accent)' };
+  const resolvedColor = getThemeColor(meta.color, isDark);
+  return {
+    icon: meta.icon,
+    color: resolvedColor,
+    bg: `color-mix(in srgb, ${resolvedColor} 10%, transparent)`,
+    border: `color-mix(in srgb, ${resolvedColor} 20%, transparent)`,
+  };
+};
 
 // ─── Animation Variants ──────────────────────────────────────
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
@@ -37,7 +62,8 @@ const cardAnim = {
 };
 
 export default function VocabularyPage() {
-  const { user } = useApp();
+  const { user, theme } = useApp();
+  const isDark = theme === 'dark';
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState(null);
@@ -135,7 +161,14 @@ export default function VocabularyPage() {
         <motion.div variants={fadeUp} style={pillRow}>
           {categories.map((cat) => {
             const isActive = selectedCategory === cat;
-            const meta = cat === 'All' ? { icon: Sparkles, color: 'var(--accent)' } : getCatMeta(cat);
+            const meta = cat === 'All'
+              ? {
+                  icon: Sparkles,
+                  color: getThemeColor('var(--accent)', isDark),
+                  bg: `color-mix(in srgb, ${getThemeColor('var(--accent)', isDark)} 10%, transparent)`,
+                  border: `color-mix(in srgb, ${getThemeColor('var(--accent)', isDark)} 20%, transparent)`
+                }
+              : getCatMeta(cat, isDark);
             const Icon = meta.icon;
             return (
               <motion.button
@@ -187,7 +220,7 @@ export default function VocabularyPage() {
           </motion.div>
         ) : (
           Object.entries(grouped).map(([category, items]) => {
-            const meta = getCatMeta(category);
+            const meta = getCatMeta(category, isDark);
             const CatIcon = meta.icon;
             return (
               <div key={category} style={{ marginBottom: '2.5rem' }}>
@@ -231,7 +264,7 @@ export default function VocabularyPage() {
                               whileTap={{ scale: 0.9 }}
                               title="Copy prompt"
                             >
-                              {isCopied ? <Check size={13} style={{ color: '#10b981' }} /> : <Copy size={13} />}
+                              {isCopied ? <Check size={13} style={{ color: 'var(--success)' }} /> : <Copy size={13} />}
                             </motion.button>
                             <motion.div
                               animate={{ rotate: isExpanded ? 180 : 0 }}
@@ -327,13 +360,13 @@ const searchConsole = (focused) => ({
   width: '100%', maxWidth: '580px', height: '52px',
   display: 'flex', alignItems: 'center', gap: '0.75rem',
   padding: '0 1rem',
-  background: 'rgba(10, 10, 12, 0.4)',
-  border: `1.5px solid ${focused ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`,
+  background: 'var(--input)',
+  border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border)'}`,
   borderRadius: '14px',
   backdropFilter: 'blur(20px)',
   boxShadow: focused
-    ? '0 0 0 1px var(--accent), 0 8px 32px rgba(124,58,237,0.15), inset 0 1px 0 0 rgba(255,255,255,0.1)'
-    : '0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 0 rgba(255,255,255,0.05)',
+    ? '0 0 0 1px var(--accent), var(--shadow-md)'
+    : 'var(--shadow-sm)',
   marginBottom: '1.25rem',
   transition: 'all 0.25s ease',
 });
@@ -345,7 +378,7 @@ const searchInputStyle = {
 
 const clearSearchBtn = {
   width: '28px', height: '28px', borderRadius: '8px',
-  background: 'var(--card)', border: '1px solid rgba(255,255,255,0.08)',
+  background: 'var(--card)', border: '1px solid var(--border)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   cursor: 'pointer', color: 'var(--muted-foreground)',
 };
@@ -360,8 +393,8 @@ const pillStyle = (active, color) => ({
   padding: '0.4rem 0.9rem', fontSize: '0.76rem', fontWeight: '600',
   borderRadius: '999px', cursor: 'pointer',
   fontFamily: 'var(--font-sans)',
-  background: active ? `${color}15` : 'rgba(255,255,255,0.02)',
-  border: `1px solid ${active ? `${color}40` : 'rgba(255,255,255,0.06)'}`,
+  background: active ? `color-mix(in srgb, ${color} 15%, transparent)` : 'var(--input)',
+  border: `1px solid ${active ? `color-mix(in srgb, ${color} 40%, transparent)` : 'var(--border)'}`,
   color: active ? color : 'var(--muted-foreground)',
   transition: 'all 0.2s ease',
 });
@@ -384,7 +417,7 @@ const clearAllBtn = {
 const sectionHead = {
   display: 'flex', alignItems: 'center', gap: '0.875rem',
   marginBottom: '1.25rem', paddingBottom: '1rem',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+  borderBottom: '1px solid var(--border)',
 };
 const sectionIconWrap = (meta) => ({
   width: '36px', height: '36px', borderRadius: '10px',
@@ -411,16 +444,16 @@ const cardStyle = (meta) => ({
   position: 'relative', overflow: 'hidden', cursor: 'pointer',
   padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem',
   borderRadius: '16px',
-  background: 'rgba(255,255,255,0.01)',
+  background: 'var(--card)',
   border: '1px solid var(--border)',
-  boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+  boxShadow: 'var(--shadow-sm)',
   transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
 });
 
 const ambientGlow = (color) => ({
   position: 'absolute', top: '-40%', right: '-20%',
   width: '180px', height: '180px', borderRadius: '50%',
-  background: `radial-gradient(circle, ${color}10 0%, transparent 70%)`,
+  background: `radial-gradient(circle, color-mix(in srgb, ${color} 10%, transparent) 0%, transparent 70%)`,
   pointerEvents: 'none',
 });
 
@@ -439,9 +472,9 @@ const cardActions = { display: 'flex', alignItems: 'center', gap: '0.35rem' };
 
 const copyBtnStyle = (copied) => ({
   width: '28px', height: '28px', borderRadius: '7px',
-  background: 'var(--card)', border: '1px solid rgba(255,255,255,0.06)',
+  background: 'var(--card)', border: '1px solid var(--border)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
-  cursor: 'pointer', color: copied ? '#10b981' : 'var(--muted-foreground)',
+  cursor: 'pointer', color: copied ? 'var(--success)' : 'var(--muted-foreground)',
   transition: 'all 0.2s ease',
 });
 
@@ -464,8 +497,8 @@ const cardDesc = {
 const keywordRow = { display: 'flex', flexWrap: 'wrap', gap: '0.3rem' };
 const keywordChip = (meta) => ({
   fontSize: '0.66rem', fontWeight: '600', padding: '2px 7px',
-  borderRadius: '4px', background: 'var(--card)',
-  border: '1px solid rgba(255,255,255,0.06)', color: 'var(--muted-foreground)',
+  borderRadius: '4px', background: 'var(--input)',
+  border: '1px solid var(--border)', color: 'var(--muted-foreground)',
   fontFamily: 'var(--font-mono)',
 });
 
@@ -473,11 +506,11 @@ const keywordChip = (meta) => ({
 const expandedContent = {
   display: 'flex', flexDirection: 'column', gap: '1rem',
   paddingTop: '1rem', marginTop: '0.75rem',
-  borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+  borderTop: '1px solid var(--border)',
 };
 
 const codeBlock = (meta) => ({
-  background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)',
+  background: 'color-mix(in srgb, var(--foreground) 3%, transparent)', border: '1px solid var(--border)',
   borderRadius: '10px', padding: '1rem',
   display: 'flex', flexDirection: 'column', gap: '0.5rem',
 });

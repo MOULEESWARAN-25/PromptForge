@@ -47,7 +47,7 @@ export function PromptEnhancer({
     display: 'flex',
     flexDirection: 'column',
     gap: '1.5rem',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.05)'
+    boxShadow: 'var(--shadow-sm)'
   };
   const stepHeader = { display: 'flex', gap: '1rem', alignItems: 'flex-start' };
   const stepNum = { fontSize: '2rem', fontWeight: '900', color: 'var(--accent)', lineHeight: '1', fontFamily: 'var(--font-mono)' };
@@ -79,7 +79,7 @@ export function PromptEnhancer({
     fontSize: '0.75rem',
     borderRadius: '20px',
     cursor: 'pointer',
-    background: isSelected ? 'rgba(104, 67, 236, 0.12)' : 'transparent',
+    background: isSelected ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent',
     border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border)',
     color: isSelected ? 'var(--accent)' : 'var(--muted-foreground)',
     fontWeight: isSelected ? '700' : '500',
@@ -173,11 +173,11 @@ export function PromptEnhancer({
           {/* Intent Header summary */}
           <div style={{ ...stepSection, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', padding: '1.25rem 1.5rem' }} className="glass-panel">
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'rgba(5, 150, 105, 0.1)', border: '1px solid rgba(5, 150, 105, 0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Wand2 size={20} style={{ color: '#059669' }} />
+              <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'color-mix(in srgb, var(--success) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--success) 25%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Wand2 size={20} style={{ color: 'var(--success)' }} />
               </div>
               <div>
-                <span style={{ fontSize: '0.72rem', color: '#059669', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Auto-Detected Intent</span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--success)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Auto-Detected Intent</span>
                 <h4 style={{ fontSize: '1.05rem', fontWeight: '800', color: 'var(--foreground)', fontFamily: 'var(--font-display)', marginTop: '2px' }}>
                   {analysisReport.detectedIntent}
                 </h4>
@@ -208,11 +208,11 @@ export function PromptEnhancer({
 
               {/* Deficiencies */}
               <div>
-                <span style={{ fontSize: '0.72rem', color: '#ef4444', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.5rem' }}>Identified Design Gaps</span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--destructive)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.5rem' }}>Identified Design Gaps</span>
                 <ul style={{ padding: 0, margin: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   {analysisReport.shortcomings.map((item, idx) => (
                     <li key={idx} style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)', paddingLeft: '1rem', position: 'relative' }}>
-                      <span style={{ position: 'absolute', left: 0, top: '6px', width: '5px', height: '5px', borderRadius: '50%', background: '#ef4444' }} />
+                      <span style={{ position: 'absolute', left: 0, top: '6px', width: '5px', height: '5px', borderRadius: '50%', background: 'var(--destructive)' }} />
                       {item}
                     </li>
                   ))}
@@ -221,11 +221,11 @@ export function PromptEnhancer({
 
               {/* Enhancements */}
               <div style={{ marginTop: '0.5rem' }}>
-                <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.5rem' }}>Recommended Enhancements</span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--success)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.5rem' }}>Recommended Enhancements</span>
                 <ul style={{ padding: 0, margin: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   {analysisReport.solutions.map((item, idx) => (
                     <li key={idx} style={{ fontSize: '0.78rem', color: 'var(--foreground)', paddingLeft: '1rem', position: 'relative' }}>
-                      <span style={{ position: 'absolute', left: 0, top: '6px', width: '5px', height: '5px', borderRadius: '50%', background: '#16a34a' }} />
+                      <span style={{ position: 'absolute', left: 0, top: '6px', width: '5px', height: '5px', borderRadius: '50%', background: 'var(--success)' }} />
                       {item}
                     </li>
                   ))}

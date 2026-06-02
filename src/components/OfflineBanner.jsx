@@ -35,7 +35,7 @@ export default function OfflineBanner() {
           role="status"
           aria-live="polite"
         >
-          <WifiOff size={14} style={{ color: '#6843EC' }} />
+          <WifiOff size={14} style={{ color: 'var(--accent)' }} />
           <span style={text}>
             You are currently offline. Your active drafts and configurations are safely stored locally.
           </span>
@@ -61,9 +61,9 @@ const banner = {
   gap: '0.75rem',
   padding: '0.6rem 1.25rem',
   borderRadius: '999px',
-  background: 'rgba(245,158,11,0.06)',
-  border: '1px solid rgba(245,158,11,0.2)',
-  boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+  background: 'color-mix(in srgb, var(--warning) 6%, transparent)',
+  border: '1px solid color-mix(in srgb, var(--warning) 20%, transparent)',
+  boxShadow: 'var(--shadow-lg)',
   backdropFilter: 'blur(16px)',
   width: 'max-content',
   maxWidth: '90vw',
@@ -72,7 +72,7 @@ const banner = {
 const text = {
   fontSize: '0.78rem',
   fontWeight: '600',
-  color: 'rgba(255,255,255,0.9)',
+  color: 'var(--foreground)',
 };
 
 const badge = {
@@ -81,8 +81,8 @@ const badge = {
   gap: '0.25rem',
   padding: '2px 8px',
   borderRadius: '999px',
-  background: 'rgba(245,158,11,0.12)',
-  color: '#6843EC',
+  background: 'color-mix(in srgb, var(--warning) 12%, transparent)',
+  color: 'var(--accent)',
   fontSize: '0.65rem',
   fontWeight: '700',
   textTransform: 'uppercase',

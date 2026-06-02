@@ -16,10 +16,20 @@
   --card-foreground: #0E0E0E;
   --popover: #ffffff;
   --popover-foreground: #0E0E0E;
-  --border: #e8e8e8;
+  --border: #dedede;
   --input: #f8f8f8;
   --muted: #f0f0f0;
-  --muted-foreground: #737373;
+  --muted-foreground: #4b5563;
+
+  /* Auth Gradients & Grids */
+  --auth-bg-gradient: linear-gradient(155deg, #f9fafb 0%, #f3f4f6 45%, #e5e7eb 100%);
+  --auth-grid-line: rgba(0,0,0,0.025);
+
+  /* Workflow Mode Accents */
+  --workflow-application: #7c3aed;
+  --workflow-page: #0891b2;
+  --workflow-enhance: #059669;
+  --workflow-component: #db2777;
 
   /* Brand */
   --primary: #292929;
@@ -28,6 +38,9 @@
   --accent-foreground: #ffffff;
   --accent-glow: rgba(251, 191, 36, 0.15);
   --accent-subtle: rgba(251, 191, 36, 0.06);
+  --accent-green: #15803d;
+  --accent-green-glow: rgba(21, 128, 61, 0.15);
+  --accent-green-subtle: rgba(21, 128, 61, 0.06);
 
   /* Semantic */
   --success: #16a34a;
@@ -117,6 +130,16 @@
   --input: rgba(255,255,255,0.05);
   --muted: #1a1740;
   --muted-foreground: rgba(255,255,255,0.58);
+
+  /* Auth Gradients & Grids */
+  --auth-bg-gradient: linear-gradient(155deg, #070612 0%, #0c0b20 45%, #040310 100%);
+  --auth-grid-line: rgba(255,255,255,0.018);
+
+  /* Workflow Mode Accents */
+  --workflow-application: #a78bfa;
+  --workflow-page: #22d3ee;
+  --workflow-enhance: #34d399;
+  --workflow-component: #f43f5e;
 
   --primary: #6843EC;
   --primary-foreground: #ffffff;
@@ -285,14 +308,14 @@ select::placeholder {
 }
 
 .text-gradient-accent {
-  background: linear-gradient(135deg, var(--accent) 0%, #D2FF3A 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-green) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .dark .text-gradient-accent {
-  background: linear-gradient(135deg, #6843EC 0%, #D2FF3A 100%);
+  background: linear-gradient(135deg, #6843EC 0%, var(--accent-green) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -982,6 +1005,200 @@ select:focus-visible,
 }
 
 /* ─── STEP PROGRESS INDICATOR ───────────────────────────────── */
+.active-scale-95:active {
+  transform: scale(0.95);
+}
+
+.bento-card-premium {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm), inset 0 1px 1px rgba(255, 255, 255, 0.03);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dark .bento-card-premium {
+  background: rgba(26, 23, 64, 0.55);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.bento-card-premium:hover {
+  border-color: var(--accent);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15), 0 0 16px var(--accent-glow);
+}
+
+.glow-card-spotlight {
+  position: relative;
+}
+.glow-card-spotlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--accent) 0%, transparent 60%, var(--accent) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.15;
+  transition: opacity 0.3s ease;
+}
+.glow-card-spotlight:hover::before {
+  opacity: 0.6;
+}
+
+/* ─── SKIP-TO-CONTENT LINK (Accessibility) ──────────────────── */
+.skip-link {
+  position: absolute;
+  top: -999px;
+  left: 1rem;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  padding: 0.5rem 1.25rem;
+  border-radius: 0 0 10px 10px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  z-index: 99999;
+  text-decoration: none;
+  font-family: var(--font-sans);
+}
+.skip-link:focus {
+  top: 0;
+  outline: 2px solid var(--accent-foreground);
+  outline-offset: 2px;
+}
+
+/* ─── PREFERS REDUCED MOTION ────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .aurora-blob,
+  canvas {
+    animation: none !important;
+  }
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-scale-in,
+  .animate-slide-up,
+  .animate-float,
+  .animate-glow-pulse,
+  .animate-spin-slow {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ─── MOBILE TOUCH TARGETS (min 44×44px) ────────────────────── */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── SAFE AREA SUPPORT (iOS notch / home bar) ──────────────── */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+  .safe-top {
+    padding-top: calc(1rem + env(safe-area-inset-top));
+  }
+}
+
+/* ─── COMMAND PALETTE SCROLLBAR ─────────────────────────────── */
+.palette-results::-webkit-scrollbar { width: 4px; }
+.palette-results::-webkit-scrollbar-track { background: transparent; }
+.palette-results::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: var(--radius-full);
+}
+
+/* ─── DEMO MODE BANNER ──────────────────────────────────────── */
+.demo-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(251,191,36,0.12);
+  border: 1px solid rgba(104,67,236,0.28);
+  color: #6843EC;
+}
+
+/* ─── SAVE STATUS INDICATOR ─────────────────────────────────── */
+.save-status-saved {
+  color: var(--success);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  transition: opacity 0.3s ease;
+}
+.save-status-saving {
+  color: var(--muted-foreground);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.save-status-error {
+  color: var(--destructive);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ─── ENHANCED FOCUS STATES ─────────────────────────────────── */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ─── USAGE PROGRESS BAR ────────────────────────────────────── */
+.usage-bar {
+  height: 4px;
+  background: var(--border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.usage-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  transition: width 0.4s var(--ease-out);
+}
+.usage-bar-fill.danger {
+  background: var(--destructive);
+}
+
+/* ─── STEP PROGRESS INDICATOR ───────────────────────────────── */
 .step-progress {
   display: flex;
   align-items: center;
@@ -1024,4 +1241,65 @@ select:focus-visible,
 }
 .step-connector.completed {
   background: var(--success);
+}
+
+/* ─── Premium Blueprint Card Hover Actions ────────────────── */
+.pf-blueprint-card {
+  position: relative;
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.pf-blueprint-card .pf-hover-actions {
+  opacity: 0.7;
+  transform: translateY(2px);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.pf-blueprint-card:hover .pf-hover-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── SONNER TOAST THEME SYNC ───────────────────────────────── */
+[data-sonner-toast] {
+  --normal-bg: var(--card) !important;
+  --normal-border: var(--border) !important;
+  --normal-text: var(--foreground) !important;
+  
+  --success-bg: rgba(22, 163, 74, 0.05) !important;
+  --success-border: rgba(22, 163, 74, 0.18) !important;
+  --success-text: var(--success) !important;
+  
+  --error-bg: rgba(239, 68, 68, 0.05) !important;
+  --error-border: rgba(239, 68, 68, 0.18) !important;
+  --error-text: var(--destructive) !important;
+  
+  --info-bg: rgba(59, 130, 246, 0.05) !important;
+  --info-border: rgba(59, 130, 246, 0.18) !important;
+  --info-text: var(--accent) !important;
+
+  background: var(--card) !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  font-family: var(--font-sans) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.dark [data-sonner-toast] {
+  --normal-bg: var(--card) !important;
+  --normal-border: var(--border) !important;
+  --normal-text: var(--foreground) !important;
+  
+  --success-bg: rgba(22, 163, 74, 0.12) !important;
+  --success-border: rgba(22, 163, 74, 0.3) !important;
+  --success-text: #4ade80 !important;
+  
+  --error-bg: rgba(239, 68, 68, 0.12) !important;
+  --error-border: rgba(239, 68, 68, 0.3) !important;
+  --error-text: #f87171 !important;
+  
+  --info-bg: rgba(59, 130, 246, 0.12) !important;
+  --info-border: rgba(59, 130, 246, 0.3) !important;
+  --info-text: #60a5fa !important;
 }

@@ -56,12 +56,12 @@ export function ShadcnSelect({
           style={{
             zIndex: 9999,
             minWidth: '180px',
-            background: 'rgba(20, 16, 32, 0.95)',
+            background: 'var(--popover)',
             backdropFilter: 'blur(20px)',
             border: '1px solid var(--border)',
             borderRadius: '10px',
             padding: '4px',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
+            boxShadow: 'var(--shadow-lg)',
             display: 'flex',
             flexDirection: 'column',
             gap: '2px',
@@ -83,7 +83,7 @@ export function ShadcnSelect({
                   gap: '0.5rem',
                   width: '100%',
                   padding: '0.45rem 0.65rem',
-                  background: value === opt.value ? 'rgba(104, 67, 236, 0.15)' : 'transparent',
+                  background: value === opt.value ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
                   border: 'none',
                   borderRadius: '6px',
                   fontSize: '0.76rem',
@@ -119,7 +119,7 @@ export function ShadcnSelect({
       
       <style>{`
         .select-item-hoverable:hover {
-          background: rgba(104, 67, 236, 0.08) !important;
+          background: color-mix(in srgb, var(--accent) 8%, transparent) !important;
           color: var(--accent) !important;
         }
       `}</style>
@@ -221,24 +221,24 @@ export function ShadcnCombobox({
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Content
           style={{
-            zIndex: 9999,
-            width: '240px',
-            background: 'rgba(20, 16, 32, 0.95)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid var(--border)',
-            borderRadius: '10px',
-            padding: '6px',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '6px',
-            boxSizing: 'border-box'
-          }}
-          align="start"
-          sideOffset={5}
-        >
-          {/* Combobox Search Input */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', borderRadius: '6px', padding: '4px 8px' }}>
+          zIndex: 9999,
+          width: '240px',
+          background: 'var(--popover)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid var(--border)',
+          borderRadius: '10px',
+          padding: '6px',
+          boxShadow: 'var(--shadow-lg)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+          boxSizing: 'border-box'
+        }}
+        align="start"
+        sideOffset={5}
+      >
+        {/* Combobox Search Input */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '6px', padding: '4px 8px' }}>
             <Search size={12} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
             <input
               ref={inputRef}
@@ -284,9 +284,9 @@ export function ShadcnCombobox({
                       width: '100%',
                       padding: '0.45rem 0.65rem',
                       background: isSelected 
-                        ? 'rgba(104, 67, 236, 0.15)' 
+                        ? 'color-mix(in srgb, var(--accent) 15%, transparent)' 
                         : isHighlighted 
-                        ? 'rgba(255, 255, 255, 0.05)' 
+                        ? 'color-mix(in srgb, var(--foreground) 5%, transparent)' 
                         : 'transparent',
                       border: 'none',
                       borderRadius: '6px',

@@ -183,7 +183,7 @@ function ModalPreview({ theme, font }) {
         </div>
         <div style={{ fontSize: '0.52rem', color: theme.textSecondary, lineHeight: 1.6, marginBottom: '0.6rem' }}>This action cannot be undone. All project blueprint files will be permanently deleted from the registry.</div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <div style={{ flex: 1, padding: '0.32rem', background: '#dc2626', border: '1px solid #b91c1c', borderRadius: '6px', fontSize: '0.52rem', fontWeight: 700, color: '#ffffff', textAlign: 'center', cursor: 'pointer' }}>Delete</div>
+          <div style={{ flex: 1, padding: '0.32rem', background: theme.destructive || '#dc2626', border: `1px solid ${theme.destructive ? 'color-mix(in srgb, var(--destructive) 90%, black)' : '#b91c1c'}`, borderRadius: '6px', fontSize: '0.52rem', fontWeight: 700, color: '#ffffff', textAlign: 'center', cursor: 'pointer' }}>Delete</div>
           <div style={{ flex: 1, padding: '0.32rem', background: 'transparent', border: `1px solid ${theme.textSecondary}88`, borderRadius: '6px', fontSize: '0.52rem', fontWeight: 600, color: theme.textPrimary, textAlign: 'center', cursor: 'pointer' }}>Cancel</div>
         </div>
       </div>
@@ -346,7 +346,7 @@ export function ThemePreview({
                 <div style={{ fontSize: '0.45rem', color: theme.textSecondary, fontWeight: 500 }}>{m.label}</div>
                 <div style={{ fontSize: '0.62rem', fontWeight: 800, color: theme.textPrimary, marginTop: '1px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span>{m.value}</span>
-                  <span style={{ fontSize: '0.42rem', color: m.up ? '#10b981' : '#f43f5e' }}>{m.change}</span>
+                  <span style={{ fontSize: '0.42rem', color: m.up ? (theme.success || 'var(--success)') : (theme.destructive || 'var(--destructive)') }}>{m.change}</span>
                 </div>
               </div>
             ))}

@@ -41,7 +41,7 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
     backdropFilter: 'blur(16px)',
     border: '1px solid var(--border)',
     borderRadius: '20px',
-    boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+    boxShadow: 'var(--shadow-md)',
   };
 
   const sectionHead = (color = 'var(--accent)') => ({
@@ -54,8 +54,8 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
     padding: '0.6rem 0.75rem', borderRadius: '8px', cursor: 'pointer',
     transition: 'all 0.2s ease',
     border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border)',
-    background: isSelected ? 'rgba(104,67,236,0.08)' : 'transparent',
-    boxShadow: isSelected ? '0 0 12px rgba(104,67,236,0.15)' : 'none',
+    background: isSelected ? 'color-mix(in srgb, var(--accent) 8%, transparent)' : 'transparent',
+    boxShadow: isSelected ? '0 0 12px color-mix(in srgb, var(--accent) 15%, transparent)' : 'none',
   });
 
   const scrollableCol = {
@@ -100,7 +100,7 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
                 key={comp.id}
                 style={compCard(isSelected)}
                 onClick={() => setComponentType(comp.id)}
-                className="active-scale-95"
+                className={`comp-catalog-card active-scale-95 ${isSelected ? 'selected' : ''}`}
               >
                 {isSelected
                   ? <CheckCircle2 size={13} style={{ color: 'var(--accent)', flexShrink: 0 }} />
@@ -177,7 +177,7 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
         {/* Sync branch Integration (Advanced only) - placed cleanly under preview */}
         {isAdvanced && (
           <div style={{ ...panelBase, padding: '1.25rem' }}>
-            <div style={sectionHead('#34d399')}>Project Setup</div>
+            <div style={sectionHead('var(--success)')}>Project Setup</div>
             <SyncBranchSelector
               activeMode="component"
               componentType={componentType}
@@ -253,7 +253,7 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
               color: isReady ? 'var(--accent-foreground)' : 'var(--muted-foreground)',
               transition: 'all 0.2s ease',
               opacity: isGenerating ? 0.7 : 1,
-              boxShadow: isReady ? '0 0 0 1px rgba(104,67,236,0.3), 0 8px 24px rgba(104,67,236,0.2)' : 'none',
+              boxShadow: isReady ? '0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent), 0 8px 24px color-mix(in srgb, var(--accent) 20%, transparent)' : 'none',
             }}
           >
             {isGenerating
@@ -283,7 +283,7 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
       {/* ── COLUMN 4: Typography System (220px) ── */}
       <div className="component-wizard-typography" style={{ ...scrollableCol, width: '220px' }}>
         <div style={{ ...panelBase, padding: '1rem' }}>
-          <div style={sectionHead('#c084fc')}>Typography</div>
+          <div style={sectionHead('var(--accent)')}>Typography</div>
           <TypographyPicker
             selectedTypography={selectedTypography}
             setSelectedTypography={setSelectedTypography}
@@ -293,6 +293,18 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
       </div>
 
       <style>{`
+        .comp-catalog-card {
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        .comp-catalog-card:hover {
+          transform: translateX(4px) !important;
+          border-color: var(--accent) !important;
+          background: color-mix(in srgb, var(--accent) 3%, transparent) !important;
+        }
+        .comp-catalog-card.selected {
+          border-color: var(--accent) !important;
+          box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 18%, transparent) !important;
+        }
         .component-wizard-grid::-webkit-scrollbar,
         .component-wizard-left::-webkit-scrollbar,
         .component-wizard-themes::-webkit-scrollbar,

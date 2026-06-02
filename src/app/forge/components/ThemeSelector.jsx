@@ -144,9 +144,9 @@ export function ThemeSelector({
     borderRadius: '16px',
     fontSize: '0.68rem',
     fontWeight: '700',
-    background: isActive ? 'var(--accent)' : 'rgba(255,255,255,0.03)',
+    background: isActive ? 'var(--accent)' : 'var(--input)',
     border: isActive ? '1px solid var(--accent)' : '1px solid var(--border)',
-    color: isActive ? '#ffffff' : 'var(--muted-foreground)',
+    color: isActive ? 'var(--accent-foreground)' : 'var(--muted-foreground)',
     cursor: 'pointer',
     transition: 'all 0.15s ease',
     whiteSpace: 'nowrap'
@@ -157,7 +157,7 @@ export function ThemeSelector({
       
       {/* ── SECTION 1: SEARCH, CATEGORIES & ALIASES ── */}
       {!compact && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1rem' }} className="animate-fade-up">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1rem' }} className="animate-fade-up">
           {/* Omni-search input */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.55rem 0.85rem' }}>
             <Search size={15} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
@@ -207,7 +207,7 @@ export function ThemeSelector({
                   borderRadius: '6px',
                   fontSize: '0.62rem',
                   fontWeight: 600,
-                  background: searchQuery.toLowerCase() === badge.toLowerCase() ? 'rgba(104,67,236,0.12)' : 'transparent',
+                  background: searchQuery.toLowerCase() === badge.toLowerCase() ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent',
                   border: '1px solid ' + (searchQuery.toLowerCase() === badge.toLowerCase() ? 'var(--accent)' : 'var(--border)'),
                   color: searchQuery.toLowerCase() === badge.toLowerCase() ? 'var(--accent)' : 'var(--muted-foreground)',
                   cursor: 'pointer',
@@ -242,7 +242,7 @@ export function ThemeSelector({
                     padding: '0.4rem 0.75rem',
                     borderRadius: '8px',
                     border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border)',
-                    background: isSelected ? 'rgba(104, 67, 236, 0.12)' : 'var(--card)',
+                    background: isSelected ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'var(--card)',
                     color: isSelected ? 'var(--accent)' : 'var(--foreground)',
                     fontSize: '0.74rem',
                     fontWeight: '600',
@@ -289,7 +289,7 @@ export function ThemeSelector({
                     <span style={{ fontSize: compact ? '0.74rem' : '0.9rem', color: baseStyles.color || 'var(--foreground)', fontWeight: '750' }}>
                       {themeName}
                     </span>
-                    {isSelected && <CheckCircle2 size={13} style={{ color: '#6843EC' }} />}
+                    {isSelected && <CheckCircle2 size={13} style={{ color: 'var(--accent)' }} />}
                   </div>
                   {!compact && (
                     <p style={{ fontSize: '0.72rem', color: baseStyles.color || 'var(--muted-foreground)', opacity: 0.72, margin: '2px 0 0 0', lineHeight: '1.3' }}>
@@ -369,7 +369,7 @@ export function ThemeSelector({
                             <span style={{ fontSize: compact ? '0.74rem' : '0.86rem', color: baseStyles.color || 'var(--foreground)', fontWeight: '750' }}>
                               {themeName}
                             </span>
-                            {isSelected && <CheckCircle2 size={13} style={{ color: '#6843EC' }} />}
+                            {isSelected && <CheckCircle2 size={13} style={{ color: 'var(--accent)' }} />}
                           </div>
                           {!compact && (
                             <p style={{ fontSize: '0.72rem', color: baseStyles.color || 'var(--muted-foreground)', opacity: 0.72, margin: '2px 0 0 0', lineHeight: '1.3' }}>
@@ -393,7 +393,7 @@ export function ThemeSelector({
 
       {/* ── SECTION 5: SELECTED THEME EDUCATIONAL METADATA CARDS & 'WHY THIS WORKS' ── */}
       {selectedThemeMeta && !compact && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.25rem', padding: '1.25rem', background: 'rgba(104, 67, 236, 0.04)', border: '1px solid rgba(104, 67, 236, 0.15)', borderRadius: '20px' }} className="animate-fade-up">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.25rem', padding: '1.25rem', background: 'color-mix(in srgb, var(--accent) 4%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 15%, transparent)', borderRadius: '20px' }} className="animate-fade-up">
           
           {/* Metadata Specs Grid */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -419,7 +419,7 @@ export function ThemeSelector({
 
           {/* Educational "Why This Works" Panel */}
           {selectedThemeMeta.whyItWorks && selectedThemeMeta.whyItWorks.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderTop: '1px solid var(--border)', paddingTop: '0.75rem' }}>
               <div style={{ fontSize: '0.65rem', fontWeight: '750', textTransform: 'uppercase', color: 'var(--accent)', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Info size={12} /> Why This Theme Works
               </div>
@@ -479,7 +479,7 @@ export function ThemeSelector({
           </div>
 
           {/* Preview Canvas Wrapper Container */}
-          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', background: 'rgba(0,0,0,0.15)', borderRadius: '16px', padding: '1rem', border: '1px solid var(--border)', boxSizing: 'border-box' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', background: 'color-mix(in srgb, var(--foreground) 3%, transparent)', borderRadius: '16px', padding: '1rem', border: '1px solid var(--border)', boxSizing: 'border-box' }}>
             <div
               style={{
                 width: viewportMode === 'mobile' ? '380px' : viewportMode === 'tablet' ? '700px' : '100%',

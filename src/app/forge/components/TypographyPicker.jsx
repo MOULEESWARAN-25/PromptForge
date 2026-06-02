@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, Search, Sliders, Sparkles } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
 
 const TYPOGRAPHY_OPTIONS = [
   {
@@ -176,7 +177,33 @@ const TYPOGRAPHY_OPTIONS = [
 
 const CATEGORIES = ["All", "Sans-Serif", "Display", "Monospace", "Editorial"];
 
+const getAccessibleTagColor = (color, isDark) => {
+  if (isDark) {
+    if (color === 'var(--accent)') return '#6843EC';
+    return color;
+  }
+  switch (color) {
+    case '#10b981': return '#15803d'; // green
+    case '#22c55e': return '#16a34a'; // green
+    case '#0891b2': return '#0369a1'; // cyan
+    case '#06b6d4': return '#0891b2'; // cyan
+    case '#0ea5e9': return '#0284c7'; // cyan
+    case '#059669': return '#047857'; // emerald
+    case '#14b8a6': return '#0d9488'; // teal
+    case '#f59e0b': return '#d97706'; // amber
+    case '#ea580c': return '#c2410c'; // orange
+    case '#ec4899': return '#db2777'; // pink
+    case '#d946ef': return '#c026d3'; // fuchsia
+    case '#a855f7': return '#7c3aed'; // purple
+    case '#6366f1': return '#4f46e5'; // indigo
+    case 'var(--accent)': return '#6843EC';
+    default: return color;
+  }
+};
+
 export function TypographyPicker({ selectedTypography, setSelectedTypography, compact = false }) {
+  const { theme } = useApp();
+  const isDark = theme === 'dark';
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [recentFonts, setRecentFonts] = useState([]);
@@ -233,7 +260,7 @@ export function TypographyPicker({ selectedTypography, setSelectedTypography, co
       
       {/* Search & Category Header - Only in Full Mode */}
       {!compact && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border)', borderRadius: '14px', padding: '0.85rem' }} className="animate-fade-up">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '0.85rem' }} className="animate-fade-up">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.45rem 0.75rem' }}>
             <Search size={14} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
             <input
@@ -261,9 +288,9 @@ export function TypographyPicker({ selectedTypography, setSelectedTypography, co
                     borderRadius: '12px',
                     fontSize: '0.65rem',
                     fontWeight: '700',
-                    background: isActive ? 'var(--accent)' : 'rgba(255,255,255,0.03)',
+                    background: isActive ? 'var(--accent)' : 'var(--input)',
                     border: isActive ? '1px solid var(--accent)' : '1px solid var(--border)',
-                    color: isActive ? '#ffffff' : 'var(--muted-foreground)',
+                    color: isActive ? 'var(--accent-foreground)' : 'var(--muted-foreground)',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                     whiteSpace: 'nowrap'
@@ -299,7 +326,7 @@ export function TypographyPicker({ selectedTypography, setSelectedTypography, co
                     padding: '0.4rem 0.75rem',
                     borderRadius: '8px',
                     border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border)',
-                    background: isSelected ? 'rgba(104, 67, 236, 0.12)' : 'var(--card)',
+                    background: isSelected ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'var(--card)',
                     color: isSelected ? 'var(--accent)' : 'var(--foreground)',
                     fontSize: '0.74rem',
                     fontWeight: '600',
@@ -331,6 +358,7 @@ export function TypographyPicker({ selectedTypography, setSelectedTypography, co
         }}>
           {filteredOptions.map((opt) => {
             const isSelected = selectedTypography === opt.id;
+            const resolvedTagColor = getAccessibleTagColor(opt.tagColor, isDark);
             return (
               <div
                 key={opt.id}
@@ -340,14 +368,14 @@ export function TypographyPicker({ selectedTypography, setSelectedTypography, co
                   padding: compact ? '0.45rem 0.65rem' : '1.1rem 1.25rem',
                   borderRadius: compact ? '8px' : '14px',
                   border: isSelected
-                    ? `1.5px solid ${opt.tagColor}`
+                    ? `1.5px solid ${resolvedTagColor}`
                     : '1px solid var(--border)',
                   background: isSelected
-                    ? `rgba(${hexToRgb(opt.tagColor)}, 0.06)`
+                    ? `color-mix(in srgb, ${resolvedTagColor} 6%, transparent)`
                     : 'var(--card)',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
-                  boxShadow: isSelected ? `0 0 18px ${opt.tagColor}22` : 'none',
+                  boxShadow: isSelected ? `0 0 18px color-mix(in srgb, ${resolvedTagColor} 13%, transparent)` : 'none',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: compact ? '0.2rem' : '0.45rem',
@@ -359,7 +387,7 @@ export function TypographyPicker({ selectedTypography, setSelectedTypography, co
                     <span style={{ ...opt.style, fontSize: '0.95rem', color: 'var(--foreground)', letterSpacing: '-0.01em', lineHeight: 1.2 }}>
                       {opt.sample}
                     </span>
-                    <span style={{ ...opt.style, fontSize: '0.65rem', fontWeight: 600, color: isSelected ? opt.tagColor : 'var(--muted-foreground)', lineHeight: 1.3 }}>
+                    <span style={{ ...opt.style, fontSize: '0.65rem', fontWeight: 600, color: isSelected ? resolvedTagColor : 'var(--muted-foreground)', lineHeight: 1.3 }}>
                       14,285 Metric Balance · +8.4%
                     </span>
                     <span style={{ ...opt.style, fontSize: '0.54rem', fontWeight: 500, color: 'var(--muted-foreground)', opacity: 0.8, lineHeight: 1.2 }}>
@@ -374,16 +402,16 @@ export function TypographyPicker({ selectedTypography, setSelectedTypography, co
                     ...opt.style,
                     fontSize: compact ? '0.74rem' : '0.8rem',
                     fontWeight: '750',
-                    color: isSelected ? opt.tagColor : 'var(--foreground)',
+                    color: isSelected ? resolvedTagColor : 'var(--foreground)',
                   }}>
                     {opt.label}
                   </span>
                   <span style={{
                     fontSize: compact ? '0.52rem' : '0.58rem',
                     fontWeight: '600',
-                    color: opt.tagColor,
-                    background: `rgba(${hexToRgb(opt.tagColor)}, 0.08)`,
-                    border: `1px solid rgba(${hexToRgb(opt.tagColor)}, 0.18)`,
+                    color: resolvedTagColor,
+                    background: `color-mix(in srgb, ${resolvedTagColor} 8%, transparent)`,
+                    border: `1px solid color-mix(in srgb, ${resolvedTagColor} 18%, transparent)`,
                     borderRadius: '4px',
                     padding: compact ? '0px 4px' : '1px 6px',
                     whiteSpace: 'nowrap'

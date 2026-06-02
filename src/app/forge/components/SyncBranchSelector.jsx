@@ -121,9 +121,9 @@ export function SyncBranchSelector({
   const activeIntegration = projectIntegration || 'new';
 
   // Dynamic colors based on active wizard mode
-  const accentColor = '#6843EC';
-  const activeBg = 'rgba(104, 67, 236, 0.10)';
-  const focusBorderShadow = 'rgba(104, 67, 236, 0.20)';
+  const accentColor = 'var(--accent)';
+  const activeBg = 'color-mix(in srgb, var(--accent) 10%, transparent)';
+  const focusBorderShadow = 'color-mix(in srgb, var(--accent) 20%, transparent)';
 
   const containerStyle = {
     display: 'flex',
@@ -519,7 +519,7 @@ export function SyncBranchSelector({
                   }}
                   className="active-scale-95"
                 >
-                  {ideSyncPromptCopied ? <CheckCircle2 size={10} style={{ color: '#fbbf24' }} /> : <Sparkles size={10} />}
+                  {ideSyncPromptCopied ? <CheckCircle2 size={10} style={{ color: 'var(--warning)' }} /> : <Sparkles size={10} />}
                   {ideSyncPromptCopied ? 'Copied!' : 'Copy'}
                 </button>
               </div>

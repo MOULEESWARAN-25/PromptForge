@@ -12,21 +12,21 @@ const ACTIONS = [
     label: 'Build a SaaS App Spec',
     desc: 'Multi-page routing, state, sidebars — fully described.',
     href: '/forge?mode=application',
-    accent: '#7c3aed',
+    accent: 'var(--workflow-application)',
   },
   {
     icon: Layout,
     label: 'Design a Landing Page',
     desc: 'Select layout, components, theme — generate instantly.',
     href: '/forge?mode=page',
-    accent: '#0891b2',
+    accent: 'var(--workflow-page)',
   },
   {
     icon: Wand2,
     label: 'Enhance a Draft Idea',
     desc: 'Paste any rough idea and inject pro terminology.',
     href: '/forge?mode=enhance',
-    accent: '#059669',
+    accent: 'var(--workflow-enhance)',
   },
 ];
 
@@ -129,16 +129,17 @@ export default function WelcomeBotMessage() {
           >
             {ACTIONS.map((a) => {
               const Icon = a.icon;
+              const accentColor = a.accent;
               return (
                 <motion.button
                   key={a.label}
-                  style={actionCard(a.accent)}
+                  style={actionCard(accentColor)}
                   onClick={() => handleAction(a.href, a.label)}
-                  whileHover={{ y: -3, boxShadow: `0 8px 24px ${a.accent}25` }}
+                  whileHover={{ y: -3, boxShadow: `0 8px 24px color-mix(in srgb, ${accentColor} 20%, transparent)` }}
                   whileTap={{ scale: 0.97 }}
                 >
-                  <div style={actionIconWrap(a.accent)}>
-                    <Icon size={16} style={{ color: a.accent }} />
+                  <div style={actionIconWrap(accentColor)}>
+                    <Icon size={16} style={{ color: accentColor }} />
                   </div>
                   <div style={actionText}>
                     <div style={actionLabel}>{a.label}</div>
@@ -160,8 +161,8 @@ const container = {
   padding: '1.5rem',
   borderRadius: '20px',
   marginBottom: '2rem',
-  background: 'rgba(124,58,237,0.03)',
-  border: '1px solid rgba(124,58,237,0.12)',
+  background: 'color-mix(in srgb, var(--accent) 3%, transparent)',
+  border: '1px solid color-mix(in srgb, var(--accent) 12%, transparent)',
 };
 
 const dismissBtn = {
@@ -181,15 +182,15 @@ const avatarRing = {
 
 const avatar = {
   width: 40, height: 40, borderRadius: '50%',
-  background: 'linear-gradient(135deg, #7c3aed, #db2777)',
+  background: 'linear-gradient(135deg, var(--accent), #db2777)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
-  boxShadow: '0 0 16px rgba(124,58,237,0.4)',
+  boxShadow: '0 0 16px color-mix(in srgb, var(--accent) 40%, transparent)',
 };
 
 const onlineDot = {
   position: 'absolute', bottom: 2, right: 2,
   width: 10, height: 10, borderRadius: '50%',
-  background: '#22c55e', border: '2px solid var(--background)',
+  background: 'var(--success)', border: '2px solid var(--background)',
 };
 
 const botName = {
@@ -198,7 +199,7 @@ const botName = {
 };
 
 const botStatus = {
-  fontSize: '0.72rem', color: '#22c55e',
+  fontSize: '0.72rem', color: 'var(--success)',
 };
 
 const bubbleWrap = {
@@ -242,8 +243,8 @@ const actionsGrid = {
 const actionCard = (accent) => ({
   display: 'flex', alignItems: 'flex-start', gap: '0.75rem',
   padding: '0.9rem 1rem',
-  background: `${accent}06`,
-  border: `1px solid ${accent}18`,
+  background: `color-mix(in srgb, ${accent} 6%, transparent)`,
+  border: `1px solid color-mix(in srgb, ${accent} 18%, transparent)`,
   borderRadius: '12px',
   cursor: 'pointer', textAlign: 'left',
   transition: 'all 0.2s ease',
@@ -251,7 +252,7 @@ const actionCard = (accent) => ({
 
 const actionIconWrap = (accent) => ({
   width: 32, height: 32, borderRadius: '8px', flexShrink: 0,
-  background: `${accent}12`,
+  background: `color-mix(in srgb, ${accent} 12%, transparent)`,
   display: 'flex', alignItems: 'center', justifyContent: 'center',
 });
 
