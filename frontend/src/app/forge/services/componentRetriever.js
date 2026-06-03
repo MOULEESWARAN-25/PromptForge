@@ -1,7 +1,7 @@
 import components from '@/data/knowledge/components.json';
 
 /**
- * PromptForge Phase 2 - Component Specification Retriever Service
+ * Veyntra Phase 2 - Component Specification Retriever Service
  * Resolves high-level visual widgets into keyboard accessibility checklists,
  * standard ARIA parameters, and responsive flex grid layouts.
  */

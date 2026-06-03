@@ -20,6 +20,7 @@ import {
 import { useApp } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
 import { gsap } from "gsap";
+import { BRAND } from "../config/brand";
 
 export default function DashboardHUD() {
   const { user, history, getUsageStats, activityStats, theme, dbConnected } =
@@ -271,7 +272,7 @@ export default function DashboardHUD() {
         <div ref={leftColRef} style={leftColumn}>
           <div className="premium-badge reveal-block" style={badgeStyle}>
             <Sparkles size={11} className="text-purple-400" />
-            <span>Prompt Architect v2.0 PRO</span>
+            <span>{BRAND.name} Compiler v2.0 PRO</span>
           </div>
 
           <h1 style={{ ...titleStyle, perspective: 600 }}>
@@ -285,7 +286,7 @@ export default function DashboardHUD() {
           </h1>
 
           <p style={subStyle} className="reveal-block">
-            Forge and design production-ready UI specs. Type an idea below to
+            Compile and design production-ready UI specs. Type an idea below to
             instantly invoke the compiler.
           </p>
 
@@ -305,7 +306,7 @@ export default function DashboardHUD() {
             />
             <input
               type="text"
-              placeholder="What premium component or app specs are we forging today?..."
+              placeholder="What premium component or app specs are we compiling today?..."
               value={quickInput}
               onChange={(e) => setQuickInput(e.target.value)}
               onFocus={() => setInputFocused(true)}
@@ -318,7 +319,7 @@ export default function DashboardHUD() {
               style={instantConsoleBtn(quickInput.trim().length > 0)}
               disabled={!quickInput.trim()}
             >
-              <span>Quick Forge</span>
+              <span>Quick Compile</span>
               <CornerDownLeft size={13} />
             </button>
           </form>
@@ -495,7 +496,7 @@ export default function DashboardHUD() {
             ) : (
               <div style={telemetryList}>
                 <div style={telemetryRowItem}>
-                  <span style={telemetryLabelText}>AI Prompt Engine</span>
+                  <span style={telemetryLabelText}>AI Intent Compiler</span>
                   <span style={telemetryValueText(isDark, "#10b981")}>
                     Active
                   </span>
@@ -518,7 +519,7 @@ export default function DashboardHUD() {
               {user?.username?.toLowerCase() === "admin" ||
               user?.role === "admin"
                 ? "Live observation of backend failover routing and vector indexes"
-                : "Current status of the prompt generator and cloud backup systems"}
+                : "Current status of the intent compiler and cloud backup systems"}
             </div>
           </div>
 

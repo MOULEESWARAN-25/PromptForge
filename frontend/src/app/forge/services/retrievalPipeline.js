@@ -10,7 +10,7 @@ import { retrieveMotionPhysics } from './motionRetriever';
 export const INTENT_CONFIDENCE_THRESHOLD = 0.70;
 
 /**
- * PromptForge Phase 2 - Unified RAG Retrieval Orchestrator
+ * Veyntra Phase 2 - Unified RAG Retrieval Orchestrator
  * Links hooks directly to this centralized controller, resolving intents,
  * themes, syntax frameworks, webpage patterns, components, and animations.
  */

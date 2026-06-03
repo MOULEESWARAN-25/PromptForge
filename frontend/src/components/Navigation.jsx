@@ -20,6 +20,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { track, EVENTS } from "../lib/analytics";
+import { BRAND } from "../config/brand";
 
 // Dynamic imports for bundle optimization
 const SettingsDrawer = dynamic(() => import("./SettingsDrawer"), {
@@ -63,8 +64,8 @@ export default function Navigation() {
 
   if (shouldHideNav) return null;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.replace("/auth");
   };
 
@@ -93,12 +94,12 @@ export default function Navigation() {
         <Link
           href={user ? "/dashboard" : "/"}
           style={brandStyle}
-          aria-label="PromptForge home"
+          aria-label={`${BRAND.name} home`}
         >
           <div style={logoMark}>
             <Sparkles size={15} style={{ color: "var(--accent)" }} />
           </div>
-          <span style={brandText(isDark)}>PromptForge</span>
+          <span style={brandText(isDark)}>{BRAND.name}</span>
         </Link>
 
         {/* Center Navigation Links (Hidden on Mobile) */}

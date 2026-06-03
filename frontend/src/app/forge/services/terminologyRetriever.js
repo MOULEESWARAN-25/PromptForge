@@ -1,7 +1,7 @@
 import terminology from '@/data/knowledge/terminology.json';
 
 /**
- * PromptForge Phase 2 - Visual-to-Technical Design System Terminology Retriever
+ * Veyntra Phase 2 - Visual-to-Technical Design System Terminology Retriever
  * Translates visual layman terms into developer design vocabularies and low-level tokens.
  */
 export async function retrieveTechnicalTerminology(query) {

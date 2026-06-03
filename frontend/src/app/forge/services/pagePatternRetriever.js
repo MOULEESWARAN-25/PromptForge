@@ -1,7 +1,7 @@
 import pagePatterns from '@/data/knowledge/pagePatterns.json';
 
 /**
- * PromptForge Phase 2 - Page Pattern Retriever Service
+ * Veyntra Phase 2 - Page Pattern Retriever Service
  * Resolves high-level webpage architectures into layout grids,
  * UX hierarchical guides, and critical structural sections.
  */

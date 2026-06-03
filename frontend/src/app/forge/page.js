@@ -3,6 +3,7 @@
 import React, { Suspense } from "react";
 import { useApp } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
+import { BRAND } from "@/config/brand";
 import {
   ArrowLeft,
   Monitor,
@@ -690,7 +691,7 @@ function ForgeWizardContent() {
                 "Full-Stack Application Architect"}
               {activeMode === "page" && "Web Page Design"}
               {activeMode === "component" && "Modular Component Architect"}
-              {activeMode === "enhance" && "Technical Design Prompt Enhancer"}
+              {activeMode === "enhance" && "Technical Design Specification Enhancer"}
             </h1>
             <p style={mainSub}>
               {activeMode === "application" &&
@@ -700,7 +701,7 @@ function ForgeWizardContent() {
               {activeMode === "component" &&
                 "Configure premium modular interface controls."}
               {activeMode === "enhance" &&
-                "Inject layout tokens & motions to prompt drafts."}
+                "Inject layout tokens & motions to draft specifications."}
             </p>
           </div>
         </div>
@@ -830,7 +831,7 @@ export default function ForgePage() {
               fontWeight: 600,
             }}
           >
-            Loading PromptForge workstation...
+            Loading {BRAND.name} studio...
           </span>
         </div>
       }

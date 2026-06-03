@@ -34,6 +34,7 @@ import { designVocabulary } from "@/data/designVocabulary";
 import { toast } from "sonner";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { BRAND } from "@/config/brand";
 
 // Register GSAP ScrollTrigger client-side only
 if (typeof window !== "undefined") {
@@ -86,8 +87,8 @@ const WORKSPACE_TABS = [
   },
   {
     id: "enhance",
-    title: "Prompt Enhancer",
-    desc: "Input draft prompts to semantically enrich them with advanced design vocabulary tokens and physics presets.",
+    title: "Specification Enhancer",
+    desc: "Input draft specs to semantically enrich them with advanced design vocabulary tokens and physics presets.",
     img: "/pages/vocabulary_raw.webp",
     tag: "Token Optimiser",
   },
@@ -342,7 +343,7 @@ export default function PremiumLandingPage() {
   // Design constants for Before / After Compare
   const rawInputCode = `"make a modern dashboard with dark visual glassmorphism cards and smooth spring physics motions."`;
 
-  const structuredPromptOutput = `<!-- Compiled by PromptForge RAG Compiler v3.0 -->
+  const structuredPromptOutput = `<!-- Compiled by Veyntra RAG Compiler v3.0 -->
 <design_system>
   <theme>Sleek Dark Glassmorphic</theme>
   <tokens>
@@ -501,28 +502,28 @@ export default function PremiumLandingPage() {
             style={{ marginBottom: "1.25rem" }}
           >
             <Sparkles size={11} className="text-purple-400" />
-            <span>PROMPT COMPILER v3.0</span>
+            <span>DEVELOPER INTENT COMPILER v3.0</span>
           </div>
 
           <h1 className="hero-headline" style={heroHeadline}>
             <span className="hero-title-line" style={{ display: "block" }}>
-              Turn vague ideas
+              Transform vision
             </span>
             <span
               className="hero-title-line hero-gradient"
               style={{ display: "block" }}
             >
-              into surgical
+              into production
             </span>
             <span className="hero-title-line" style={{ display: "block" }}>
-              AI prompts.
+              software.
             </span>
           </h1>
 
           <p className="hero-subtitle" style={heroSubParagraph}>
-            Stop typing generic instructions. PromptForge translates developer
-            intentions into structured layouts, HSL theme configurations, and
-            Framer Motion physics that AI compilers compile flawlessly on the
+            Stop typing generic instructions. {BRAND.name} compiles developer
+            intent into structured architecture layouts, design tokens, and
+            full-stack specifications that AI code generators compile flawlessly on the
             first run.
           </p>
 
@@ -540,7 +541,7 @@ export default function PremiumLandingPage() {
               },
               {
                 id: "2",
-                step: "PromptForge Compiler",
+                step: `${BRAND.name} Compiler`,
                 detail: "Semantic RAG mapping",
                 icon: Cpu,
                 color: "#6843EC",
@@ -594,19 +595,19 @@ export default function PremiumLandingPage() {
           {/* Action CTAs (Conversion Optimization: Go straight to high-value forge wizard page) */}
           <div style={ctaRowStyle}>
             <Link
-              href={user ? "/forge" : "/auth?redirect=/forge"}
+              href={user ? "/dashboard" : "/auth?redirect=/dashboard"}
               className="hero-cta-btn btn-accent shine-effect active-scale-95 btn-focus"
               style={primaryCtaBtn}
               aria-label="Launch Workspace to compile app specifications"
             >
-              Launch Forge Workspace
+              Launch {BRAND.name} Studio
               <ArrowRight size={15} />
             </Link>
             <a
               href="#how-it-works"
               className="hero-cta-btn btn-secondary active-scale-95 btn-focus"
               style={secondaryCtaBtn}
-              aria-label="Learn about PromptForge pipeline"
+              aria-label={`Learn about ${BRAND.name} pipeline`}
             >
               See Pipeline
             </a>
@@ -629,7 +630,7 @@ export default function PremiumLandingPage() {
                 />
               ))}
             </div>
-            <div style={browserUrl}>promptforge.ai/workspace</div>
+            <div style={browserUrl}>{BRAND.domain}/workspace</div>
           </div>
           <div
             className="hero-mockup-split-layout"
@@ -643,7 +644,7 @@ export default function PremiumLandingPage() {
               </div>
               <Image
                 src="/pages/dashboard_fresh.webp"
-                alt="PromptForge dashboard-style interface preview for the full-stack compile workspace"
+                alt={`${BRAND.name} dashboard-style interface preview for the full-stack compile workspace`}
                 width={900}
                 height={550}
                 style={mockupImg}
@@ -661,7 +662,7 @@ export default function PremiumLandingPage() {
               </div>
               <Image
                 src="/pages/vocabulary_raw.webp"
-                alt="PromptForge profile-style interface preview for the design vocabulary library"
+                alt={`${BRAND.name} profile-style interface preview for the design vocabulary library`}
                 width={900}
                 height={550}
                 style={mockupImg}
@@ -684,7 +685,7 @@ export default function PremiumLandingPage() {
           </h2>
           <p className="anim-beforeafter" style={sectionSubTextParagraph}>
             Observe the difference between feeding an AI generator a vague
-            layout statement versus PromptForge's complete structural spec.
+            layout statement versus {BRAND.name}'s complete structural spec.
           </p>
         </div>
 
@@ -757,7 +758,7 @@ export default function PremiumLandingPage() {
           >
             <div style={comparisonHeaderWrap}>
               <span style={comparisonBadgeStyle(true, isDark)}>
-                PROMPTFORGE COMPILED SPEC
+                {BRAND.name.toUpperCase()} COMPILED BLUEPRINT
               </span>
               <span
                 style={{
@@ -802,7 +803,7 @@ export default function PremiumLandingPage() {
         </div>
       </section>
 
-      {/* ── SECTION 2: PROMPTFORGE TRANSLATION ENGINE ── */}
+      {/* ── SECTION 2: VEYNTRA COMPILER ENGINE ── */}
       <section ref={translationRef} id="how-it-works" style={sectionContainer}>
         <div style={sectionHeader}>
           <p className="section-label anim-translation">TRANSFORMING INTENT</p>
@@ -810,7 +811,7 @@ export default function PremiumLandingPage() {
             The Retrieval & Compiler Engine
           </h2>
           <p className="anim-translation" style={sectionSubTextParagraph}>
-            AI models fail because they lack layout context. PromptForge bridges
+            AI models fail because they lack layout context. {BRAND.name} bridges
             the gap by structuring raw sentences into complete visual
             blueprints.
           </p>
@@ -888,7 +889,7 @@ export default function PremiumLandingPage() {
           </h2>
           <p className="anim-proof" style={sectionSubTextParagraph}>
             See exactly how Cursor, Bolt, or Lovable render a layout block when
-            compile instructions are enriched by PromptForge design tokens.
+            compile instructions are enriched by {BRAND.name} design tokens.
           </p>
         </div>
 
@@ -924,7 +925,7 @@ export default function PremiumLandingPage() {
                 <span
                   style={resultStepLabel(getAccessibleColor("#6843EC", isDark))}
                 >
-                  2. PromptForge Spec Injected
+                  2. {BRAND.name} Spec Injected
                 </span>
                 <div style={resultCodeSampleBox}>
                   <pre style={resultCodeSamplePre}>
@@ -955,7 +956,7 @@ export default function PremiumLandingPage() {
               <div style={{ display: "flex", flexDirection: "column", width: "100%", gap: "1rem" }}>
                 <Image
                   src="/pages/forge_raw.webp"
-                  alt="PromptForge login-style result preview compiled from the current workspace specifications"
+                  alt={`${BRAND.name} login-style result preview compiled from the current workspace specifications`}
                   width={900}
                   height={550}
                   style={realResultImg}
@@ -979,7 +980,7 @@ export default function PremiumLandingPage() {
             Integrated Workstation Modes
           </h2>
           <p className="anim-workspace" style={sectionSubTextParagraph}>
-            PromptForge provides specialized tools, each focused on a specific
+            {BRAND.name} provides specialized tools, each focused on a specific
             phase of the application specifications loop.
           </p>
         </div>
@@ -1036,7 +1037,7 @@ export default function PremiumLandingPage() {
                 WORKSPACE_TABS.find((t) => t.id === activeTab)?.img ||
                 "/pages/dashboard_fresh.webp"
               }
-              alt={`PromptForge interface preview for the ${WORKSPACE_TABS.find((t) => t.id === activeTab)?.title} workspace`}
+              alt={`${BRAND.name} interface preview for the ${WORKSPACE_TABS.find((t) => t.id === activeTab)?.title} workspace`}
               width={900}
               height={550}
               style={tabPreviewImg}
@@ -1048,15 +1049,15 @@ export default function PremiumLandingPage() {
         </div>
       </section>
 
-      {/* ── SECTION 8: "WHAT PROMPTFORGE ADDS" 6-CARD GRID ── */}
+      {/* ── SECTION 8: "WHAT VEYNTRA ADDS" 6-CARD GRID ── */}
       <section ref={addsRef} style={sectionContainer}>
         <div style={sectionHeader}>
           <p className="section-label anim-adds">CORE ENHANCEMENTS</p>
           <h2 className="anim-adds" style={sectionTitle}>
-            What PromptForge Adds
+            What {BRAND.name} Adds
           </h2>
           <p className="anim-adds" style={sectionSubTextParagraph}>
-            Every spec block injected with PromptForge contains verified design
+            Every spec block compiled with {BRAND.name} contains verified design
             parameters that keep layouts pixel-compliant.
           </p>
         </div>
@@ -1138,9 +1139,9 @@ export default function PremiumLandingPage() {
               Sync frames directly with existing repositories.
             </h3>
             <p style={syncParagraph}>
-              Do not build in a silo. PromptForge reads active Git branches,
+              Do not build in a silo. {BRAND.name} reads active Git branches,
               extracts existing visual tokens from your source files, and builds
-              prompts synchronized to your framework.
+              specifications synchronized to your framework.
             </p>
 
             <div style={syncBulletsGrid}>
@@ -1185,7 +1186,7 @@ export default function PremiumLandingPage() {
             </div>
             <Image
               src="/pages/chat_raw.webp"
-              alt="PromptForge profile-style interface preview for branch and workspace sync context"
+              alt={`${BRAND.name} profile-style interface preview for branch and workspace sync context`}
               width={600}
               height={450}
               style={syncMockImg}
@@ -1197,15 +1198,15 @@ export default function PremiumLandingPage() {
         </div>
       </section>
 
-      {/* ── SECTION 4: HOW PROMPTFORGE THINKS (MOAT SYSTEM MAP) ── */}
+      {/* ── SECTION 4: HOW VEYNTRA THINKS (MOAT SYSTEM MAP) ── */}
       <section ref={moatRef} style={sectionContainer}>
         <div style={sectionHeader}>
           <p className="section-label anim-moat">THE ARCHITECTURAL MOAT</p>
           <h2 className="anim-moat" style={sectionTitle}>
-            How PromptForge Thinks
+            How {BRAND.name} Thinks
           </h2>
           <p className="anim-moat" style={sectionSubTextParagraph}>
-            PromptForge does not let the AI guess. We translate, retrieve, and
+            {BRAND.name} does not let the AI guess. We translate, retrieve, and
             enrich your layout intentions through a multi-step compilation loop.
           </p>
         </div>
@@ -1451,7 +1452,7 @@ export default function PremiumLandingPage() {
             Who It's For
           </h2>
           <p className="anim-target" style={sectionSubTextParagraph}>
-            PromptForge is built for builders who demand visual execution on the
+            {BRAND.name} is built for builders who demand visual execution on the
             first build.
           </p>
         </div>
@@ -1489,16 +1490,16 @@ export default function PremiumLandingPage() {
             </h2>
             <p style={finalCtaDesc(isDark)}>
               Stop guessing. Transform your visual requirements into precise
-              prompt specs and launch your next high-fidelity app in seconds.
+              blueprints and launch your next high-fidelity app in seconds.
             </p>
 
             <Link
-              href={user ? "/forge" : "/auth?redirect=/forge"}
+              href={user ? "/dashboard" : "/auth?redirect=/dashboard"}
               className="btn-accent shine-effect active-scale-95 btn-focus"
               style={finalCtaBtnStyle}
-              aria-label="Access forge workspace workspace"
+              aria-label={`Access ${BRAND.name} Studio workspace`}
             >
-              Launch Forge Workspace
+              Launch {BRAND.name} Studio
               <ArrowRight size={15} />
             </Link>
           </div>
@@ -2115,7 +2116,7 @@ const realResultImg = {
   objectFit: "cover",
 };
 
-// ── Section 4: How PromptForge Thinks Flow
+// ── Section 4: How Veyntra Thinks Flow
 const moatFlowWrapper = {
   display: "flex",
   flexWrap: "wrap",
@@ -2734,3 +2735,5 @@ const sectionSubTextParagraph = {
   maxWidth: "560px",
   margin: 0,
 };
+
+

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Monitor, Layout, Wand2, X, Sparkles } from 'lucide-react';
 import { track, EVENTS } from '@/lib/analytics';
 import { useRouter } from 'next/navigation';
+import { BRAND } from '../config/brand';
 
 const ACTIONS = [
   {
@@ -81,7 +82,7 @@ export default function WelcomeBotMessage() {
             <div style={onlineDot} />
           </div>
           <div>
-            <div style={botName}>Forge Assistant</div>
+            <div style={botName}>{BRAND.name} Assistant</div>
             <div style={botStatus}>Online — ready to help</div>
           </div>
         </div>
@@ -110,7 +111,7 @@ export default function WelcomeBotMessage() {
                 style={messageBubble}
               >
                 <p style={messageText}>
-                  Hi! I'm your <strong style={{ color: 'var(--accent)' }}>Forge Assistant</strong>.
+                  Hi! I'm your <strong style={{ color: 'var(--accent)' }}>{BRAND.name} Assistant</strong>.
                   You have no blueprints yet — let's fix that.
                   Pick what you want to build below and I'll guide you through it. ✨
                 </p>

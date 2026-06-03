@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense, useCallback } from "react";
 import { useApp } from "@/context/AppContext";
 import { useSearchParams, useRouter } from "next/navigation";
+import { BRAND } from "@/config/brand";
 import { generateEnhancedPrompt } from "@/services/gemini";
 import {
   Send,
@@ -897,7 +898,7 @@ function CompilationSummaryPanel({ promptRecord }) {
         <div>
           <div style={summaryKicker}>Compilation Summary</div>
           <div style={summaryTitle}>
-            What PromptForge injected into this prompt
+            What {BRAND.name} compiled into this blueprint
           </div>
         </div>
         <div style={summaryHeaderMeta}>

@@ -463,7 +463,7 @@ return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div>
                   <h3 style={stepTitle}>Ready to Compile</h3>
-                  <p style={stepDesc}>Your selections are loaded. PromptForge will run the full RAG pipeline and generate a production-grade prompt.</p>
+                  <p style={stepDesc}>Your selections are loaded. Veyntra will run the full RAG pipeline and compile a production-grade blueprint.</p>
                 </div>
                 {/* Summary pills */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -510,7 +510,7 @@ return (
                 >
                   {isGenerating
                     ? <><Sliders size={18} className="animate-spin" /> Compiling Application Blueprint...</>
-                    : <><Sparkles size={18} /> Generate Application Prompt</>
+                    : <><Sparkles size={18} /> Compile Application Blueprint</>
                   }
                 </button>
               </div>

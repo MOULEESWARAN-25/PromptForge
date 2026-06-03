@@ -134,7 +134,7 @@ export function SyncBranchSelector({
 
   const getSyncPromptText = () => {
     const target = activeMode === 'page' ? (pageType || 'Web Page') : (componentType || 'Modular Component');
-    return `Generate project structure context for PromptForge.\nTarget component/layout: ${target}.\nOutput folder tree, tailwind config details, and styling themes inside a concise list without raw code snippets.`;
+    return `Generate project structure context for Veyntra.\nTarget component/layout: ${target}.\nOutput folder tree, tailwind config details, and styling themes inside a concise list without raw code snippets.`;
   };
 
   const handleFeatureToggle = (featureId) => {

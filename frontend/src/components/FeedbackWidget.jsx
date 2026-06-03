@@ -5,6 +5,7 @@ import { ThumbsUp, ThumbsDown, MessageSquare, Send, CheckCircle2 } from 'lucide-
 import { motion, AnimatePresence } from 'framer-motion';
 import { track } from '../lib/analytics';
 import { toast } from 'sonner';
+import { BRAND } from '../config/brand';
 
 export default function FeedbackWidget({ contextId, mode = 'inline' }) {
   const [rated, setRated] = useState(null); // 'helpful' | 'needs_improvement'
@@ -16,7 +17,7 @@ export default function FeedbackWidget({ contextId, mode = 'inline' }) {
     setRated(rating);
     track('prompt_usefulness_rated', { rating, contextId });
     if (rating === 'helpful') {
-      toast.success('Thanks for the vote! We love making PromptForge better.');
+      toast.success(`Thanks for the vote! We love making ${BRAND.name} better.`);
       setSubmitted(true);
     }
   };
@@ -38,7 +39,7 @@ export default function FeedbackWidget({ contextId, mode = 'inline' }) {
         className="glass-panel"
       >
         <CheckCircle2 size={16} style={{ color: '#22c55e' }} />
-        <span>Thank you for making PromptForge better!</span>
+        <span>Thank you for making {BRAND.name} better!</span>
       </motion.div>
     );
   }

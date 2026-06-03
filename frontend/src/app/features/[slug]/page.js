@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Monitor, Database, Code2 } from 'lucide-react';
 import FeatureDetailClient from '@/components/FeatureDetailClient';
+import { BRAND } from '@/config/brand';
 
 const FEATURES_DATA = {
   'prompt-builder': {
@@ -20,7 +21,7 @@ const FEATURES_DATA = {
     title: 'Design Vocabulary Integration',
     iconName: 'Database',
     desc: 'Local semantic vector database storing premium CSS, framer, and Tailwind tokens.',
-    detailedDesc: 'PromptForge leverages a localized design dictionary containing CSS transition curves (spring physics, ease curves), layout grids (bento boxes, sidebars, complex columns), glassmorphism, gradients, and custom Tailwind config properties. It matches user prompts to vector elements to enrich system outputs with actual production UI styles.',
+    detailedDesc: 'Veyntra leverages a localized design dictionary containing CSS transition curves (spring physics, ease curves), layout grids (bento boxes, sidebars, complex columns), glassmorphism, gradients, and custom Tailwind config properties. It matches user prompts to vector elements to enrich system outputs with actual production UI styles.',
     benefits: [
       'Tailwind HSL color palette generation',
       'Framer Motion physics configurations',
@@ -54,10 +55,10 @@ export async function generateMetadata({ params }) {
   const { slug } = await params;
   const data = FEATURES_DATA[slug] || { title: 'Feature details' };
   return {
-    title: `${data.title} - Features | PromptForge`,
-    description: `${data.desc} - PromptForge SEO landing details page.`,
+    title: `${data.title} - Features | ${BRAND.name}`,
+    description: `${data.desc} - ${BRAND.name} SEO landing details page.`,
     alternates: {
-      canonical: `https://promptforge.ai/features/${slug}`,
+      canonical: `https://${BRAND.domain}/features/${slug}`,
     },
   };
 }
@@ -84,7 +85,7 @@ export default async function FeatureDetailPage({ params }) {
     "description": feature.detailedDesc,
     "brand": {
       "@type": "Brand",
-      "name": "PromptForge"
+      "name": BRAND.name
     }
   };
 

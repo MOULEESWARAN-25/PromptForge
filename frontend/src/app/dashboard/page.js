@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useOptimistic, useTransition, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
+import { BRAND } from '@/config/brand';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
@@ -50,7 +51,7 @@ const WORKFLOWS = [
     wmode: 'page',
     icon: Layout,
     label: 'Web Page Design',
-    desc: '1. Select type of page, 2. Select components, 3. Select theme, 4. Generate prompt.',
+    desc: '1. Select type of page, 2. Select components, 3. Select theme, 4. Generate blueprint.',
     accent: '#0284c7',
     badge: 'v0 Ready',
   },
@@ -67,7 +68,7 @@ const WORKFLOWS = [
     href: '/forge?mode=enhance',
     wmode: 'enhance',
     icon: Wand2,
-    label: 'Prompt Enhancer',
+    label: 'Specification Enhancer',
     desc: 'Paste any rough idea and inject Framer motions, HSL tokens, and professional terminology instantly.',
     accent: 'var(--success)',
     badge: 'Quick',
@@ -356,7 +357,7 @@ export default function DashboardPage() {
         savedAt: Date.now(),
       };
       localStorage.setItem('promptforge_draft', JSON.stringify(draft));
-      toast.success(`Loaded ${tpl.title} template!`, { description: 'Starting forge wizard...' });
+      toast.success(`Loaded ${tpl.title} template!`, { description: 'Starting compilation wizard...' });
       router.push(`/forge?mode=${tpl.mode}`);
     });
   };
@@ -523,7 +524,7 @@ export default function DashboardPage() {
               <Search size={14} style={{ color: 'var(--muted-foreground)' }} />
               <input
                 type="text"
-                placeholder="Search prompt blueprints..."
+                placeholder="Search architecture blueprints..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 style={toolbarSearchInput}

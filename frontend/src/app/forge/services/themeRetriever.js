@@ -1,7 +1,7 @@
 import themes from '@/data/knowledge/themes.json';
 
 /**
- * PromptForge Phase 2 - Theme Retriever Service
+ * Veyntra Phase 2 - Theme Retriever Service
  * Resolves high-level visual styling presets into HSL dynamic parameters,
  * glassmorphic elevations, border-radius tokens, and typographic scale tokens.
  */

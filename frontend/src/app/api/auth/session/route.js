@@ -192,9 +192,12 @@ export async function POST(request) {
         }
       }
 
-      if (count >= 3) {
+      const isDev = process.env.NODE_ENV === 'development';
+      const limit = isDev ? 100 : 3;
+
+      if (count >= limit) {
         return NextResponse.json({
-          error: 'Your demo access limit has been reached. Create an account to continue using PromptForge.'
+          error: 'Your demo access limit has been reached. Create an account to continue using Veyntra.'
         }, { status: 403 });
       }
 

@@ -1,5 +1,5 @@
 /**
- * PromptForge Accessibility Specification Engine
+ * Veyntra Accessibility Specification Engine
  *
  * Returns component-aware accessibility requirements AND their rationale,
  * so the generated prompt teaches users *why* something should exist,

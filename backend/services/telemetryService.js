@@ -1,4 +1,4 @@
-// Memory-based backend telemetry system for PromptForge monitoring & observability
+// Memory-based backend telemetry system for Veyntra monitoring & observability
 import { supabase } from "./supabaseClient.js";
 
 const stats = {

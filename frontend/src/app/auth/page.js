@@ -8,21 +8,22 @@ import { toast } from 'sonner';
 import { Lock, User, LogIn, UserPlus, Sparkles, ArrowRight, Eye, EyeOff, Info, Mail } from 'lucide-react';
 import { track, EVENTS } from '@/lib/analytics';
 import blocklist from '@/config/disposableDomains.json';
+import { BRAND } from '@/config/brand';
 
 const SLIDES = [
   {
-    badge: 'Prompt Engineering',
-    headline: ['Turn vague ideas', 'into surgical', 'AI prompts.'],
+    badge: 'Intent Compilation',
+    headline: ['Compile vision', 'into precise', 'architecture plans.'],
     accentLine: 1,
-    sub: 'Stop writing weak descriptions. PromptForge translates your intent into precision-grade prompts that AI tools actually understand.',
-    tag: '12K+ Prompts Generated',
+    sub: 'Stop writing weak descriptions. Veyntra compiles your intent into precision-grade specifications that AI code compilers actually understand.',
+    tag: '12K+ Specifications Compiled',
     accent: 'var(--accent)',
     img: '/pages/dashboard.webp',
     imgAlt: 'Code editor with colorful syntax highlighting',
     floats: [
       { label: 'RAG Retrieved', side: 'left', offset: '0' },
       { label: 'Intent Mapped', side: 'right', offset: '0' },
-      { label: 'Prompt Forged', side: 'left', offset: '1' },
+      { label: 'Blueprint Synthesized', side: 'left', offset: '1' },
       { label: 'Cursor Ready', side: 'right', offset: '1' },
     ],
   },
@@ -30,7 +31,7 @@ const SLIDES = [
     badge: 'Design Intelligence',
     headline: ['RAG-powered', 'design vocab', 'at your fingertips.'],
     accentLine: 1,
-    sub: '200+ curated CSS patterns, layout grids, and motion physics — semantically retrieved and injected into every prompt you forge.',
+    sub: '200+ curated CSS patterns, layout grids, and motion physics — semantically retrieved and injected into every specification you compile.',
     tag: '200+ Design Patterns',
     accent: 'var(--workflow-application)',
     img: '/pages/profile.webp',
@@ -46,7 +47,7 @@ const SLIDES = [
     badge: 'Multi-Tool Support',
     headline: ['Works with Cursor,', 'Lovable, v0', 'and Bolt.'],
     accentLine: 1,
-    sub: 'Each prompt is tailored for your target AI coding tool. Switch environments and get perfectly context-aware output every single time.',
+    sub: 'Each specification is tailored for your target AI coding tool. Switch environments and get perfectly context-aware output every single time.',
     tag: '4 AI Tools Supported',
     accent: 'var(--workflow-enhance)',
     img: '/pages/settings.webp',
@@ -225,7 +226,7 @@ export default function AuthPage() {
     try {
       const result = await loginAsDemo();
       if (result.success) {
-        toast.success('Welcome to Demo Mode! Exploring PromptForge.');
+        toast.success(`Welcome to Demo Mode! Exploring ${BRAND.name}.`);
         router.push(getRedirectDest());
       } else {
         setError(result.message);
@@ -243,7 +244,7 @@ export default function AuthPage() {
     try {
       const result = await checkVerificationStatus();
       if (result.success) {
-        toast.success('Email verified successfully! Welcome to PromptForge.');
+        toast.success(`Email verified successfully! Welcome to ${BRAND.name}.`);
         router.push(getRedirectDest());
       } else {
         setError(result.message);
@@ -455,7 +456,7 @@ export default function AuthPage() {
               <div style={{ ...brandIcon, background: `${cur.accent}12`, borderColor: `${cur.accent}28` }}>
                 <Sparkles size={18} color={cur.accent} />
               </div>
-              <span style={brandName}>PROMPTFORGE</span>
+              <span style={brandName}>{BRAND.name.toUpperCase()}</span>
             </div>
 
             <div style={formHeading}>
@@ -569,7 +570,7 @@ export default function AuthPage() {
 
         <div style={logoRow}>
           <div style={logoIcon}><Sparkles size={15} color="#6843EC" /></div>
-          <span style={logoName}>PromptForge</span>
+          <span style={logoName}>{BRAND.name}</span>
           <motion.span
             key={`badge-${slide}`}
             style={{ ...logoBadge, color: cur.accent, borderColor: `${cur.accent}35`, background: `${cur.accent}12` }}
@@ -628,7 +629,7 @@ export default function AuthPage() {
                         <div key={c} style={{ width: 9, height: 9, borderRadius: '50%', background: c, opacity: 0.8 }} />
                       ))}
                     </div>
-                    <div style={dynamicImgCardUrl}><span>promptforge.ai</span></div>
+                    <div style={dynamicImgCardUrl}><span>{BRAND.domain}</span></div>
                     <div style={{ width: 36 }} />
                   </div>
                   <img src={cur.img} alt={cur.imgAlt} style={imgEl} loading="eager" />
@@ -662,7 +663,7 @@ export default function AuthPage() {
         </div>
 
         <div style={bottomBar}>
-          <p style={dynamicBottomLabel}>Sign in to forge precision prompts built for you</p>
+          <p style={dynamicBottomLabel}>Sign in to compile specifications built for you</p>
           <div style={dotTrack}>
             {SLIDES.map((_, i) => (
               <motion.button
@@ -711,12 +712,12 @@ export default function AuthPage() {
             >
               <Sparkles size={18} color={cur.accent} />
             </motion.div>
-            <span style={brandName}>PROMPTFORGE</span>
+            <span style={brandName}>{BRAND.name.toUpperCase()}</span>
           </div>
 
           <div style={formHeading}>
             <h2 style={formTitle}>{isLogin ? 'SIGN IN' : 'SIGN UP'}</h2>
-            <p style={dynamicFormSub}>{isLogin ? 'Access your forge workspace.' : 'Create your secure AI profile.'}</p>
+            <p style={dynamicFormSub}>{isLogin ? 'Access your Veyntra Studio.' : 'Create your secure AI profile.'}</p>
           </div>
 
           <div style={dynamicTabTrack}>
@@ -903,7 +904,7 @@ export default function AuthPage() {
             disabled={loading}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
-            title="Explore PromptForge instantly in Demo Mode"
+            title={`Explore ${BRAND.name} instantly in Demo Mode`}
             aria-label="Use Demo Account"
           >
             <Sparkles size={16} style={{ marginRight: 6, color: cur.accent }} />

@@ -1,8 +1,10 @@
+import { BRAND } from "@/config/brand";
+
 export const metadata = {
-  title: "Dashboard | PromptForge",
-  description: "Configure and manage your personalized AI prompt-engineering workspaces.",
+  title: `Dashboard | ${BRAND.name}`,
+  description: "Configure and compile your personalized AI design and software compilation blueprints.",
   alternates: {
-    canonical: 'https://promptforge.ai/dashboard',
+    canonical: `https://${BRAND.domain}/dashboard`,
   },
   robots: {
     index: false,

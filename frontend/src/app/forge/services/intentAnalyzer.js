@@ -1,5 +1,5 @@
 /**
- * PromptForge Phase 2 - Intent Vagueness Analyzer
+ * Veyntra Phase 2 - Intent Vagueness Analyzer
  * Parses semantic properties to determine developer vision alignment and trigger clarifications.
  */
 export function evaluateIntentClarity(rawPrompt) {

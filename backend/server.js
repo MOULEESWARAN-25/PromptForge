@@ -35,7 +35,7 @@ const localThemeStyles = themeStyles || {
 
 // Health Check
 app.get('/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date(), service: 'PromptForge RAG Agent Server' });
+  res.json({ status: 'healthy', timestamp: new Date(), service: 'Veyntra RAG Agent Server' });
 });
 
 // System Status & Observability Telemetry Stats
@@ -142,7 +142,7 @@ app.post('/api/forge', async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`================================================================`);
-  console.log(` PromptForge Decoupled RAG Backend running on http://localhost:${PORT}`);
+  console.log(` Veyntra Decoupled RAG Backend running on http://localhost:${PORT}`);
   console.log(` Database: Connecting to Supabase Vector DB (pgvector)`);
   console.log(` AI Orchestration: LangChain + Google Gemini 2.5 Flash API`);
   console.log(`================================================================`);

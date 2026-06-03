@@ -1,7 +1,7 @@
 import motions from '@/data/knowledge/motions.json';
 
 /**
- * PromptForge Phase 2 - Motion Physics Dynamics Retriever Service
+ * Veyntra Phase 2 - Motion Physics Dynamics Retriever Service
  * Resolves developer-friendly descriptors into stiffness, damping, mass coordinates,
  * and Framer Motion spring curve configurations.
  */

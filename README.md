@@ -1,15 +1,15 @@
-# PromptForge — Premium AI Prompt Architect
+# Veyntra — Developer Intent Compiler
 
-PromptForge is a premium, neo-noir inspired SaaS platform designed as an **AI Development Intent Translator**. It bridges the gap between raw developer intent and surgical execution in AI coding tools like Cursor, Lovable, v0, and Bolt. By transforming vague descriptions into highly optimized, context-aware prompt templates enriched with RAG-retrieved CSS design vocabulary, developers can build flawless interfaces and micro-architectures with unparalleled predictability.
+Veyntra is a premium, neo-noir inspired SaaS platform designed as a **Developer Intent Compiler**. It bridges the gap between raw developer intent and surgical execution in AI coding tools like Cursor, Lovable, v0, and Bolt. By transforming vague descriptions into highly optimized, context-aware architectural blueprints and specifications enriched with RAG-retrieved CSS design vocabulary, developers can build flawless interfaces and production-ready applications with unparalleled predictability.
 
 ---
 
 ## Key Pillars
 
-* **Intent Translation Engine**: Analyzes developer descriptions and maps them into clear directives, functional specifications, and architectural constraints.
+* **Intent Compilation Engine**: Analyzes developer descriptions and maps them into clear directives, functional specifications, and architectural constraints.
 * **RAG-Powered Design Vocabulary**: Seamlessly fetches optimal CSS tokens, layouts, and responsive guidelines using custom semantic matching vectors to instruct the coding AI on perfect aesthetics.
-* **Prompt Critique Agent**: Built-in dialog panel running critique loops on prompt structures to flag ambiguities or underspecified requirements.
-* **Component Forge**: Access a rich database of 50+ premium design patterns and ready-to-use micro-frontend layouts.
+* **Blueprint Critique Agent**: Built-in dialog panel running critique loops on blueprints to flag ambiguities or underspecified requirements.
+* **Component Workspace**: Access a rich database of 50+ premium design patterns and ready-to-use micro-frontend layouts.
 * **RAG Inspector**: A real-time developer utility panel to inspect similarity weights, vector distances, and exact vocabulary database matches.
 
 ---
@@ -27,22 +27,22 @@ PromptForge is a premium, neo-noir inspired SaaS platform designed as an **AI De
 * **Core API Server**: Node.js & Express
 * **Database & Auth**: Supabase (PostgreSQL database & Row-Level Security)
 * **Schema Validation**: Zod
-* **AI Engine**: Google Gemini API for intent translation and automated prompt critique
+* **AI Engine**: Google Gemini API for intent compilation and automated blueprint critique
 
 ---
 
 ## Directory Structure
 
 ```
-PromptForge/
+Veyntra/
 ├── package.json             # Root-level monorepo orchestrator
 ├── frontend/                # Next.js Frontend Application
 │   ├── src/
 │   │   ├── app/             # Next.js App Router (Layouts, Views, Page Routes)
 │   │   │   ├── auth/        # Responsive Auth Flow (Login, Registration, Demo Access)
-│   │   │   ├── chat/        # Autonomous Prompt Critic Dialogue Screen
+│   │   │   ├── chat/        # Autonomous Blueprint Critic Dialogue Screen
 │   │   │   ├── component-forge/ # Premium Component Database & Selector Page
-│   │   │   ├── forge/       # Primary Prompt Translation Workspace Panel
+│   │   │   ├── forge/       # Primary Intent Translation Workspace Panel
 │   │   │   └── learn/       # RAG Educational & Reference Panel
 │   │   ├── components/      # Reusable UI Patterns (Aurora Background, Navigation, Drawer, RAG Inspector)
 │   │   ├── context/         # Global App State Provider (API Key persistence, auth session)
@@ -114,7 +114,7 @@ npm install
 npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) on your local browser to access PromptForge.
+Open [http://localhost:3000](http://localhost:3000) on your local browser to access Veyntra.
 
 ---
 

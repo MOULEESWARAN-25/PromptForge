@@ -27,6 +27,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { track, EVENTS } from "../lib/analytics";
 import { toast } from "sonner";
+import { BRAND } from "../config/brand";
 
 const KEYBOARD_SHORTCUTS = [
   { keys: ["⌘", "K"], label: "Open command palette" },
@@ -88,9 +89,9 @@ export default function SettingsDrawer({ isOpen, onClose }) {
     setTimeout(() => setApiKeySaved(false), 2000);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     onClose();
-    logout();
+    await logout();
     router.replace("/auth");
   };
 
@@ -174,7 +175,7 @@ export default function SettingsDrawer({ isOpen, onClose }) {
                   </span>
                 </div>
                 <p style={planDesc}>
-                  You have compiled {usage.used} prompt blueprints. PromptForge
+                  You have compiled {usage.used} architecture blueprints. {BRAND.name}
                   is completely free, so build as many workspaces as you want!
                 </p>
               </div>

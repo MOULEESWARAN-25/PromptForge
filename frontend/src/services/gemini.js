@@ -71,7 +71,7 @@ export async function generateEnhancedPrompt({
       return {
         prompt: data.prompt,
         ragDetails: data.ragDetails,
-        source: data.source || "PromptForge Cloud Engine"
+        source: data.source || "Veyntra Cloud Engine"
       };
     }
   } catch (error) {

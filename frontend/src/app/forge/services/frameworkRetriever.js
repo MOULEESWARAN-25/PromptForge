@@ -1,7 +1,7 @@
 import frameworks from '@/data/knowledge/frameworks.json';
 
 /**
- * PromptForge Phase 2 - Active CSS Framework & Stack Retriever
+ * Veyntra Phase 2 - Active CSS Framework & Stack Retriever
  * Resolves boilerplate syntax rules, required npm packages, and configurations for target UI libraries.
  */
 export async function retrieveFrameworkBoilerplate(frameworkName) {
