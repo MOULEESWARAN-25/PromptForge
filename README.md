@@ -35,25 +35,27 @@ PromptForge is a premium, neo-noir inspired SaaS platform designed as an **AI De
 
 ```
 PromptForge/
-├── src/
-│   ├── app/                 # Next.js App Router (Layouts, Views, Page Routes)
-│   │   ├── auth/            # Responsive Auth Flow (Login, Registration, Demo Access)
-│   │   ├── chat/            # Autonomous Prompt Critic Dialogue Screen
-│   │   ├── component-forge/ # Premium Component Database & Selector Page
-│   │   ├── forge/           # Primary Prompt Translation Workspace Panel
-│   │   └── learn/           # RAG Educational & Reference Panel
-│   ├── components/          # Reusable UI Patterns (Aurora Background, Navigation, Drawer, RAG Inspector)
-│   ├── context/             # Global App State Provider (API Key persistence, auth session)
-│   ├── data/                # Local CSS Design Patterns & Vocabulary Database
-│   └── services/            # Client Engines (Supabase Client, RAG Engine, Gemini SDK)
+├── package.json             # Root-level monorepo orchestrator
+├── frontend/                # Next.js Frontend Application
+│   ├── src/
+│   │   ├── app/             # Next.js App Router (Layouts, Views, Page Routes)
+│   │   │   ├── auth/        # Responsive Auth Flow (Login, Registration, Demo Access)
+│   │   │   ├── chat/        # Autonomous Prompt Critic Dialogue Screen
+│   │   │   ├── component-forge/ # Premium Component Database & Selector Page
+│   │   │   ├── forge/       # Primary Prompt Translation Workspace Panel
+│   │   │   └── learn/       # RAG Educational & Reference Panel
+│   │   ├── components/      # Reusable UI Patterns (Aurora Background, Navigation, Drawer, RAG Inspector)
+│   │   ├── context/         # Global App State Provider (API Key persistence, auth session)
+│   │   ├── data/            # Local CSS Design Patterns & Vocabulary Database
+│   │   └── services/        # Client Engines (Supabase Client, RAG Engine, Gemini SDK)
+│   └── package.json
 │
-├── backend/
-│   ├── scripts/             # Database Seeding Utility Scripts (seed.js)
-│   ├── services/            # Backend Integrations (RAG Processor, Agent, Supabase)
-│   └── server.js            # Node Express API Server
-│
-├── supabase/
-│   └── schema.sql           # Database schema tables, trigger functions, and indices
+└── backend/                 # Node.js & Express pgvector RAG Backend
+    ├── scripts/             # Database Seeding Utility Scripts (seed.js)
+    ├── services/            # Backend Integrations (RAG Processor, Agent, Supabase)
+    ├── supabase/            # Database schema tables, trigger functions, and indices
+    ├── server.js            # Node Express API Server
+    └── package.json
 ```
 
 ---
@@ -64,10 +66,10 @@ PromptForge/
 Ensure you have [Node.js](https://nodejs.org) installed on your system.
 
 ### 2. Database & API Credentials
-Create a `.env.local` file in the root directory (and a `.env` file in the `backend/` folder) containing your Supabase and Gemini configurations:
+Create a `.env.local` file in the `frontend/` directory (and a `.env` file in the `backend/` folder) containing your Supabase and Gemini configurations:
 
 ```env
-# Root /.env.local (Frontend configuration)
+# Frontend /frontend/.env.local (Frontend configuration)
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 
@@ -75,31 +77,40 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 GEMINI_API_KEY=your-google-gemini-api-key
-PORT=5000
+PORT=8000
 ```
 
 ### 3. Database Initialization
-Execute the SQL statements inside `supabase/schema.sql` inside your Supabase SQL Editor. Once complete, run the seeding script to populate the custom design vocabulary database:
+Execute the SQL statements inside `backend/supabase/schema.sql` inside your Supabase SQL Editor. Once complete, run the seeding script to populate the custom design vocabulary database:
 
 ```bash
-cd backend
-npm install
 npm run seed
 ```
 
 ### 4. Running the Development Environments
-Start both the Frontend and Backend servers simultaneously to begin prompt forging:
+Start both the Frontend and Backend servers simultaneously from the root directory:
 
-#### Frontend Development Server (Root directory):
 ```bash
-# In the root folder:
+# 1. Install all dependencies
+npm run install:all
+
+# 2. Run both dev servers concurrently
+npm run dev
+```
+
+Alternatively, you can run them individually:
+
+#### Frontend Development Server:
+```bash
+cd frontend
 npm install
 npm run dev
 ```
 
 #### Backend API Server:
 ```bash
-# In the backend folder:
+cd backend
+npm install
 npm start
 ```
 
