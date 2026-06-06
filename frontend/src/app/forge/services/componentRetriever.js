@@ -30,7 +30,7 @@ export async function retrieveComponentSpecs(componentName) {
 
   return {
     componentName: compSpec.componentName,
-    accessibilityGuidelines: compSpec.accessibilityGuidelines,
+    accessibilityGuidelines: compSpec.accessibilityGuidelines || compSpec.accessibilityRequirements || [],
     responsiveGridPresets: compSpec.responsiveGridPresets
   };
 }

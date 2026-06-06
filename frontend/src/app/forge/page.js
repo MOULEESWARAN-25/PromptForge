@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
 import { BRAND } from "@/config/brand";
@@ -372,6 +372,14 @@ function ForgeWizardContent() {
   const { user, savePromptRecord, apiKey, history } = useApp();
   const router = useRouter();
 
+  // Force scroll to top on initial page load to prevent scroll position carryover
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   // State Manager Custom Hook
   const forgeState = useForgeState(user, router);
   const {
@@ -644,66 +652,68 @@ function ForgeWizardContent() {
 
   return (
     <div className="forge-main-container">
-      {/* Row 1: Back to Dashboard button */}
-      <div style={{ display: "flex", width: "100%", marginBottom: "0.75rem" }}>
-        <button
-          style={backBtn}
-          onClick={() => {
-            router.push("/dashboard");
-          }}
-          className="active-scale-95 glow-card-spotlight"
-        >
-          <ArrowLeft size={15} />
-          Back to Dashboard
-        </button>
-      </div>
-
-      {/* Row 2: Page Title & Description */}
+      {/* Unified Header Row */}
       {activeMode && (
         <div
           style={{
-            display: "flex",
+            display: "grid",
+            gridTemplateColumns: "200px 1fr 200px",
             alignItems: "center",
-            gap: "1rem",
             width: "100%",
             borderBottom: "1px solid rgba(255,255,255,0.06)",
-            paddingBottom: "1.25rem",
+            paddingBottom: "1rem",
             marginBottom: "0.5rem",
           }}
+          className="forge-header-row"
         >
-          <div style={wizardIconWrap}>
-            {activeMode === "application" && (
-              <Monitor size={22} style={{ color: "#7c3aed" }} />
-            )}
-            {activeMode === "page" && (
-              <Layout size={22} style={{ color: "#0891b2" }} />
-            )}
-            {activeMode === "component" && (
-              <Code2 size={22} style={{ color: "#6843EC" }} />
-            )}
-            {activeMode === "enhance" && (
-              <Wand2 size={22} style={{ color: "#059669" }} />
-            )}
+          {/* Left: Back Button */}
+          <div style={{ display: "flex", justifyContent: "flex-start" }}>
+            <button
+              style={backBtn}
+              onClick={() => {
+                router.back();
+              }}
+              className="active-scale-95 glow-card-spotlight"
+            >
+              <ArrowLeft size={15} />
+              Back
+            </button>
           </div>
-          <div>
-            <h1 style={mainTitle}>
-              {activeMode === "application" &&
-                "Full-Stack Application Architect"}
-              {activeMode === "page" && "Web Page Design"}
-              {activeMode === "component" && "Modular Component Architect"}
-              {activeMode === "enhance" && "Technical Design Specification Enhancer"}
-            </h1>
-            <p style={mainSub}>
-              {activeMode === "application" &&
-                "Build a full multi-page application blueprint."}
-              {activeMode === "page" &&
-                "Design custom web pages with themes & components."}
-              {activeMode === "component" &&
-                "Configure premium modular interface controls."}
-              {activeMode === "enhance" &&
-                "Inject layout tokens & motions to draft specifications."}
-            </p>
+
+          {/* Center: Title & Description */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem" }}>
+            <div style={{ ...wizardIconWrap, width: "38px", height: "38px" }}>
+              {activeMode === "application" && (
+                <Monitor size={18} style={{ color: "#7c3aed" }} />
+              )}
+              {activeMode === "page" && (
+                <Layout size={18} style={{ color: "#0891b2" }} />
+              )}
+              {activeMode === "component" && (
+                <Code2 size={18} style={{ color: "#6843EC" }} />
+              )}
+              {activeMode === "enhance" && (
+                <Wand2 size={18} style={{ color: "#059669" }} />
+              )}
+            </div>
+            <div style={{ textAlign: "left" }}>
+              <h1 style={{ ...mainTitle, fontSize: "1.25rem", lineHeight: "1.2" }}>
+                {activeMode === "application" && "Full-Stack Application Architect"}
+                {activeMode === "page" && "Web Page Design"}
+                {activeMode === "component" && "Modular Component Architect"}
+                {activeMode === "enhance" && "Technical Design Specification Enhancer"}
+              </h1>
+              <p style={{ ...mainSub, fontSize: "0.82rem", marginTop: "0.15rem" }}>
+                {activeMode === "application" && "Build a full multi-page application blueprint."}
+                {activeMode === "page" && "Design custom web pages with themes & components."}
+                {activeMode === "component" && "Configure premium modular interface controls."}
+                {activeMode === "enhance" && "Inject layout tokens & motions to draft specifications."}
+              </p>
+            </div>
           </div>
+
+          {/* Right spacer to balance grid centering */}
+          <div style={{ display: "flex", justifyContent: "flex-end" }} />
         </div>
       )}
 
@@ -778,7 +788,7 @@ function ForgeWizardContent() {
           width: 95%;
           max-width: 1600px;
           margin: 0 auto;
-          padding: 1.25rem 1.5rem 3rem 1.5rem;
+          padding: 6.5rem 1.5rem 3rem 1.5rem;
           display: flex;
           flex-direction: column;
           gap: 1rem;
@@ -793,6 +803,14 @@ function ForgeWizardContent() {
         @media (max-width: 900px) {
           .forge-intelligence-rail {
             grid-template-columns: 1fr !important;
+          }
+          .forge-header-row {
+            grid-template-columns: 1fr !important;
+            gap: 1rem;
+            text-align: center;
+          }
+          .forge-header-row > div {
+            justify-content: center !important;
           }
         }
       `}</style>

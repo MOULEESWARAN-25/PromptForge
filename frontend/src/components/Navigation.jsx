@@ -389,10 +389,10 @@ export default function Navigation() {
 
 const navContainer = (isDark) => ({
   position: "sticky",
-  top: "16px",
-  margin: "16px auto 32px auto",
+  top: "12px",
+  margin: "12px auto 16px auto",
   width: "calc(100% - 2rem)",
-  maxWidth: "1280px",
+  maxWidth: "1600px",
   height: "56px",
   padding: "0 1.25rem",
   display: "flex",

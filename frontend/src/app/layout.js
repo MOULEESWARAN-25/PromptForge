@@ -151,7 +151,7 @@ const mainWrapper = {
 
 const globalFooterStyle = {
   width: "100%",
-  padding: "2rem 1.5rem 2.5rem 1.5rem",
+  padding: "1rem 1.5rem 1.25rem 1.5rem",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",

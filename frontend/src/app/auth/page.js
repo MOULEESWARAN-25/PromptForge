@@ -450,10 +450,10 @@ export default function AuthPage() {
         <div style={rightPanel}>
           <div style={{ margin: 'auto' }} />
           <div style={dynamicFormCard}>
-            <div style={{ ...cardTopShine, background: `linear-gradient(90deg, transparent 0%, ${cur.accent}77 50%, transparent 100%)` }} />
+            <div style={{ ...cardTopShine, background: `linear-gradient(90deg, transparent 0%, color-mix(in srgb, ${cur.accent} 47%, transparent) 50%, transparent 100%)` }} />
             
             <div style={brandRow}>
-              <div style={{ ...brandIcon, background: `${cur.accent}12`, borderColor: `${cur.accent}28` }}>
+              <div style={{ ...brandIcon, background: `color-mix(in srgb, ${cur.accent} 7%, transparent)`, borderColor: `color-mix(in srgb, ${cur.accent} 16%, transparent)` }}>
                 <Sparkles size={18} color={cur.accent} />
               </div>
               <span style={brandName}>{BRAND.name.toUpperCase()}</span>
@@ -559,7 +559,7 @@ export default function AuthPage() {
       <div className="hidden lg:flex" style={leftPanel}>
         <motion.div
           key={`orb-${slide}`}
-          style={{ ...panelOrb, background: `radial-gradient(circle, ${cur.accent}16 0%, transparent 65%)` }}
+          style={{ ...panelOrb, background: `radial-gradient(circle, color-mix(in srgb, ${cur.accent} 9%, transparent) 0%, transparent 65%)` }}
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}
         />
 
@@ -573,7 +573,7 @@ export default function AuthPage() {
           <span style={logoName}>{BRAND.name}</span>
           <motion.span
             key={`badge-${slide}`}
-            style={{ ...logoBadge, color: cur.accent, borderColor: `${cur.accent}35`, background: `${cur.accent}12` }}
+            style={{ ...logoBadge, color: cur.accent, borderColor: `color-mix(in srgb, ${cur.accent} 21%, transparent)`, background: `color-mix(in srgb, ${cur.accent} 7%, transparent)` }}
             initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }}
           >v2.0</motion.span>
         </div>
@@ -588,7 +588,7 @@ export default function AuthPage() {
               exit={{ opacity: 0, y: -16 }}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div style={{ ...slidePill, color: cur.accent, borderColor: `${cur.accent}30`, background: `${cur.accent}0e` }}>
+              <div style={{ ...slidePill, color: cur.accent, borderColor: `color-mix(in srgb, ${cur.accent} 19%, transparent)`, background: `color-mix(in srgb, ${cur.accent} 6%, transparent)` }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: cur.accent }} />
                 {cur.badge}
               </div>
@@ -596,7 +596,7 @@ export default function AuthPage() {
               <h1 style={slideHeadline}>
                 {cur.headline.map((line, i) =>
                   i === cur.accentLine
-                    ? <span key={i} style={{ background: `linear-gradient(120deg, ${cur.accent} 0%, ${cur.accent}bb 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'block' }}>{line}</span>
+                    ? <span key={i} style={{ background: `linear-gradient(120deg, ${cur.accent} 0%, color-mix(in srgb, ${cur.accent} 73%, transparent) 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'block' }}>{line}</span>
                     : <span key={i} style={{ display: 'block' }}>{line}</span>
                 )}
               </h1>
@@ -606,7 +606,7 @@ export default function AuthPage() {
                   {cur.floats.filter(f => f.side === 'left').map((f, i) => (
                     <motion.div
                       key={`float-left-${slide}-${i}`}
-                      style={{ ...floatPill, borderColor: `${cur.accent}28`, background: `${cur.accent}0c` }}
+                      style={{ ...floatPill, borderColor: `color-mix(in srgb, ${cur.accent} 16%, transparent)`, background: `color-mix(in srgb, ${cur.accent} 5%, transparent)` }}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.1 + i * 0.12, duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
@@ -640,7 +640,7 @@ export default function AuthPage() {
                   {cur.floats.filter(f => f.side === 'right').map((f, i) => (
                     <motion.div
                       key={`float-right-${slide}-${i}`}
-                      style={{ ...floatPill, borderColor: `${cur.accent}28`, background: `${cur.accent}0c` }}
+                      style={{ ...floatPill, borderColor: `color-mix(in srgb, ${cur.accent} 16%, transparent)`, background: `color-mix(in srgb, ${cur.accent} 5%, transparent)` }}
                       initial={{ opacity: 0, x: 10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.15 + i * 0.12, duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
@@ -654,7 +654,7 @@ export default function AuthPage() {
 
               <p style={dynamicSlideSub}>{cur.sub}</p>
 
-              <div style={{ ...statTag, color: cur.accent, borderColor: `${cur.accent}25`, background: `${cur.accent}0a` }}>
+              <div style={{ ...statTag, color: cur.accent, borderColor: `color-mix(in srgb, ${cur.accent} 15%, transparent)`, background: `color-mix(in srgb, ${cur.accent} 4%, transparent)` }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: cur.accent }} />
                 {cur.tag}
               </div>
@@ -682,7 +682,7 @@ export default function AuthPage() {
       <div style={rightPanel}>
         <motion.div
           key={`right-orb-${slide}`}
-          style={{ ...rightOrb, background: `radial-gradient(circle, ${cur.accent}0f 0%, transparent 60%)` }}
+          style={{ ...rightOrb, background: `radial-gradient(circle, color-mix(in srgb, ${cur.accent} 6%, transparent) 0%, transparent 60%)` }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1 }}
@@ -698,7 +698,7 @@ export default function AuthPage() {
         >
           <motion.div
             key={`shine-${slide}`}
-            style={{ ...cardTopShine, background: `linear-gradient(90deg, transparent 0%, ${cur.accent}77 50%, transparent 100%)` }}
+            style={{ ...cardTopShine, background: `linear-gradient(90deg, transparent 0%, color-mix(in srgb, ${cur.accent} 47%, transparent) 50%, transparent 100%)` }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6 }}
@@ -706,7 +706,7 @@ export default function AuthPage() {
 
           <div style={brandRow}>
             <motion.div
-              style={{ ...brandIcon, background: `${cur.accent}12`, borderColor: `${cur.accent}28` }}
+              style={{ ...brandIcon, background: `color-mix(in srgb, ${cur.accent} 7%, transparent)`, borderColor: `color-mix(in srgb, ${cur.accent} 16%, transparent)` }}
               animate={{ rotate: [0, 5, -5, 0] }}
               transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
             >
@@ -864,7 +864,7 @@ export default function AuthPage() {
               style={{
                 ...dynamicSubmitBtn,
                 background: cur.accent,
-                boxShadow: `0 8px 30px ${cur.accent}25`
+                boxShadow: `0 8px 30px color-mix(in srgb, ${cur.accent} 15%, transparent)`
               }}
               disabled={loading}
               whileHover={!loading ? { scale: 1.015 } : {}}

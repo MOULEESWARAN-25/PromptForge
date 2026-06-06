@@ -262,9 +262,9 @@ export default function ComponentForgePage() {
       {/* 1. LEFT SIDEBAR PANEL (Component Index Catalog) */}
       <div style={sidebarStyle} className="glass-panel">
         <div style={sidebarHeader}>
-          <button style={backBtn} onClick={() => router.push('/dashboard')}>
+          <button style={backBtn} onClick={() => router.back()}>
             <ArrowLeft size={13} />
-            Back to Dashboard
+            Back
           </button>
           <h2 style={sidebarTitle}>Component Catalog</h2>
           

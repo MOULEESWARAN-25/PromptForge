@@ -49,7 +49,7 @@ export async function runRetrievalPipeline(rawPrompt, options = {}) {
 
   if (options.componentName) {
     const compSpecs = await retrieveComponentSpecs(options.componentName);
-    if (compSpecs && compSpecs.accessibilityGuidelines.length > 0) {
+    if (compSpecs && Array.isArray(compSpecs.accessibilityGuidelines) && compSpecs.accessibilityGuidelines.length > 0) {
       promptPatterns.push(`Structural Preset: ${compSpecs.responsiveGridPresets}`);
       compSpecs.accessibilityGuidelines.forEach(acc => promptPatterns.push(`Accessibility Guideline: ${acc}`));
     }

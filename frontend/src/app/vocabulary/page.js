@@ -1,32 +1,57 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 import { designVocabulary } from '@/data/designVocabulary';
-import { motion, AnimatePresence, useInView } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-
 import {
   Search, Copy, Check, Code, BookOpen, Filter,
-  Paintbrush, LayoutGrid, Box, Navigation2, Zap, Cpu,
-  ChevronDown, Sparkles, X, ArrowRight
+  Compass, Palette, Code2, Server, Cpu, Layers,
+  ChevronDown, ChevronUp, Sparkles, X, ArrowRight, Info
 } from 'lucide-react';
 
-// ─── Category Config ─────────────────────────────────────────
+// ─── Constants & Configuration ────────────────────────────────
+const ACTIVE_CATEGORIES = [
+  "Product Strategy",
+  "UX & Design",
+  "Frontend Development",
+  "Backend Architecture",
+  "AI & Automation",
+  "DevOps & Infrastructure"
+];
+
+const CATEGORY_SLUGS = {
+  "Product Strategy": "product-strategy",
+  "UX & Design": "ux-design",
+  "Frontend Development": "frontend-development",
+  "Backend Architecture": "backend-architecture",
+  "AI & Automation": "ai-automation",
+  "DevOps & Infrastructure": "devops-infrastructure"
+};
+
+const SLUG_TO_CATEGORY = {
+  "product-strategy": "Product Strategy",
+  "ux-design": "UX & Design",
+  "frontend-development": "Frontend Development",
+  "backend-architecture": "Backend Architecture",
+  "ai-automation": "AI & Automation",
+  "devops-infrastructure": "DevOps & Infrastructure"
+};
+
 const CATEGORY_META = {
-  'Visual Design Style': { icon: Paintbrush, color: '#a855f7' },
-  'Layout':             { icon: LayoutGrid, color: '#0ea5e9' },
-  'Component':          { icon: Box,        color: '#f43f5e' },
-  'Navigation Pattern': { icon: Navigation2,color: '#10b981' },
-  'Animation & Motion': { icon: Zap,        color: 'var(--accent)' },
-  'Modern AI/SaaS Terms':{ icon: Cpu,       color: '#6366f1' },
+  "Product Strategy": { icon: Compass, color: "#a855f7" },
+  "UX & Design": { icon: Palette, color: "#f43f5e" },
+  "Frontend Development": { icon: Code2, color: "#0ea5e9" },
+  "Backend Architecture": { icon: Server, color: "#10b981" },
+  "AI & Automation": { icon: Cpu, color: "#6366f1" },
+  "DevOps & Infrastructure": { icon: Layers, color: "#eab308" }
 };
 
 const getThemeColor = (color, isDark) => {
   if (isDark) {
-    if (color === 'var(--accent)') return '#6843EC';
-    return color;
+    return color === 'var(--accent)' ? '#6843EC' : color;
   }
   switch (color) {
     case '#10b981': return '#15803d'; // green
@@ -34,7 +59,7 @@ const getThemeColor = (color, isDark) => {
     case '#a855f7': return '#7c3aed'; // purple
     case '#f43f5e': return '#dc2626'; // rose
     case '#6366f1': return '#4f46e5'; // indigo
-    case 'var(--accent)': return '#6843EC'; // accent purple
+    case '#eab308': return '#b45309'; // yellow/amber
     default: return color;
   }
 };
@@ -50,516 +75,929 @@ const getCatMeta = (cat, isDark) => {
   };
 };
 
-// ─── Animation Variants ──────────────────────────────────────
-const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
-const fadeUp = {
-  hidden: { opacity: 0, y: 28 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
-};
-const cardAnim = {
-  hidden: { opacity: 0, y: 20, scale: 0.97 },
-  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
-};
-
 export default function VocabularyPage() {
   const { user, theme } = useApp();
   const isDark = theme === 'dark';
   const router = useRouter();
+
+  // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
-  const [copiedId, setCopiedId] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [expandedId, setExpandedId] = useState(null);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
-  
-  const heroRef = useRef(null);
-  const gridRef = useRef(null);
-  const heroInView = useInView(heroRef, { once: true });
-  const gridInView = useInView(gridRef, { once: true, margin: '-60px' });
 
-  React.useEffect(() => { if (!user) router.push('/auth'); }, [user, router]);
+  // Copy States (Card ID to Copy Type mapping)
+  const [copiedId, setCopiedId] = useState(null);
+  const [copiedType, setCopiedType] = useState(null); // 'name' | 'prompt'
 
-  const handleCopy = (id, text, e) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    toast.success('Prompt token copied');
-    setTimeout(() => setCopiedId(null), 2000);
-  };
+  // Collapsible Category Sections State
+  const [expandedSections, setExpandedSections] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('veyntra_expanded_vocabulary_sections');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            return parsed;
+          }
+        } catch (e) {
+          // Ignore parse errors and fallback
+        }
+      }
+    }
+    return ["Product Strategy"]; // First section expanded by default
+  });
+
+  // Keep track of expanded sections before a search is initiated
+  const preSearchExpandedSections = useRef(null);
+
+  // Collapsible Developer Notes State per Card
+  const [expandedDevNotes, setExpandedDevNotes] = useState({});
+
+  const sectionRefs = useRef({});
+
+  // 1. Authenticate check
+  useEffect(() => {
+    if (!user) router.push('/auth');
+  }, [user, router]);
+
+  // 2. Debounce handler for search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  // 3. Persist expanded sections state
+  useEffect(() => {
+    localStorage.setItem('veyntra_expanded_vocabulary_sections', JSON.stringify(expandedSections));
+  }, [expandedSections]);
+
+  // 4. Auto-expand matching sections when search query changes & restore state when cleared
+  useEffect(() => {
+    if (debouncedSearchQuery.trim() !== '') {
+      // Save user state before search if not already saved
+      if (preSearchExpandedSections.current === null) {
+        preSearchExpandedSections.current = expandedSections;
+      }
+
+      const matchingCategories = [];
+      ACTIVE_CATEGORIES.forEach(cat => {
+        const hasMatch = designVocabulary.some(item => {
+          if (item.category !== cat) return false;
+          const q = debouncedSearchQuery.toLowerCase().trim();
+          return (
+            item.name.toLowerCase().includes(q) ||
+            item.description.toLowerCase().includes(q) ||
+            item.keywords.some(k => k.toLowerCase().includes(q))
+          );
+        });
+        if (hasMatch) {
+          matchingCategories.push(cat);
+        }
+      });
+
+      if (matchingCategories.length > 0) {
+        setExpandedSections(prev => {
+          const combined = new Set([...prev, ...matchingCategories]);
+          return Array.from(combined);
+        });
+      }
+    } else {
+      // Restore previous state if search is cleared
+      if (preSearchExpandedSections.current !== null) {
+        setExpandedSections(preSearchExpandedSections.current);
+        preSearchExpandedSections.current = null;
+      }
+    }
+  }, [debouncedSearchQuery]);
+
+  // 5. URL Deep Linking: Read hash on mount/hash change
+  useEffect(() => {
+    const handleHashLink = () => {
+      const hash = window.location.hash;
+      if (hash) {
+        const slug = hash.replace('#', '');
+        const category = SLUG_TO_CATEGORY[slug];
+        if (category) {
+          // Expand category section
+          setExpandedSections(prev => {
+            if (!prev.includes(category)) {
+              return [...prev, category];
+            }
+            return prev;
+          });
+
+          // Scroll smoothly to category section header
+          setTimeout(() => {
+            const element = sectionRefs.current[category];
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              
+              // Trigger temporary highlight pulse animation
+              element.classList.add('section-flash-active');
+              setTimeout(() => {
+                element.classList.remove('section-flash-active');
+              }, 1600);
+            }
+          }, 150);
+        }
+      }
+    };
+
+    handleHashLink();
+    window.addEventListener('hashchange', handleHashLink);
+    return () => window.removeEventListener('hashchange', handleHashLink);
+  }, []);
 
   if (!user) return null;
 
-  const categories = ['All', ...new Set(designVocabulary.map(i => i.category))];
-  const filtered = designVocabulary.filter(item => {
-    const matchCat = selectedCategory === 'All' || item.category === selectedCategory;
-    const q = searchQuery.toLowerCase().trim();
-    const matchSearch = !q || item.name.toLowerCase().includes(q) || item.description.toLowerCase().includes(q) || item.keywords.some(k => k.includes(q));
-    return matchCat && matchSearch;
+  // 6. Filter & prepare vocabulary items (Display ONLY the 6 specified categories)
+  const vocabularyData = designVocabulary.filter(item => ACTIVE_CATEGORIES.includes(item.category));
+  
+  const filteredData = vocabularyData.filter(item => {
+    const q = debouncedSearchQuery.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      item.name.toLowerCase().includes(q) ||
+      item.description.toLowerCase().includes(q) ||
+      item.keywords.some(k => k.toLowerCase().includes(q))
+    );
   });
 
-  // Group by category for section headers
+  // Group filtered results by category
   const grouped = {};
-  filtered.forEach(item => {
+  filteredData.forEach(item => {
     if (!grouped[item.category]) grouped[item.category] = [];
     grouped[item.category].push(item);
   });
 
+  // Calculate dynamic metrics
+  const isFiltered = debouncedSearchQuery.trim() !== '';
+  const totalCount = vocabularyData.length;
+  const matchCount = filteredData.length;
+
+  // 7. Copy Action Handlers
+  const handleCopyName = (id, name, e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(name);
+    setCopiedId(id);
+    setCopiedType('name');
+    toast.success(`Copied term: '${name}'`);
+    setTimeout(() => {
+      setCopiedId(null);
+      setCopiedType(null);
+    }, 2000);
+  };
+
+  const handleCopyPrompt = (id, promptText, e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(promptText);
+    setCopiedId(id);
+    setCopiedType('prompt');
+    toast.success('Prompt template copied!');
+    setTimeout(() => {
+      setCopiedId(null);
+      setCopiedType(null);
+    }, 2000);
+  };
+
+  // 8. Toggle Category Sections collapse
+  const toggleSection = (category) => {
+    setExpandedSections(prev => {
+      if (prev.includes(category)) {
+        return prev.filter(c => c !== category);
+      } else {
+        return [...prev, category];
+      }
+    });
+  };
+
+  // 9. Handle category pill scroll action
+  const handlePillClick = (category) => {
+    const slug = CATEGORY_SLUGS[category];
+    if (slug) {
+      window.location.hash = slug; // Triggers deep link logic (expanding + scrolling + flashing)
+    }
+  };
+
+  const getCategoryMatchCount = (category) => {
+    return filteredData.filter(item => item.category === category).length;
+  };
+
   return (
-    <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: '1280px', margin: '0 auto', padding: '0 1.5rem 4rem 1.5rem' }}>
-      {/* ── Hero ─────────────────────────────────────────────── */}
-      <motion.section
-        ref={heroRef}
-        variants={stagger}
-        initial="hidden"
-        animate={heroInView ? 'show' : 'hidden'}
-        style={heroStyle}
+    <div style={{ position: 'relative', zIndex: 2, width: '95%', maxWidth: '1600px', margin: '0 auto', padding: '1rem 1.5rem 3rem 1.5rem' }}>
+      
+      {/* Unified Header Row */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "180px 1fr 180px",
+          alignItems: "center",
+          width: "100%",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          paddingBottom: "1rem",
+          marginBottom: "0.5rem",
+        }}
+        className="vocabulary-header-row"
       >
-        <motion.div variants={fadeUp}>
-          <div className="premium-badge animate-pulse-slow" style={{ marginBottom: '1.25rem' }}>
-            <Box size={11} className="text-purple-400" />
-            <span>Design Tokens Library</span>
+        {/* Left: Back Button */}
+        <div style={{ display: "flex", justifyContent: "flex-start" }}>
+          <button 
+            onClick={() => router.back()} 
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.55rem',
+              padding: '0.55rem 1rem',
+              borderRadius: '10px',
+              fontSize: '0.8rem',
+              fontWeight: '600',
+              color: 'var(--muted-foreground)',
+              background: 'var(--card)',
+              border: '1px solid var(--border)',
+              cursor: 'pointer',
+              transition: 'all 0.25s ease',
+              fontFamily: 'var(--font-sans)',
+            }}
+            className="glass-panel active-scale-95 glow-card-spotlight"
+            aria-label="Back"
+          >
+            <ArrowRight size={15} style={{ transform: 'rotate(180deg)' }} />
+            <span>Back</span>
+          </button>
+        </div>
+
+        {/* Center: Welcome Title & Subtitle */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem" }}>
+          <div style={{
+            width: '38px',
+            height: '38px',
+            borderRadius: '10px',
+            background: 'color-mix(in srgb, #a855f7 8%, transparent)',
+            border: '1px solid color-mix(in srgb, #a855f7 15%, transparent)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <BookOpen size={18} style={{ color: '#a855f7' }} />
           </div>
-        </motion.div>
+          <div style={{ textAlign: "left" }}>
+            <h1 style={{ fontSize: '1.25rem', fontWeight: '800', letterSpacing: '-0.02em', color: 'var(--foreground)', fontFamily: 'var(--font-display)', margin: 0, lineHeight: '1.2' }}>
+              Terminology Library
+            </h1>
+            <p style={{ fontSize: '0.82rem', color: 'var(--muted-foreground)', margin: '0.15rem 0 0 0', lineHeight: '1.2' }}>
+              A compact library of design tokens, architectural paradigms, and strategy concepts.
+            </p>
+          </div>
+        </div>
 
-        <motion.h1 variants={fadeUp} className="hero-headline" style={{ marginBottom: '1rem', maxWidth: '780px', fontSize: 'clamp(2.2rem, 5vw, 3.8rem)' }}>
-          Master the language{' '}
-          <span className="hero-gradient">AI understands.</span>
-        </motion.h1>
+        {/* Right spacer */}
+        <div style={{ display: "flex", justifyContent: "flex-end" }} />
+      </div>
 
-        <motion.p variants={fadeUp} style={heroSub}>
-          Each design token represents an optimized visual style, layout pattern, or motion curve. Reference these building blocks to enrich your generated UI specifications.
-        </motion.p>
-
-        {/* ── Search Console ──────────────────────────────────── */}
-        <motion.div 
-          variants={fadeUp} 
-          style={searchConsole(searchFocused)}
-          className="glass-panel"
-        >
-          <Search size={18} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
-          <input
-            type="text"
-            placeholder="Search glassmorphism, bento grid, micro-interactions..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            onFocus={() => setSearchFocused(true)}
-            onBlur={() => setSearchFocused(false)}
-            style={searchInputStyle}
-            autoComplete="off"
-          />
-          {searchQuery && (
-            <motion.button
-              initial={{ scale: 0 }} animate={{ scale: 1 }}
-              style={clearSearchBtn}
-              onClick={() => setSearchQuery('')}
-            >
-              <X size={14} />
-            </motion.button>
-          )}
-        </motion.div>
-
-        {/* ── Category Pills ─────────────────────────────────── */}
-        <motion.div variants={fadeUp} style={pillRow}>
-          {categories.map((cat) => {
-            const isActive = selectedCategory === cat;
-            const meta = cat === 'All'
-              ? {
-                  icon: Sparkles,
-                  color: getThemeColor('var(--accent)', isDark),
-                  bg: `color-mix(in srgb, ${getThemeColor('var(--accent)', isDark)} 10%, transparent)`,
-                  border: `color-mix(in srgb, ${getThemeColor('var(--accent)', isDark)} 20%, transparent)`
-                }
-              : getCatMeta(cat, isDark);
-            const Icon = meta.icon;
-            return (
-              <motion.button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                style={pillStyle(isActive, meta.color)}
-                whileHover={{ scale: 1.04, y: -1 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                <Icon size={12} />
-                {cat === 'All' ? 'All' : cat.replace('Modern AI/SaaS Terms', 'AI / SaaS')}
-              </motion.button>
-            );
-          })}
-        </motion.div>
-
-        {/* ── Stats Bar ──────────────────────────────────────── */}
-        <motion.div variants={fadeUp} style={statsBar}>
-          <span style={statItem}>
-            <span style={statNum}>{filtered.length}</span> terms found
-          </span>
-          <span style={statDot}>·</span>
-          <span style={statItem}>
-            <span style={statNum}>{Object.keys(grouped).length}</span> categories
-          </span>
-          {(searchQuery || selectedCategory !== 'All') && (
-            <>
-              <span style={statDot}>·</span>
-              <button style={clearAllBtn} onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }}>
-                Reset filters
+      {/* ── Sticky Toolbar ────────────────────────────────────── */}
+      <div className="terminology-toolbar">
+        <div style={toolbarContentStyle}>
+          
+          {/* Search Console */}
+          <div style={searchConsoleStyle(searchFocused)} className="glass-panel">
+            <Search size={16} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
+            <input
+              type="text"
+              placeholder="Search design systems, plg, caching, docker..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
+              style={searchInputStyle}
+              autoComplete="off"
+            />
+            {searchQuery && (
+              <button style={clearSearchBtn} onClick={() => setSearchQuery('')}>
+                <X size={13} />
               </button>
-            </>
-          )}
-        </motion.div>
-      </motion.section>
+            )}
+          </div>
 
-      {/* ── Cards Grid ───────────────────────────────────────── */}
-      <motion.section
-        ref={gridRef}
-        variants={stagger}
-        initial="hidden"
-        animate={gridInView ? 'show' : 'hidden'}
-      >
-        {filtered.length === 0 ? (
-          <motion.div variants={fadeUp} style={emptyWrap}>
-            <div style={emptyIconWrap} className="glass-panel"><Search size={28} style={{ color: 'var(--accent)' }} /></div>
-            <p style={emptyTitle}>No matching terms</p>
-            <p style={emptyDesc}>Try a different search or clear your filters.</p>
-          </motion.div>
+          {/* Navigation Pills */}
+          <div style={pillRowStyle}>
+            {ACTIVE_CATEGORIES.map(cat => {
+              const meta = getCatMeta(cat, isDark);
+              const Icon = meta.icon;
+              const matches = getCategoryMatchCount(cat);
+              const isSectionExpanded = expandedSections.includes(cat);
+
+              return (
+                <motion.button
+                  key={cat}
+                  onClick={() => handlePillClick(cat)}
+                  style={pillStyle(isSectionExpanded, meta.color)}
+                  whileHover={{ scale: 1.03, y: -0.5 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Icon size={12} />
+                  <span>{cat}</span>
+                  <span style={pillCountStyle(isSectionExpanded, meta.color)}>{matches}</span>
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {/* Dynamic Match Metrics */}
+          <div style={resultsCountStyle}>
+            <Info size={13} className="text-muted-foreground" />
+            <span>
+              {isFiltered ? `Showing ${matchCount} of ${totalCount} terms` : `Showing ${totalCount} terms`}
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ── Sections & Cards Container ───────────────────────── */}
+      <div>
+        {filteredData.length === 0 ? (
+          <div style={emptyWrap}>
+            <div style={emptyIconWrap} className="glass-panel">
+              <Search size={24} style={{ color: 'var(--accent)' }} />
+            </div>
+            <p style={emptyTitle}>No matching terms found</p>
+            <p style={emptyDesc}>Try adjusting your search criteria or clearing the input.</p>
+          </div>
         ) : (
-          Object.entries(grouped).map(([category, items]) => {
+          ACTIVE_CATEGORIES.map(category => {
+            const items = grouped[category] || [];
+            if (items.length === 0) return null; // Hide categories with 0 search matches
+
             const meta = getCatMeta(category, isDark);
             const CatIcon = meta.icon;
+            const isExpanded = expandedSections.includes(category);
+
             return (
-              <div key={category} style={{ marginBottom: '2.5rem' }}>
-                {/* Section Header */}
-                <motion.div variants={fadeUp} style={sectionHead}>
-                  <div style={sectionIconWrap(meta)}>
-                    <CatIcon size={16} style={{ color: meta.color }} />
+              <div
+                key={category}
+                id={CATEGORY_SLUGS[category]}
+                ref={el => sectionRefs.current[category] = el}
+                className="terminology-section"
+                style={sectionContainerStyle(isDark)}
+              >
+                {/* Collapsible Section Header */}
+                <button
+                  onClick={() => toggleSection(category)}
+                  style={sectionHeaderStyle(isDark)}
+                  className="w-full flex items-center justify-between text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div style={sectionIconWrap(meta)}>
+                      <CatIcon size={16} style={{ color: meta.color }} />
+                    </div>
+                    <div>
+                      <h2 style={sectionTitleStyle}>{category}</h2>
+                      <p style={sectionCountStyle}>{items.length} {items.length === 1 ? 'item' : 'items'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 style={sectionTitle}>{category}</h2>
-                    <p style={sectionCount}>{items.length} {items.length === 1 ? 'term' : 'terms'}</p>
-                  </div>
-                </motion.div>
+                  <motion.div
+                    animate={{ rotate: isExpanded ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                    style={chevronWrapStyle}
+                  >
+                    <ChevronDown size={18} />
+                  </motion.div>
+                </button>
 
-                {/* Cards */}
-                <motion.div variants={stagger} style={gridStyle}>
-                  {items.map((item) => {
-                    const isExpanded = expandedId === item.id;
-                    const isCopied = copiedId === item.id;
-                    return (
-                      <motion.div
-                        key={item.id}
-                        variants={cardAnim}
-                        layout
-                        onClick={() => setExpandedId(isExpanded ? null : item.id)}
-                        style={cardStyle(meta)}
-                        className="glass-panel card-hover"
-                        whileHover={{ y: -4 }}
-                      >
-                        {/* Ambient glow */}
-                        <div style={ambientGlow(meta.color)} />
+                {/* Section Content Accordion */}
+                <AnimatePresence initial={false}>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <div style={gridStyle}>
+                        {items.map(item => {
+                          const isNameCopied = copiedId === item.id && copiedType === 'name';
+                          const isPromptCopied = copiedId === item.id && copiedType === 'prompt';
+                          const isDevNotesExpanded = !!expandedDevNotes[item.id];
 
-                        {/* Top row */}
-                        <div style={cardTopRow}>
-                          <span style={catBadge(meta)}>{category.replace('Modern AI/SaaS Terms', 'AI/SaaS')}</span>
-                          <div style={cardActions}>
-                            <motion.button
-                              style={copyBtnStyle(isCopied)}
-                              onClick={(e) => handleCopy(item.id, item.examplePrompt, e)}
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              title="Copy prompt"
+                          return (
+                            <div
+                              key={item.id}
+                              style={cardStyle(isDark)}
+                              className="glass-panel hover:border-slate-700/50 transition-all"
                             >
-                              {isCopied ? <Check size={13} style={{ color: 'var(--success)' }} /> : <Copy size={13} />}
-                            </motion.button>
-                            <motion.div
-                              animate={{ rotate: isExpanded ? 180 : 0 }}
-                              transition={{ duration: 0.25 }}
-                              style={chevronWrap}
-                            >
-                              <ChevronDown size={14} />
-                            </motion.div>
-                          </div>
-                        </div>
-
-                        {/* Title + desc */}
-                        <h3 style={cardTitle}>{item.name}</h3>
-                        <p style={cardDesc}>{item.description}</p>
-
-                        {/* Keywords */}
-                        <div style={keywordRow}>
-                          {item.keywords.slice(0, 4).map((kw, i) => (
-                            <span key={i} style={keywordChip(meta)}>{kw}</span>
-                          ))}
-                        </div>
-
-                        {/* Expandable Detail */}
-                        <AnimatePresence>
-                          {isExpanded && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                              style={{ overflow: 'hidden' }}
-                            >
-                              <div style={expandedContent}>
-                                {/* CSS Snippet */}
-                                {item.snippet && (
-                                  <div style={codeBlock(meta)}>
-                                    <div style={codeLabel}>
-                                      <Code size={11} style={{ color: meta.color }} />
-                                      <span>Design Token / CSS</span>
-                                    </div>
-                                    <pre style={codePre(meta)}>{item.snippet}</pre>
-                                  </div>
-                                )}
-
-                                {/* Prompt */}
-                                <div style={promptSection(meta)}>
-                                  <div style={promptLabelRow}>
-                                    <Sparkles size={12} style={{ color: meta.color }} />
-                                    <span style={promptLabel}>Example AI Prompt</span>
-                                  </div>
-                                  <p style={promptText}>"{item.examplePrompt}"</p>
-                                  <motion.button
-                                    style={copyPromptBtn(meta)}
-                                    onClick={(e) => handleCopy(item.id, item.examplePrompt, e)}
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
+                              {/* Card Title & Copy Title button */}
+                              <div style={cardHeaderStyle}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                  <h3 style={cardTitleStyle}>{item.name}</h3>
+                                  <button
+                                    style={smallCopyBtnStyle(isNameCopied)}
+                                    onClick={(e) => handleCopyName(item.id, item.name, e)}
+                                    title="Copy Term Name"
                                   >
-                                    {isCopied ? <Check size={13} /> : <Copy size={13} />}
-                                    {isCopied ? 'Copied!' : 'Copy Prompt'}
-                                  </motion.button>
+                                    {isNameCopied ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+                                  </button>
                                 </div>
+                                <span style={difficultyBadgeStyle(item.difficulty, isDark)}>
+                                  {item.difficulty}
+                                </span>
                               </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </motion.div>
-                    );
-                  })}
-                </motion.div>
+
+                              {/* Term Definition */}
+                              <p style={cardDescStyle}>{item.description}</p>
+
+                              {/* Keywords / Tags Row */}
+                              <div style={tagsRowStyle}>
+                                {item.tags && item.tags.map(tag => (
+                                  <span key={tag} style={tagChipStyle(isDark)}>
+                                    #{tag}
+                                  </span>
+                                ))}
+                              </div>
+
+                              {/* Prompt Box */}
+                              <div style={promptBoxStyle(meta, isDark)}>
+                                <div style={promptHeaderStyle}>
+                                  <Sparkles size={11} style={{ color: meta.color }} />
+                                  <span style={promptTitleStyle}>Template AI Prompt</span>
+                                </div>
+                                <p style={promptTextStyle}>"{item.examplePrompt}"</p>
+                                <button
+                                  style={copyPromptBtnStyle(meta, isDark)}
+                                  onClick={(e) => handleCopyPrompt(item.id, item.examplePrompt, e)}
+                                >
+                                  {isPromptCopied ? <Check size={13} /> : <Copy size={13} />}
+                                  <span>{isPromptCopied ? 'Prompt Copied!' : 'Copy Prompt Template'}</span>
+                                </button>
+                              </div>
+
+                              {/* Collapsible Developer Notes */}
+                              <div style={devNotesWrapperStyle(isDark)}>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedDevNotes(prev => ({ ...prev, [item.id]: !prev[item.id] }));
+                                  }}
+                                  style={devNotesToggleStyle(isDark)}
+                                >
+                                  <span>Developer Notes</span>
+                                  <motion.div
+                                    animate={{ rotate: isDevNotesExpanded ? 180 : 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    style={{ display: 'flex', alignItems: 'center' }}
+                                  >
+                                    <ChevronDown size={14} />
+                                  </motion.div>
+                                </button>
+
+                                <AnimatePresence initial={false}>
+                                  {isDevNotesExpanded && (
+                                    <motion.div
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: 'auto', opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      transition={{ duration: 0.2 }}
+                                      style={{ overflow: 'hidden' }}
+                                    >
+                                      <div style={devNotesContentStyle(isDark)}>
+                                        <div style={devNoteFieldStyle}>
+                                          <span style={devNoteLabelStyle}>Colors:</span>
+                                          <code style={devNoteCodeStyle(meta.color)}>{item.designTokens.colors}</code>
+                                        </div>
+                                        <div style={devNoteFieldStyle}>
+                                          <span style={devNoteLabelStyle}>Spacing:</span>
+                                          <code style={devNoteCodeStyle(meta.color)}>{item.designTokens.spacing}</code>
+                                        </div>
+                                        <div style={devNoteFieldStyle}>
+                                          <span style={devNoteLabelStyle}>Typography:</span>
+                                          <code style={devNoteCodeStyle(meta.color)}>{item.designTokens.typography}</code>
+                                        </div>
+                                        <div style={devNoteFieldStyle}>
+                                          <span style={devNoteLabelStyle}>Implementation Details:</span>
+                                          <p style={devNoteTextStyle}>{item.designTokens.developerNotes}</p>
+                                        </div>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </div>
+
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             );
           })
         )}
-      </motion.section>
+      </div>
+
+      <style>{`
+        @media (max-width: 900px) {
+          .vocabulary-header-row {
+            grid-template-columns: 1fr !important;
+            gap: 1rem;
+            text-align: center;
+          }
+          .vocabulary-header-row > div {
+            justify-content: center !important;
+          }
+          .vocabulary-header-row div {
+            text-align: center !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
 
-// ─── Styles ────────────────────────────────────────────────────
-
-const heroStyle = {
-  display: 'flex', flexDirection: 'column', alignItems: 'center',
-  textAlign: 'center', paddingTop: '4rem', paddingBottom: '5rem',
-  maxWidth: '860px', margin: '0 auto',
+// ─── Inline Styles ────────────────────────────────────────────
+const compactHeaderStyle = {
+  paddingTop: '3.5rem',
+  paddingBottom: '2.5rem',
+  textAlign: 'center',
+  maxWidth: '720px',
+  margin: '0 auto',
 };
 
-const heroSub = {
-  fontSize: '1.05rem', color: 'var(--muted-foreground)',
-  lineHeight: '1.7', maxWidth: '560px', marginBottom: '2.5rem',
+const compactSubtitleStyle = {
+  fontSize: '0.92rem',
+  color: 'var(--muted-foreground)',
+  lineHeight: '1.5',
 };
 
-const searchConsole = (focused) => ({
-  width: '100%', maxWidth: '580px', height: '52px',
-  display: 'flex', alignItems: 'center', gap: '0.75rem',
-  padding: '0 1rem',
+const toolbarContentStyle = {
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '1.25rem',
+  flexWrap: 'wrap',
+  width: '100%',
+};
+
+const searchConsoleStyle = (focused) => ({
+  flex: '1 1 280px',
+  minWidth: '240px',
+  height: '38px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.5rem',
+  padding: '0 0.75rem',
   background: 'var(--input)',
-  border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border)'}`,
-  borderRadius: '14px',
-  backdropFilter: 'blur(20px)',
-  boxShadow: focused
-    ? '0 0 0 1px var(--accent), var(--shadow-md)'
-    : 'var(--shadow-sm)',
-  marginBottom: '1.25rem',
-  transition: 'all 0.25s ease',
+  border: `1px solid ${focused ? 'var(--accent)' : 'var(--border)'}`,
+  borderRadius: '10px',
+  transition: 'all 0.2s ease',
 });
 
 const searchInputStyle = {
-  flex: 1, background: 'transparent', border: 'none', outline: 'none',
-  fontSize: '0.9rem', color: 'var(--foreground)', fontFamily: 'var(--font-sans)',
+  flex: 1,
+  background: 'transparent',
+  border: 'none',
+  outline: 'none',
+  fontSize: '0.82rem',
+  color: 'var(--foreground)',
+  fontFamily: 'var(--font-sans)',
 };
 
 const clearSearchBtn = {
-  width: '28px', height: '28px', borderRadius: '8px',
-  background: 'var(--card)', border: '1px solid var(--border)',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  cursor: 'pointer', color: 'var(--muted-foreground)',
+  background: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+  color: 'var(--muted-foreground)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
 };
 
-const pillRow = {
-  display: 'flex', flexWrap: 'wrap', gap: '0.4rem',
-  justifyContent: 'center', marginBottom: '1.25rem',
+const pillRowStyle = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '0.35rem',
+  alignItems: 'center',
 };
 
 const pillStyle = (active, color) => ({
-  display: 'flex', alignItems: 'center', gap: '0.35rem',
-  padding: '0.4rem 0.9rem', fontSize: '0.76rem', fontWeight: '600',
-  borderRadius: '999px', cursor: 'pointer',
-  fontFamily: 'var(--font-sans)',
-  background: active ? `color-mix(in srgb, ${color} 15%, transparent)` : 'var(--input)',
-  border: `1px solid ${active ? `color-mix(in srgb, ${color} 40%, transparent)` : 'var(--border)'}`,
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.35rem',
+  padding: '0.35rem 0.75rem',
+  fontSize: '0.74rem',
+  fontWeight: '600',
+  borderRadius: '999px',
+  cursor: 'pointer',
+  background: active ? `color-mix(in srgb, ${color} 12%, transparent)` : 'var(--card)',
+  border: `1px solid ${active ? `color-mix(in srgb, ${color} 35%, transparent)` : 'var(--border)'}`,
   color: active ? color : 'var(--muted-foreground)',
-  transition: 'all 0.2s ease',
+  transition: 'all 0.15s ease',
 });
 
-const statsBar = {
-  display: 'flex', alignItems: 'center', gap: '0.6rem',
-  fontSize: '0.8rem', color: 'var(--muted-foreground)',
-};
-const statItem = { display: 'flex', gap: '0.3rem', alignItems: 'center' };
-const statNum = { fontWeight: '700', color: 'var(--foreground)' };
-const statDot = { opacity: 0.3 };
-const clearAllBtn = {
-  background: 'transparent', border: 'none', color: 'var(--accent)',
-  fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer',
-  fontFamily: 'var(--font-sans)', textDecoration: 'underline',
-  textUnderlineOffset: '2px',
-};
-
-// ── Section Headers ─────────────────────────────────────────
-const sectionHead = {
-  display: 'flex', alignItems: 'center', gap: '0.875rem',
-  marginBottom: '1.25rem', paddingBottom: '1rem',
-  borderBottom: '1px solid var(--border)',
-};
-const sectionIconWrap = (meta) => ({
-  width: '36px', height: '36px', borderRadius: '10px',
-  background: meta.bg, border: `1px solid ${meta.border}`,
-  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+const pillCountStyle = (active, color) => ({
+  fontSize: '0.68rem',
+  fontWeight: '700',
+  padding: '1px 6px',
+  borderRadius: '8px',
+  marginLeft: '0.2rem',
+  background: active ? `color-mix(in srgb, ${color} 18%, transparent)` : 'var(--input)',
+  color: active ? color : 'var(--muted-foreground)',
+  opacity: 0.9,
 });
-const sectionTitle = {
-  fontSize: '1.15rem', fontWeight: '700', color: 'var(--foreground)',
-  fontFamily: 'var(--font-display)', letterSpacing: '-0.02em',
-};
-const sectionCount = {
-  fontSize: '0.75rem', color: 'var(--muted-foreground)', marginTop: '0.15rem',
+
+const resultsCountStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.35rem',
+  fontSize: '0.78rem',
+  color: 'var(--muted-foreground)',
+  fontWeight: '500',
+  whiteSpace: 'nowrap',
 };
 
-// ── Grid ────────────────────────────────────────────────────
-const gridStyle = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-  gap: '1.25rem',
-};
-
-// ── Card ────────────────────────────────────────────────────
-const cardStyle = (meta) => ({
-  position: 'relative', overflow: 'hidden', cursor: 'pointer',
-  padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem',
+const sectionContainerStyle = (isDark) => ({
+  marginBottom: '1.5rem',
   borderRadius: '16px',
-  background: 'var(--card)',
   border: '1px solid var(--border)',
-  boxShadow: 'var(--shadow-sm)',
-  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+  background: 'color-mix(in srgb, var(--card) 60%, transparent)',
+  overflow: 'hidden',
+  transition: 'all 0.3s ease',
 });
 
-const ambientGlow = (color) => ({
-  position: 'absolute', top: '-40%', right: '-20%',
-  width: '180px', height: '180px', borderRadius: '50%',
-  background: `radial-gradient(circle, color-mix(in srgb, ${color} 10%, transparent) 0%, transparent 70%)`,
-  pointerEvents: 'none',
+const sectionHeaderStyle = (isDark) => ({
+  padding: '1.25rem 1.5rem',
+  width: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  background: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
 });
 
-const cardTopRow = {
-  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+const sectionIconWrap = (meta) => ({
+  width: '32px',
+  height: '32px',
+  borderRadius: '8px',
+  background: meta.bg,
+  border: `1px solid ${meta.border}`,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
+});
+
+const sectionTitleStyle = {
+  fontSize: '1rem',
+  fontWeight: '700',
+  color: 'var(--foreground)',
+  fontFamily: 'var(--font-display)',
+  letterSpacing: '-0.01em',
 };
 
-const catBadge = (meta) => ({
-  fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.06em',
-  textTransform: 'uppercase', color: meta.color,
-  background: meta.bg, border: `1px solid ${meta.border}`,
-  padding: '2px 8px', borderRadius: '999px',
-});
+const sectionCountStyle = {
+  fontSize: '0.72rem',
+  color: 'var(--muted-foreground)',
+  marginTop: '0.05rem',
+};
 
-const cardActions = { display: 'flex', alignItems: 'center', gap: '0.35rem' };
-
-const copyBtnStyle = (copied) => ({
-  width: '28px', height: '28px', borderRadius: '7px',
-  background: 'var(--card)', border: '1px solid var(--border)',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  cursor: 'pointer', color: copied ? 'var(--success)' : 'var(--muted-foreground)',
-  transition: 'all 0.2s ease',
-});
-
-const chevronWrap = {
-  width: '28px', height: '28px', borderRadius: '7px',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
+const chevronWrapStyle = {
+  width: '28px',
+  height: '28px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
   color: 'var(--muted-foreground)',
 };
 
-const cardTitle = {
-  fontSize: '1.05rem', fontWeight: '700', color: 'var(--foreground)',
-  fontFamily: 'var(--font-display)', letterSpacing: '-0.02em',
+const gridStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+  gap: '1rem',
+  padding: '0 1.5rem 1.5rem 1.5rem',
 };
 
-const cardDesc = {
-  fontSize: '0.82rem', color: 'var(--muted-foreground)', lineHeight: '1.55',
+const cardStyle = (isDark) => ({
+  padding: '1.25rem',
+  borderRadius: '12px',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.75rem',
+  position: 'relative',
+});
+
+const cardHeaderStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',
+  gap: '0.5rem',
 };
 
-// ── Keywords ────────────────────────────────────────────────
-const keywordRow = { display: 'flex', flexWrap: 'wrap', gap: '0.3rem' };
-const keywordChip = (meta) => ({
-  fontSize: '0.66rem', fontWeight: '600', padding: '2px 7px',
-  borderRadius: '4px', background: 'var(--input)',
-  border: '1px solid var(--border)', color: 'var(--muted-foreground)',
+const cardTitleStyle = {
+  fontSize: '0.96rem',
+  fontWeight: '700',
+  color: 'var(--foreground)',
+  fontFamily: 'var(--font-display)',
+  letterSpacing: '-0.01em',
+};
+
+const smallCopyBtnStyle = (copied) => ({
+  background: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+  color: copied ? 'var(--success)' : 'var(--muted-foreground)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '2px',
+  borderRadius: '4px',
+  transition: 'color 0.2s',
+});
+
+const difficultyBadgeStyle = (difficulty, isDark) => {
+  let color = '#38bdf8'; // Beginner (blue)
+  if (difficulty === 'Intermediate') color = '#fbbf24'; // amber
+  if (difficulty === 'Advanced') color = '#f87171'; // red
+
+  return {
+    fontSize: '0.64rem',
+    fontWeight: '700',
+    color: color,
+    background: `color-mix(in srgb, ${color} 10%, transparent)`,
+    border: `1px solid color-mix(in srgb, ${color} 20%, transparent)`,
+    padding: '1px 6px',
+    borderRadius: '4px',
+    textTransform: 'uppercase',
+    letterSpacing: '0.04em',
+  };
+};
+
+const cardDescStyle = {
+  fontSize: '0.8rem',
+  color: 'var(--muted-foreground)',
+  lineHeight: '1.5',
+};
+
+const tagsRowStyle = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '0.25rem',
+};
+
+const tagChipStyle = (isDark) => ({
+  fontSize: '0.64rem',
+  fontWeight: '600',
+  color: 'var(--muted-foreground)',
+  background: 'var(--input)',
+  border: '1px solid var(--border)',
+  padding: '1px 5px',
+  borderRadius: '4px',
   fontFamily: 'var(--font-mono)',
 });
 
-// ── Expanded Content ────────────────────────────────────────
-const expandedContent = {
-  display: 'flex', flexDirection: 'column', gap: '1rem',
-  paddingTop: '1rem', marginTop: '0.75rem',
-  borderTop: '1px solid var(--border)',
-};
-
-const codeBlock = (meta) => ({
-  background: 'color-mix(in srgb, var(--foreground) 3%, transparent)', border: '1px solid var(--border)',
-  borderRadius: '10px', padding: '1rem',
-  display: 'flex', flexDirection: 'column', gap: '0.5rem',
-});
-const codeLabel = {
-  display: 'flex', alignItems: 'center', gap: '0.4rem',
-  fontSize: '0.66rem', fontWeight: '700', color: 'var(--muted-foreground)',
-  textTransform: 'uppercase', letterSpacing: '0.08em',
-};
-const codePre = (meta) => ({
-  fontFamily: 'var(--font-mono)', fontSize: '0.78rem',
-  color: meta.color, whiteSpace: 'pre-wrap', lineHeight: '1.6',
+const promptBoxStyle = (meta, isDark) => ({
+  background: `color-mix(in srgb, ${meta.color} 5%, var(--card))`,
+  border: `1px solid color-mix(in srgb, ${meta.color} 15%, var(--border))`,
+  borderRadius: '8px',
+  padding: '0.75rem',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.5rem',
+  marginTop: '0.25rem',
 });
 
-const promptSection = (meta) => ({
-  background: `${meta.color}0c`, border: `1px solid ${meta.color}25`,
-  borderRadius: '10px', padding: '1rem',
-  display: 'flex', flexDirection: 'column', gap: '0.6rem',
-});
-const promptLabelRow = {
-  display: 'flex', alignItems: 'center', gap: '0.4rem',
+const promptHeaderStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.35rem',
 };
-const promptLabel = {
-  fontSize: '0.68rem', fontWeight: '700', color: 'var(--muted-foreground)',
-  textTransform: 'uppercase', letterSpacing: '0.06em',
-};
-const promptText = {
-  fontSize: '0.85rem', fontStyle: 'italic', color: 'var(--foreground)',
-  lineHeight: '1.6', opacity: 0.85,
-};
-const copyPromptBtn = (meta) => ({
-  alignSelf: 'flex-start',
-  display: 'flex', alignItems: 'center', gap: '0.4rem',
-  padding: '0.45rem 1rem', fontSize: '0.78rem', fontWeight: '700',
-  borderRadius: '8px', cursor: 'pointer',
-  background: `${meta.color}15`, border: `1px solid ${meta.border}`,
-  color: meta.color, fontFamily: 'var(--font-sans)',
-  transition: 'all 0.2s ease',
-});
 
-// ── Empty State ─────────────────────────────────────────────
-const emptyWrap = {
-  display: 'flex', flexDirection: 'column', alignItems: 'center',
-  gap: '1rem', padding: '4rem 2rem', textAlign: 'center',
-};
-const emptyIconWrap = {
-  width: '56px', height: '56px', borderRadius: '14px',
-  background: 'var(--card)', display: 'flex',
-  alignItems: 'center', justifyContent: 'center',
+const promptTitleStyle = {
+  fontSize: '0.65rem',
+  fontWeight: '700',
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
   color: 'var(--muted-foreground)',
 };
-const emptyTitle = { fontSize: '1rem', fontWeight: '700', color: 'var(--foreground)' };
-const emptyDesc = { fontSize: '0.85rem', color: 'var(--muted-foreground)', maxWidth: '340px' };
+
+const promptTextStyle = {
+  fontSize: '0.78rem',
+  fontStyle: 'italic',
+  color: 'var(--foreground)',
+  lineHeight: '1.45',
+  opacity: 0.9,
+};
+
+const copyPromptBtnStyle = (meta, isDark) => ({
+  alignSelf: 'flex-start',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.35rem',
+  padding: '0.35rem 0.65rem',
+  fontSize: '0.72rem',
+  fontWeight: '600',
+  borderRadius: '6px',
+  cursor: 'pointer',
+  background: `color-mix(in srgb, ${meta.color} 10%, transparent)`,
+  border: `1px solid color-mix(in srgb, ${meta.color} 20%, transparent)`,
+  color: meta.color,
+  fontFamily: 'var(--font-sans)',
+  transition: 'all 0.15s ease',
+});
+
+const devNotesWrapperStyle = (isDark) => ({
+  borderTop: '1px solid var(--border)',
+  paddingTop: '0.5rem',
+  marginTop: '0.25rem',
+});
+
+const devNotesToggleStyle = (isDark) => ({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  width: '100%',
+  background: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+  fontSize: '0.72rem',
+  fontWeight: '700',
+  color: 'var(--muted-foreground)',
+  padding: '4px 0',
+  textTransform: 'uppercase',
+  letterSpacing: '0.04em',
+});
+
+const devNotesContentStyle = (isDark) => ({
+  paddingTop: '0.5rem',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.5rem',
+});
+
+const devNoteFieldStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.15rem',
+};
+
+const devNoteLabelStyle = {
+  fontSize: '0.64rem',
+  fontWeight: '600',
+  color: 'var(--muted-foreground)',
+};
+
+const devNoteCodeStyle = (color) => ({
+  fontFamily: 'var(--font-mono)',
+  fontSize: '0.72rem',
+  color: color,
+  background: 'var(--input)',
+  padding: '2px 6px',
+  borderRadius: '4px',
+  border: '1px solid var(--border)',
+  wordBreak: 'break-all',
+});
+
+const devNoteTextStyle = {
+  fontSize: '0.74rem',
+  color: 'var(--foreground)',
+  lineHeight: '1.4',
+  opacity: 0.9,
+};
+
+const emptyWrap = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: '0.75rem',
+  padding: '4rem 1.5rem',
+  textAlign: 'center',
+};
+
+const emptyIconWrap = {
+  width: '48px',
+  height: '48px',
+  borderRadius: '12px',
+  background: 'var(--card)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  border: '1px solid var(--border)',
+};
+
+const emptyTitle = {
+  fontSize: '0.95rem',
+  fontWeight: '700',
+  color: 'var(--foreground)',
+};
+
+const emptyDesc = {
+  fontSize: '0.8rem',
+  color: 'var(--muted-foreground)',
+  maxWidth: '320px',
+};

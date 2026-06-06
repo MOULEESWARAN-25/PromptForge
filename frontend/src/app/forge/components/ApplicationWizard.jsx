@@ -1,6 +1,8 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useWizardAutoScroll } from '../hooks/useWizardAutoScroll';
+
 import { 
   CheckCircle2, Sliders, Sparkles, Info, ArrowRight, ArrowLeft, Code2, Plus, Search,
   LayoutGrid, ShoppingCart, GraduationCap, Receipt, Image as ImageIcon, Activity, Dumbbell, Home
@@ -48,6 +50,20 @@ export function ApplicationWizard({ forgeState, promptGeneration, apiKey }) {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [appSearch, setAppSearch] = useState('');
+
+  const continueButtonRef = useRef(null);
+
+  useWizardAutoScroll({
+    step,
+    selectionDependencies: [
+      forgeState.appCategory,
+      forgeState.selectedFeatures,
+      forgeState.selectedTheme,
+      forgeState.selectedTypography
+    ],
+    continueButtonRef
+  });
+
 
   const {
     appCategory, customCategory, setCustomCategory,
@@ -531,6 +547,7 @@ return (
             <ArrowLeft size={15} /> Back
           </button>
           <button
+            ref={continueButtonRef}
             onClick={goNext}
             disabled={!canAdvance()}
             className={`active-scale-95 ${canAdvance() ? 'glow-pulse' : ''}`}

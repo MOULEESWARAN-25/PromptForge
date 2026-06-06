@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Search, Sliders, Info, Sparkles, Monitor, Tablet, Smartphone, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle2, Search, Sparkles, Monitor, Tablet, Smartphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { themeStyles } from '@/data/designVocabulary';
 import { getThemeCardDynamicStyles } from '../utils/themeStyles';
@@ -19,8 +19,16 @@ const FEATURED_THEMES = [
   "Wes Anderson"
 ];
 
-const CATEGORIES = ["All", "Modern SaaS", "Enterprise", "Consumer", "Creative", "Visual Style"];
-const ARCHETYPE_BADGES = ["All", "Stripe", "Linear", "Notion", "Apple", "Framer", "Cyberpunk", "Minimalist"];
+const FILTERS = [
+  { id: 'All', label: 'All Themes' },
+  { id: 'SaaS', label: 'Modern SaaS' },
+  { id: 'Enterprise', label: 'Enterprise & Wiki' },
+  { id: 'Consumer', label: 'Consumer & Premium' },
+  { id: 'Creative', label: 'Creative & Artistic' },
+  { id: 'Minimalist', label: 'Minimalist' },
+  { id: 'Cyberpunk', label: 'Cyberpunk & Retro' },
+  { id: 'Glass', label: 'Glassmorphism' }
+];
 
 export function ThemeSelector({
   selectedTheme,
@@ -36,9 +44,8 @@ export function ThemeSelector({
   compact = false
 }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [activeFilter, setActiveFilter] = useState('All');
   const [recentThemes, setRecentThemes] = useState([]);
-  const [isExtendedOpen, setIsExtendedOpen] = useState(false);
   const [viewportMode, setViewportMode] = useState('desktop'); // desktop, tablet, mobile
 
   // Load recently used themes on mount
@@ -98,32 +105,49 @@ export function ThemeSelector({
     return false;
   };
 
-  const getFilteredThemes = (themeNamesList) => {
-    return themeNamesList.filter(name => {
+  const getFilteredThemes = () => {
+    const allThemeNames = Object.keys(themeStyles);
+    return allThemeNames.filter(name => {
       const theme = themeStyles[name];
       if (!theme) return false;
 
-      // Category tab check
-      if (activeCategory !== 'All' && theme.family !== activeCategory) {
-        // Fallback checks for expanded categories
-        if (activeCategory === 'Enterprise' && theme.family !== 'Enterprise Theme') return false;
-        if (activeCategory === 'Creative' && theme.family !== 'Creative Theme') return false;
-        if (activeCategory === 'Consumer' && theme.family !== 'Consumer Theme') return false;
-        if (activeCategory === 'Modern SaaS' && theme.family !== 'Modern SaaS') return false;
-        if (activeCategory === 'Visual Style' && theme.family !== 'Visual Style') return false;
+      // 1. Filter pill check
+      if (activeFilter !== 'All') {
+        const lowerName = name.toLowerCase();
+        const lowerFamily = (theme.family || '').toLowerCase();
+        const lowerKeywords = (theme.keywords || '').toLowerCase();
+        const lowerAliases = (theme.aliases || []).map(a => a.toLowerCase());
+
+        const matchesFamilyOrKeyword = (term) => {
+          return lowerName.includes(term) || 
+                 lowerFamily.includes(term) || 
+                 lowerKeywords.includes(term) || 
+                 lowerAliases.some(alias => alias.includes(term));
+        };
+
+        if (activeFilter === 'SaaS') {
+          if (!matchesFamilyOrKeyword('saas') && !matchesFamilyOrKeyword('stripe') && !matchesFamilyOrKeyword('linear') && !matchesFamilyOrKeyword('dashboard')) return false;
+        } else if (activeFilter === 'Enterprise') {
+          if (!matchesFamilyOrKeyword('enterprise') && !matchesFamilyOrKeyword('corporate') && !matchesFamilyOrKeyword('notion') && !matchesFamilyOrKeyword('wiki')) return false;
+        } else if (activeFilter === 'Consumer') {
+          if (!matchesFamilyOrKeyword('consumer') && !matchesFamilyOrKeyword('apple') && !matchesFamilyOrKeyword('luxury') && !matchesFamilyOrKeyword('premium')) return false;
+        } else if (activeFilter === 'Creative') {
+          if (!matchesFamilyOrKeyword('creative') && !matchesFamilyOrKeyword('retro') && !matchesFamilyOrKeyword('artistic') && !matchesFamilyOrKeyword('wes anderson') && !matchesFamilyOrKeyword('forest') && !matchesFamilyOrKeyword('gaming')) return false;
+        } else if (activeFilter === 'Minimalist') {
+          if (!matchesFamilyOrKeyword('minimalist') && !matchesFamilyOrKeyword('clean') && !matchesFamilyOrKeyword('simple') && !matchesFamilyOrKeyword('typography')) return false;
+        } else if (activeFilter === 'Cyberpunk') {
+          if (!matchesFamilyOrKeyword('cyberpunk') && !matchesFamilyOrKeyword('terminal') && !matchesFamilyOrKeyword('hacker') && !matchesFamilyOrKeyword('neon') && !matchesFamilyOrKeyword('glitch')) return false;
+        } else if (activeFilter === 'Glass') {
+          if (!matchesFamilyOrKeyword('glass') && !matchesFamilyOrKeyword('transparency')) return false;
+        }
       }
 
-      // Search query check
+      // 2. Search query check
       return matchesSearch(name, theme);
     });
   };
 
-  const allThemeNames = Object.keys(themeStyles);
-  const extendedThemeNames = allThemeNames.filter(name => !FEATURED_THEMES.includes(name));
-
-  const filteredFeatured = getFilteredThemes(FEATURED_THEMES);
-  const filteredExtended = getFilteredThemes(extendedThemeNames);
-
+  const filteredThemes = getFilteredThemes();
   const selectedThemeMeta = themeStyles[selectedTheme];
 
   // Responsive Styles
@@ -155,15 +179,15 @@ export function ThemeSelector({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? '0.65rem' : '1.25rem' }}>
       
-      {/* ── SECTION 1: SEARCH, CATEGORIES & ALIASES ── */}
+      {/* ── SECTION 1: SEARCH & INTEGRATED FILTER PILLS ── */}
       {!compact && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1rem' }} className="animate-fade-up">
+        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '0.75rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '0.75rem 1rem' }} className="animate-fade-up">
           {/* Omni-search input */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.55rem 0.85rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.55rem 0.85rem', width: '240px', flexShrink: 0 }}>
             <Search size={15} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
             <input
               type="text"
-              placeholder="Search aesthetics (e.g. 'Stripe', 'Minimalist', 'Apple', 'Modern SaaS'…)"
+              placeholder="Search aesthetics..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.8rem', color: 'var(--foreground)', width: '100%', fontFamily: 'var(--font-sans)' }}
@@ -173,49 +197,17 @@ export function ThemeSelector({
             )}
           </div>
 
-          {/* Category Tabs */}
-          <div style={{ display: 'flex', gap: '0.35rem', overflowX: 'auto', paddingBottom: '4px' }}>
-            {CATEGORIES.map(cat => (
+          {/* Integrated Filter Pills */}
+          <div style={{ display: 'flex', gap: '0.35rem', overflowX: 'auto', flexGrow: 1, paddingBottom: '2px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {FILTERS.map(filter => (
               <button
-                key={cat}
+                key={filter.id}
                 type="button"
-                onClick={() => setActiveCategory(cat)}
-                style={selectBadge(activeCategory === cat)}
+                onClick={() => setActiveFilter(filter.id)}
+                style={selectBadge(activeFilter === filter.id)}
                 className="active-scale-95"
               >
-                {cat}
-              </button>
-            ))}
-          </div>
-
-          {/* Quick Archetype Badge Filters */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
-            <span style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted-foreground)', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Archetypes:</span>
-            {ARCHETYPE_BADGES.map(badge => (
-              <button
-                key={badge}
-                type="button"
-                onClick={() => {
-                  if (badge === 'All') {
-                    setSearchQuery('');
-                  } else {
-                    setSearchQuery(badge);
-                  }
-                }}
-                style={{
-                  padding: '2px 8px',
-                  borderRadius: '6px',
-                  fontSize: '0.62rem',
-                  fontWeight: 600,
-                  background: searchQuery.toLowerCase() === badge.toLowerCase() ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent',
-                  border: '1px solid ' + (searchQuery.toLowerCase() === badge.toLowerCase() ? 'var(--accent)' : 'var(--border)'),
-                  color: searchQuery.toLowerCase() === badge.toLowerCase() ? 'var(--accent)' : 'var(--muted-foreground)',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
-                }}
-                className="active-scale-95"
-              >
-                {badge}
+                {filter.label}
               </button>
             ))}
           </div>
@@ -260,13 +252,13 @@ export function ThemeSelector({
         </div>
       )}
 
-      {/* ── SECTION 3: FEATURED THEMES LIST ── */}
+      {/* ── SECTION 3: UNIFIED THEME GRID ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-        {!compact && <div style={{ fontSize: '0.62rem', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--muted-foreground)' }}>Featured Style Themes</div>}
+        {!compact && <div style={{ fontSize: '0.62rem', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--muted-foreground)' }}>Available Style Themes</div>}
         
-        {filteredFeatured.length > 0 ? (
+        {filteredThemes.length > 0 ? (
           <div style={themeCardGrid}>
-            {filteredFeatured.map((themeName) => {
+            {filteredThemes.map((themeName) => {
               const isSelected = selectedTheme === themeName;
               const baseStyles = getThemeCardDynamicStyles(themeName, isSelected);
               const cardStyles = {
@@ -302,136 +294,10 @@ export function ThemeSelector({
           </div>
         ) : (
           <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--muted-foreground)', border: '1px dashed var(--border)', borderRadius: '12px', fontSize: '0.78rem' }}>
-            No featured themes match your filters.
+            No themes match your filters.
           </div>
         )}
       </div>
-
-      {/* ── SECTION 4: EXTENDED THEMES (COLLAPSIBLE ACCORDION) ── */}
-      {extendedThemeNames.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <button
-            type="button"
-            onClick={() => setIsExtendedOpen(!isExtendedOpen)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              width: '100%',
-              padding: '0.55rem',
-              borderRadius: '10px',
-              border: '1px solid var(--border)',
-              background: 'var(--card)',
-              color: 'var(--foreground)',
-              fontSize: '0.78rem',
-              fontWeight: '750',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
-            className="active-scale-98 glow-card-spotlight"
-          >
-            {isExtendedOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            {isExtendedOpen ? 'Hide Extended Theme Library' : `Show Extended Theme Library (+${extendedThemeNames.length} styles)`}
-          </button>
-
-          <AnimatePresence>
-            {isExtendedOpen && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-                style={{ overflow: 'hidden' }}
-              >
-                {filteredExtended.length > 0 ? (
-                  <div style={{ ...themeCardGrid, marginTop: '0.25rem' }}>
-                    {filteredExtended.map((themeName) => {
-                      const isSelected = selectedTheme === themeName;
-                      const baseStyles = getThemeCardDynamicStyles(themeName, isSelected);
-                      const cardStyles = {
-                        ...baseStyles,
-                        ...(compact ? {
-                          padding: '0.45rem 0.65rem',
-                          borderRadius: '8px',
-                          boxShadow: 'none',
-                          minHeight: '0',
-                        } : {})
-                      };
-                      return (
-                        <div
-                          key={themeName}
-                          style={cardStyles}
-                          onClick={() => setSelectedTheme(themeName)}
-                          className="glow-card-spotlight active-scale-95 animate-fade-up"
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ fontSize: compact ? '0.74rem' : '0.86rem', color: baseStyles.color || 'var(--foreground)', fontWeight: '750' }}>
-                              {themeName}
-                            </span>
-                            {isSelected && <CheckCircle2 size={13} style={{ color: 'var(--accent)' }} />}
-                          </div>
-                          {!compact && (
-                            <p style={{ fontSize: '0.72rem', color: baseStyles.color || 'var(--muted-foreground)', opacity: 0.72, margin: '2px 0 0 0', lineHeight: '1.3' }}>
-                              {themeStyles[themeName].description}
-                            </p>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>
-                    No extended themes match your filters.
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      )}
-
-      {/* ── SECTION 5: SELECTED THEME EDUCATIONAL METADATA CARDS & 'WHY THIS WORKS' ── */}
-      {selectedThemeMeta && !compact && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.25rem', padding: '1.25rem', background: 'color-mix(in srgb, var(--accent) 4%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 15%, transparent)', borderRadius: '20px' }} className="animate-fade-up">
-          
-          {/* Metadata Specs Grid */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <div style={{ fontSize: '0.65rem', fontWeight: '750', textTransform: 'uppercase', color: 'var(--accent)', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Sliders size={12} /> Design System Metrics
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.65rem' }}>
-              {[
-                { label: 'Theme Family', value: selectedThemeMeta.family || 'Visual Style' },
-                { label: 'Best For', value: selectedThemeMeta.bestFor || 'Custom SaaS configurations' },
-                { label: 'Pairing', value: selectedThemeMeta.typography || 'Inter' },
-                { label: 'Motion', value: selectedThemeMeta.motion || 'Gentle Spring' },
-                { label: 'Density', value: selectedThemeMeta.density || 'Compact' }
-              ].map(({ label, value }) => (
-                <div key={label} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.45rem 0.6rem' }}>
-                  <span style={{ display: 'block', fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted-foreground)', letterSpacing: '0.04em' }}>{label}</span>
-                  <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: 'var(--foreground)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Educational "Why This Works" Panel */}
-          {selectedThemeMeta.whyItWorks && selectedThemeMeta.whyItWorks.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderTop: '1px solid var(--border)', paddingTop: '0.75rem' }}>
-              <div style={{ fontSize: '0.65rem', fontWeight: '750', textTransform: 'uppercase', color: 'var(--accent)', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Info size={12} /> Why This Theme Works
-              </div>
-              <ul style={{ margin: 0, paddingLeft: '1.1rem', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                {selectedThemeMeta.whyItWorks.map((point, idx) => (
-                  <li key={idx} style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', lineHeight: '1.4' }}>{point}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* ── SECTION 6: LIVE PREVIEW SYSTEM WITH VIEWPORT SEGMENTED CONTROLS ── */}
       {!hidePreview && (

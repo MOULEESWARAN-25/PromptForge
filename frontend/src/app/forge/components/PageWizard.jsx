@@ -1,6 +1,8 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useWizardAutoScroll } from '../hooks/useWizardAutoScroll';
+
 import { CheckCircle2, Plus, Sliders, Sparkles, Info, ArrowRight, ArrowLeft } from 'lucide-react';
 import { PAGE_TYPES, PAGE_COMPONENTS } from '../constants/pageTemplates';
 import { ThemeSelector } from './ThemeSelector';
@@ -74,6 +76,20 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
   const [direction, setDirection] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const continueButtonRef = useRef(null);
+
+  useWizardAutoScroll({
+    step,
+    selectionDependencies: [
+      forgeState.pageType,
+      forgeState.selectedComponents,
+      forgeState.selectedTheme,
+      forgeState.selectedTypography
+    ],
+    continueButtonRef
+  });
+
 
   const {
     pageType, setPageType,
@@ -540,6 +556,7 @@ return (
             <ArrowLeft size={15} />Back
           </button>
           <button
+            ref={continueButtonRef}
             onClick={goNext}
             disabled={!canAdvance()}
             className={`active-scale-95 ${canAdvance() ? 'glow-pulse' : ''}`}

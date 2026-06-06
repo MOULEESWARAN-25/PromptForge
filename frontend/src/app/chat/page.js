@@ -1353,11 +1353,11 @@ function ChatContent() {
           <div style={headerLeft}>
             <motion.button
               style={backBtn}
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.back()}
               whileHover={{ x: -3 }}
               whileTap={{ scale: 0.96 }}
             >
-              <ArrowLeft size={12} /> Dashboard
+              <ArrowLeft size={12} /> Back
             </motion.button>
             <div style={titleBadgeRow}>
               <h2 style={workspaceTitle}>{promptRecord.title}</h2>

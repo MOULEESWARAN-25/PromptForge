@@ -1,5 +1,527 @@
 export const designVocabulary = [
-  // ==================== VISUAL DESIGN STYLES ====================
+  // ==================== PRODUCT STRATEGY ====================
+  {
+    id: "north-star-metric",
+    name: "North Star Metric",
+    category: "Product Strategy",
+    keywords: ["north star", "metric", "kpi", "growth", "retention", "success"],
+    description: "The single key metric that best captures the core value your product delivers to its customers, aligning all team efforts toward sustainable long-term growth.",
+    examplePrompt: "Generate a dashboard mockup displaying user activation trends, retention heatmaps, and collaborator count metrics specifically tailored to track the North Star Metric of our team collaboration platform.",
+    tags: ["strategy", "metrics", "analytics", "growth"],
+    difficulty: "Intermediate",
+    designTokens: {
+      colors: "var(--accent-glow) highlights",
+      spacing: "Compact dashboard grid alignment",
+      typography: "Outfit Display, sans-serif",
+      developerNotes: "Focus on primary retention charts above the fold."
+    },
+    snippet: "colors: var(--accent-glow) highlights\nspacing: Compact dashboard grid alignment\ntypography: Outfit Display\nnotes: Focus on primary retention charts above the fold."
+  },
+  {
+    id: "product-led-growth",
+    name: "Product-Led Growth (PLG)",
+    category: "Product Strategy",
+    keywords: ["plg", "onboarding", "conversion", "self-serve", "growth loop"],
+    description: "A go-to-market strategy that relies on product features, usage, and value delivery to drive customer acquisition, expansion, conversion, and retention.",
+    examplePrompt: "Design an interactive, self-serve onboarding wizard with inline success states, contextual tooltips, and a friction-free credit card signup wall to optimize PLG conversions.",
+    tags: ["strategy", "onboarding", "ux-flows", "conversion"],
+    difficulty: "Intermediate",
+    designTokens: {
+      colors: "var(--success) conversion badges",
+      spacing: "Stepped progression form layout",
+      typography: "Inter UI, sans-serif",
+      developerNotes: "Keep onboarding stages below 4 steps to minimize drop-off."
+    },
+    snippet: "colors: var(--success) conversion badges\nspacing: Stepped progression form layout\ntypography: Inter UI\nnotes: Keep onboarding stages below 4 steps."
+  },
+  {
+    id: "rice-prioritization",
+    name: "Feature Prioritization (RICE)",
+    category: "Product Strategy",
+    keywords: ["rice", "prioritization", "roadmap", "backlog", "impact", "effort"],
+    description: "A scoring model (Reach, Impact, Confidence, Effort) used to evaluate, grade, and prioritize features on a product roadmap objectively.",
+    examplePrompt: "Build a responsive feature roadmap dashboard showing RICE scores, color-coded impact badges, and search filtering for pending backlog items.",
+    tags: ["strategy", "planning", "management", "roadmap"],
+    difficulty: "Beginner",
+    designTokens: {
+      colors: "var(--warning) medium risk, var(--destructive) high effort",
+      spacing: "Bento style comparison cards",
+      typography: "Manrope, sans-serif",
+      developerNotes: "Support sorting columns by Reach and Effort."
+    },
+    snippet: "colors: var(--warning) medium risk, var(--destructive) high effort\nspacing: Bento style comparison cards\ntypography: Manrope\nnotes: Support sorting columns by Reach and Effort."
+  },
+  {
+    id: "value-prop-canvas",
+    name: "Value Proposition Canvas",
+    category: "Product Strategy",
+    keywords: ["value proposition", "canvas", "pains", "gains", "customer fit"],
+    description: "A strategic management tool to map out customer profile pains, gains, and jobs-to-be-done against product pain-relievers, gain-creators, and value offerings.",
+    examplePrompt: "Create a split-screen canvas layout visualizing customer pains and gains on the left, and corresponding product value features on the right, using collapsible bento cards.",
+    tags: ["strategy", "canvas", "design-thinking", "product-fit"],
+    difficulty: "Beginner",
+    designTokens: {
+      colors: "rgba(104, 67, 236, 0.1) panel bg",
+      spacing: "50/50 responsive split grid",
+      typography: "DM Sans, sans-serif",
+      developerNotes: "Use distinct border indicators for Pains vs. Gains."
+    },
+    snippet: "colors: rgba(104, 67, 236, 0.1) panel bg\nspacing: 50/50 responsive split grid\ntypography: DM Sans\nnotes: Use distinct border indicators for Pains vs. Gains."
+  },
+  {
+    id: "cohort-retention",
+    name: "Customer Cohort Retention",
+    category: "Product Strategy",
+    keywords: ["cohort", "retention", "churn", "heatmap", "analytics", "stickiness"],
+    description: "An analytical model tracking specific user groups over set time intervals (weeks or months) to determine product stickiness and churn rates.",
+    examplePrompt: "Design a data visualization table rendering monthly user retention cohorts with a dynamic percentage heatmap gradient and cohort size tooltips.",
+    tags: ["strategy", "analytics", "retention", "metrics"],
+    difficulty: "Advanced",
+    designTokens: {
+      colors: "color-mix(in srgb, var(--accent) x%, transparent) cohort weights",
+      spacing: "Tight density data grid padding",
+      typography: "Geist Mono, monospace",
+      developerNotes: "Highlight cohort drops exceeding 15% using red indicators."
+    },
+    snippet: "colors: color-mix(in srgb, var(--accent) x%, transparent) cohort weights\nspacing: Tight density data grid padding\ntypography: Geist Mono\nnotes: Highlight cohort drops exceeding 15% using red indicators."
+  },
+
+  // ==================== UX & DESIGN ====================
+  {
+    id: "atomic-design-system",
+    name: "Atomic Design System",
+    category: "UX & Design",
+    keywords: ["atomic", "components", "design system", "reusable", "structure"],
+    description: "A modular design methodology structuring user interfaces into five hierarchical levels: atoms, molecules, organisms, templates, and pages.",
+    examplePrompt: "Construct a modular component library structure showcasing atomic buttons, molecular search bars, and organic headers arranged in a side-by-side spec grid.",
+    tags: ["design-system", "modular-design", "components"],
+    difficulty: "Beginner",
+    designTokens: {
+      colors: "var(--border) grid dividers",
+      spacing: "Padding scales in 4px multiples",
+      typography: "System Default Mono",
+      developerNotes: "Document atom dependencies explicitly using subtitle links."
+    },
+    snippet: "colors: var(--border) grid dividers\nspacing: Padding scales in 4px multiples\ntypography: System Default Mono\nnotes: Document atom dependencies explicitly using subtitle links."
+  },
+  {
+    id: "bento-grid-layout-refined",
+    name: "Bento Grid Layout",
+    category: "UX & Design",
+    keywords: ["bento", "grid cards", "apple layout", "dashboard grid", "widgets"],
+    description: "A layout pattern organizing dashboard widgets and feature teasers into a grid of varying-sized rounded rectangles, popular in modern SaaS.",
+    examplePrompt: "Design a responsive 4-card Bento Grid features layout with varying aspect ratios, interactive hover highlights, and subtle background gradient blobs.",
+    tags: ["layout", "bento", "grid", "dashboard"],
+    difficulty: "Intermediate",
+    designTokens: {
+      colors: "rgba(255, 255, 255, 0.02) card fill",
+      spacing: "Gap: 1.5rem, Border radius: 16px",
+      typography: "Outfit Bold, sans-serif",
+      developerNotes: "Ideal for feature showcases and analytic summary metrics."
+    },
+    snippet: "colors: rgba(255, 255, 255, 0.02) card fill\nspacing: Gap: 1.5rem, Border radius: 16px\ntypography: Outfit Bold\nnotes: Ideal for feature showcases and analytic summary metrics."
+  },
+  {
+    id: "glassmorphic-surface",
+    name: "Glassmorphic Surface",
+    category: "UX & Design",
+    keywords: ["glassmorphism", "blur", "frosted", "opacity", "depth", "border glow"],
+    description: "An interface style using translucent layers, background blur, and fine glowing borders to create vertical depth and visual premium quality.",
+    examplePrompt: "Create a glassmorphism modal component with background blur, a semi-transparent dark container, and a subtle glowing accent border.",
+    tags: ["ui-style", "glassmorphism", "visuals", "premium"],
+    difficulty: "Intermediate",
+    designTokens: {
+      colors: "rgba(255, 255, 255, 0.05) surface, rgba(255, 255, 255, 0.12) border",
+      spacing: "Backdrop blur: 12px",
+      typography: "Inter, sans-serif",
+      developerNotes: "Ensure high contrast backdrop coverage when overlaid on colored assets."
+    },
+    snippet: "colors: rgba(255, 255, 255, 0.05) surface, rgba(255, 255, 255, 0.12) border\nspacing: Backdrop blur: 12px\ntypography: Inter\nnotes: Ensure high contrast backdrop coverage when overlaid on colored assets."
+  },
+  {
+    id: "spring-physics-motion",
+    name: "Spring Physics Motion",
+    category: "UX & Design",
+    keywords: ["spring", "animation", "motion", "bouncy", "transition", "framer"],
+    description: "Animation curves driven by mass, stiffness, and damping metrics to create natural, responsive, and bouncy user interactions.",
+    examplePrompt: "Implement spring physics on tab buttons causing them to scale down on press, snap back with spring bounce on release, and glide indicators smoothly.",
+    tags: ["animation", "motion", "framer-motion", "micro-interactions"],
+    difficulty: "Advanced",
+    designTokens: {
+      colors: "var(--accent) active indicators",
+      spacing: "Indicator glide offset transition",
+      typography: "Sans-Serif",
+      developerNotes: "Spring parameters: mass: 1, stiffness: 350, damping: 25."
+    },
+    snippet: "colors: var(--accent) active indicators\nspacing: Indicator glide offset transition\ntypography: Sans-Serif\nnotes: Spring parameters: mass: 1, stiffness: 350, damping: 25."
+  },
+  {
+    id: "aesthetic-usability",
+    name: "Aesthetic Usability Effect",
+    category: "UX & Design",
+    keywords: ["usability", "aesthetics", "whitespace", "spacing", "hierarchy"],
+    description: "A UX phenomenon where users perceive highly aesthetic interfaces as more usable, intuitive, and forgiving of minor flaws.",
+    examplePrompt: "Refine a database table layout using sand/slate tones, spacious card margins, custom status indicators, and micro-animations to enhance perceived usability.",
+    tags: ["ux-psychology", "hierarchy", "spacing", "colors"],
+    difficulty: "Beginner",
+    designTokens: {
+      colors: "#fafaf9 background, #1c1917 headings",
+      spacing: "Spacious row paddings: 1.25rem",
+      typography: "Plus Jakarta Sans, sans-serif",
+      developerNotes: "Maximize whitespace to decrease visual complexity."
+    },
+    snippet: "colors: #fafaf9 background, #1c1917 headings\nspacing: Spacious row paddings: 1.25rem\ntypography: Plus Jakarta Sans\nnotes: Maximize whitespace to decrease visual complexity."
+  },
+
+  // ==================== FRONTEND DEVELOPMENT ====================
+  {
+    id: "dynamic-splitting",
+    name: "Dynamic Code Splitting",
+    category: "Frontend Development",
+    keywords: ["code splitting", "performance", "lazy loading", "nextjs", "chunks"],
+    description: "The optimization practice of dividing frontend code bundles into smaller chunks loaded on-demand, reducing initial page load times.",
+    examplePrompt: "Implement code splitting for a heavy analytics chart component using React lazy loading and a skeleton placeholder fallback.",
+    tags: ["performance", "optimization", "react", "nextjs"],
+    difficulty: "Intermediate",
+    designTokens: {
+      colors: "var(--muted) skeleton base",
+      spacing: "Width/height matches actual chart container",
+      typography: "Sans-Serif",
+      developerNotes: "Integrate Next.js dynamic() import for sub-tabs."
+    },
+    snippet: "colors: var(--muted) skeleton base\nspacing: Width/height matches actual chart container\ntypography: Sans-Serif\nnotes: Integrate Next.js dynamic() import for sub-tabs."
+  },
+  {
+    id: "hydration-resolution",
+    name: "Hydration Error Resolution",
+    category: "Frontend Development",
+    keywords: ["hydration", "ssr", "react-error", "nextjs", "rendering"],
+    description: "The process of correcting DOM mismatches between server-rendered static HTML and client-rendered interactive JavaScript state trees.",
+    examplePrompt: "Refactor a theme-toggled header layout to mount client-only settings in a useEffect callback, preventing SSR hydration errors.",
+    tags: ["debugging", "ssr", "react", "nextjs"],
+    difficulty: "Advanced",
+    designTokens: {
+      colors: "transparent initial loading states",
+      spacing: "Layout shifts prevention placeholders",
+      typography: "Inter, sans-serif",
+      developerNotes: "Avoid conditional rendering based on localStorage values during initial render."
+    },
+    snippet: "colors: transparent initial loading states\nspacing: Layout shifts prevention placeholders\ntypography: Inter\nnotes: Avoid conditional rendering based on localStorage during initial render."
+  },
+  {
+    id: "tailwind-responsive-grid",
+    name: "Tailwind Responsive Grid",
+    category: "Frontend Development",
+    keywords: ["tailwind", "grid", "responsive", "breakpoints", "layout"],
+    description: "A utility-first CSS layout approach defining column sizes and spacing dynamically across different screen breakpoints.",
+    examplePrompt: "Design a responsive grid changing from 1 column on mobile to 2 columns on tablet and 4 columns on widescreen monitor, using Tailwind classes.",
+    tags: ["tailwind", "css", "responsive", "grid"],
+    difficulty: "Beginner",
+    designTokens: {
+      colors: "var(--border) cell boundary lines",
+      spacing: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6",
+      typography: "Sans-Serif",
+      developerNotes: "Avoid absolute heights in grid items to allow text wrapping."
+    },
+    snippet: "colors: var(--border) cell boundary lines\nspacing: grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6\ntypography: Sans-Serif\nnotes: Avoid absolute heights in grid items to allow text wrapping."
+  },
+  {
+    id: "css-custom-properties",
+    name: "CSS Custom Properties System",
+    category: "Frontend Development",
+    keywords: ["css variables", "tokens", "theming", "custom properties", "root"],
+    description: "Developer-defined CSS variables that propagate through the DOM tree, enabling real-time theme shifts and token swaps.",
+    examplePrompt: "Establish a CSS variables root file containing primary, secondary, and border colors mapping to dark/light tokens dynamically.",
+    tags: ["css", "theming", "variables", "design-tokens"],
+    difficulty: "Beginner",
+    designTokens: {
+      colors: "--primary: #6843EC; --bg: #0c0b20; --border: rgba(255,255,255,0.08);",
+      spacing: "--radius: 12px; --gap: 16px;",
+      typography: "--font-display: 'Outfit'",
+      developerNotes: "Reference variables using var(--name) to support dynamic toggles."
+    },
+    snippet: "colors: --primary: #6843EC; --bg: #0c0b20; --border: rgba(255,255,255,0.08);\nspacing: --radius: 12px; --gap: 16px;\ntypography: --font-display: 'Outfit'\nnotes: Reference variables using var(--name) to support dynamic toggles."
+  },
+  {
+    id: "state-memoization",
+    name: "State Memoization",
+    category: "Frontend Development",
+    keywords: ["memoize", "useMemo", "useCallback", "performance", "react"],
+    description: "Caching calculation results in React (using useMemo or useCallback) to avoid expensive recalculations and re-renders on subsequent state changes.",
+    examplePrompt: "Memoize a complex search filtering function searching through thousands of design assets to prevent UI lag on text keystrokes.",
+    tags: ["performance", "optimization", "react", "hooks"],
+    difficulty: "Intermediate",
+    designTokens: {
+      colors: "transparent",
+      spacing: "zero layout shifts",
+      typography: "Mono",
+      developerNotes: "Declare search dependencies array correctly: [query, items]."
+    },
+    snippet: "colors: transparent\nspacing: zero layout shifts\ntypography: Mono\nnotes: Declare search dependencies array correctly: [query, items]."
+  },
+
+  // ==================== BACKEND ARCHITECTURE ====================
+  {
+    id: "api-gateway",
+    name: "API Gateway Routing",
+    category: "Backend Architecture",
+    keywords: ["gateway", "routing", "reverse proxy", "api", "microservices"],
+    description: "A server acting as an entry point that redirects client requests to appropriate backend services, managing authentication and rate-limiting.",
+    examplePrompt: "Design an API Gateway architecture detailing reverse-proxy paths for /auth, /spec-generator, and /user-billing endpoints.",
+    tags: ["backend", "gateway", "routing", "microservices"],
+    difficulty: "Intermediate",
+    designTokens: {
+      colors: "none",
+      spacing: "none",
+      typography: "none",
+      developerNotes: "Implement rate-limiting headers: X-RateLimit-Remaining."
+    },
+    snippet: "colors: none\nspacing: none\ntypography: none\nnotes: Implement rate-limiting headers: X-RateLimit-Remaining."
+  },
+  {
+    id: "connection-pooling",
+    name: "Database Connection Pooling",
+    category: "Backend Architecture",
+    keywords: ["database", "pool", "postgres", "concurrency", "optimization"],
+    description: "Maintaining a cache of active database connections to reuse them rather than opening new ones for every query request.",
+    examplePrompt: "Draft a pg-pool client configuration script optimized to handle spikes in request traffic on serverless API runs.",
+    tags: ["database", "backend", "postgres", "performance"],
+    difficulty: "Advanced",
+    designTokens: {
+      colors: "none",
+      spacing: "none",
+      typography: "none",
+      developerNotes: "Set max connections pool to 20 with 10s idle timeouts."
+    },
+    snippet: "colors: none\nspacing: none\ntypography: none\nnotes: Set max connections pool to 20 with 10s idle timeouts."
+  },
+  {
+    id: "redis-caching",
+    name: "Redis Caching Layer",
+    category: "Backend Architecture",
+    keywords: ["redis", "caching", "in-memory", "database", "ttl"],
+    description: "A fast in-memory key-value database used to store frequently accessed data caches, reducing backend queries and response lag.",
+    examplePrompt: "Write a server route caching middleware that checks Redis for compiled prompt schemas before executing expensive DB lookups.",
+    tags: ["caching", "redis", "database", "latency"],
+    difficulty: "Intermediate",
+    designTokens: {
+      colors: "none",
+      spacing: "none",
+      typography: "none",
+      developerNotes: "Cache expiry TTL should match content change frequency (e.g. 1 hour)."
+    },
+    snippet: "colors: none\nspacing: none\ntypography: none\nnotes: Cache expiry TTL should match content change frequency (e.g. 1 hour)."
+  },
+  {
+    id: "message-queue",
+    name: "Asynchronous Message Queue",
+    category: "Backend Architecture",
+    keywords: ["queue", "rabbitmq", "async", "worker", "tasks"],
+    description: "An inter-service communication model that schedules task messages into queue channels to be consumed by worker processes.",
+    examplePrompt: "Design an asynchronous task flow where prompt generation events are queued to RabbitMQ and processed by background AI workers.",
+    tags: ["async", "microservices", "rabbitmq", "events"],
+    difficulty: "Intermediate",
+    designTokens: {
+      colors: "none",
+      spacing: "none",
+      typography: "none",
+      developerNotes: "Support dead-letter exchanges (DLX) for failed generations."
+    },
+    snippet: "colors: none\nspacing: none\ntypography: none\nnotes: Support dead-letter exchanges (DLX) for failed generations."
+  },
+  {
+    id: "optimistic-locking",
+    name: "Optimistic Locking Concurrency",
+    category: "Backend Architecture",
+    keywords: ["concurrency", "locking", "postgres", "race conditions", "conflict"],
+    description: "A concurrency control method that checks if a database record was modified by another transaction before executing updates.",
+    examplePrompt: "Implement optimistic locking in a Postgres update query using version columns to resolve concurrent team editing edits safely.",
+    tags: ["database", "concurrency", "locking", "safety"],
+    difficulty: "Advanced",
+    designTokens: {
+      colors: "none",
+      spacing: "none",
+      typography: "none",
+      developerNotes: "Raise error code 409 Conflict if row version mismatches."
+    },
+    snippet: "colors: none\nspacing: none\ntypography: none\nnotes: Raise error code 409 Conflict if row version mismatches."
+  },
+
+  // ==================== AI & AUTOMATION ====================
+  {
+    id: "rag-pipeline",
+    name: "Retrieval-Augmented Generation (RAG)",
+    category: "AI & Automation",
+    keywords: ["rag", "ai", "vector", "llm", "context", "embeddings"],
+    description: "The architecture of injecting relevant documentation or database logs dynamically into an LLM prompt to make its answers highly precise.",
+    examplePrompt: "Design a backend search flow fetching vector-matched design parameters from a database and injecting them into the Gemini compiler prompt.",
+    tags: ["ai", "embeddings", "vector-db", "llm"],
+    difficulty: "Advanced",
+    designTokens: {
+      colors: "none",
+      spacing: "none",
+      typography: "none",
+      developerNotes: "Limit retrieval context window to top 3 semantic matches."
+    },
+    snippet: "colors: none\nspacing: none\ntypography: none\nnotes: Limit retrieval context window to top 3 semantic matches."
+  },
+  {
+    id: "system-prompt-engineering",
+    name: "System Prompt Engineering",
+    category: "AI & Automation",
+    keywords: ["prompt", "system instructions", "llm", "json", "formatting"],
+    description: "Designing system instructions for AI models that specify behavioral constraints, response formats, and formatting rules.",
+    examplePrompt: "Write a system prompt instructing an AI model to return strictly valid JSON objects containing component, styles, and markup variables.",
+    tags: ["prompting", "ai-behavior", "json", "safety"],
+    difficulty: "Beginner",
+    designTokens: {
+      colors: "none",
+      spacing: "none",
+      typography: "none",
+      developerNotes: "Enforce JSON output by ending prompts with: Return JSON only."
+    },
+    snippet: "colors: none\nspacing: none\ntypography: none\nnotes: Enforce JSON output by ending prompts with: Return JSON only."
+  },
+  {
+    id: "few-shot-token",
+    name: "Few-Shot Token Demonstration",
+    category: "AI & Automation",
+    keywords: ["few shot", "prompting", "examples", "learning", "llm"],
+    description: "Providing the model with input/output pairs directly in the prompt to teach it complex styling structures before generating output.",
+    examplePrompt: "Create a prompt template showing two examples of converting basic CSS into advanced tailwind layouts using HSL colors.",
+    tags: ["prompting", "examples", "few-shot", "ai-output"],
+    difficulty: "Beginner",
+    designTokens: {
+      colors: "none",
+      spacing: "none",
+      typography: "none",
+      developerNotes: "Use structural delimiters like --- to separate examples."
+    },
+    snippet: "colors: none\nspacing: none\ntypography: none\nnotes: Use structural delimiters like --- to separate examples."
+  },
+  {
+    id: "vector-embeddings-index",
+    name: "Vector Embeddings Index",
+    category: "AI & Automation",
+    keywords: ["embeddings", "vector", "search", "similarity", "cosine"],
+    description: "Numerical array representations representing semantic meanings of texts, used to search databases for matching topics.",
+    examplePrompt: "Generate cosine similarity searches over an index of design terms using text embedding models to surface synonyms automatically.",
+    tags: ["vector", "semantic-search", "embeddings", "math"],
+    difficulty: "Advanced",
+    designTokens: {
+      colors: "none",
+      spacing: "none",
+      typography: "none",
+      developerNotes: "Store embeddings in a vector index with cosine similarity metric."
+    },
+    snippet: "colors: none\nspacing: none\ntypography: none\nnotes: Store embeddings in a vector index with cosine similarity metric."
+  },
+  {
+    id: "ai-guardrails",
+    name: "AI Guardrails Validation",
+    category: "AI & Automation",
+    keywords: ["guardrails", "validation", "safety", "sanitization", "regex"],
+    description: "Programmatic validations checking LLM outputs for security compliance, correct syntax format, or forbidden phrases before UI injection.",
+    examplePrompt: "Write a validation script checking AI-compiled prompts for standard HTML tag completion and illegal CSS injection patterns.",
+    tags: ["ai-safety", "validation", "security", "sanitization"],
+    difficulty: "Intermediate",
+    designTokens: {
+      colors: "none",
+      spacing: "none",
+      typography: "none",
+      developerNotes: "Sanitize markup outputs using DOMPurify libraries."
+    },
+    snippet: "colors: none\nspacing: none\ntypography: none\nnotes: Sanitize markup outputs using DOMPurify libraries."
+  },
+
+  // ==================== DEVOPS & INFRASTRUCTURE ====================
+  {
+    id: "github-actions-cicd",
+    name: "GitHub Actions CI/CD",
+    category: "DevOps & Infrastructure",
+    keywords: ["github actions", "ci/cd", "deployment", "automation", "pipeline"],
+    description: "Automation pipelines defining actions that test, build, and deploy project applications on code branch push events.",
+    examplePrompt: "Create a YAML pipeline file that triggers linting, runs unit tests, builds the Next.js static site, and alerts on Slack on failures.",
+    tags: ["ci/cd", "automation", "github", "testing"],
+    difficulty: "Beginner",
+    designTokens: {
+      colors: "none",
+      spacing: "none",
+      typography: "none",
+      developerNotes: "Cache node_modules folders to accelerate build pipelines."
+    },
+    snippet: "colors: none\nspacing: none\ntypography: none\nnotes: Cache node_modules folders to accelerate build pipelines."
+  },
+  {
+    id: "iac-terraform",
+    name: "Infrastructure as Code (Terraform)",
+    category: "DevOps & Infrastructure",
+    keywords: ["terraform", "iac", "cloud", "aws", "architecture"],
+    description: "Setting up cloud compute, database, and domain networks declaratively using text configuration files.",
+    examplePrompt: "Write a Terraform script defining a secure serverless bucket, CloudFront SSL network distribution, and serverless compute triggers.",
+    tags: ["cloud", "terraform", "infrastructure", "aws"],
+    difficulty: "Intermediate",
+    designTokens: {
+      colors: "none",
+      spacing: "none",
+      typography: "none",
+      developerNotes: "Parameterize sensitive keys using environment variables."
+    },
+    snippet: "colors: none\nspacing: none\ntypography: none\nnotes: Parameterize sensitive keys using environment variables."
+  },
+  {
+    id: "multistage-dockerfile",
+    name: "Multi-Stage Dockerfile",
+    category: "DevOps & Infrastructure",
+    keywords: ["docker", "container", "multistage", "build", "optimization"],
+    description: "An image building optimization method dividing building pipelines to compile assets first, then copying only compiled binaries to tiny production runners.",
+    examplePrompt: "Write a multi-stage Dockerfile that builds a Next.js application, discarding building tools, and running on a minimal Alpine image.",
+    tags: ["docker", "containerization", "performance", "build"],
+    difficulty: "Advanced",
+    designTokens: {
+      colors: "none",
+      spacing: "none",
+      typography: "none",
+      developerNotes: "Target production image sizes under 150MB."
+    },
+    snippet: "colors: none\nspacing: none\ntypography: none\nnotes: Target production image sizes under 150MB."
+  },
+  {
+    id: "pod-autoscaling",
+    name: "Horizontal Pod Autoscaling",
+    category: "DevOps & Infrastructure",
+    keywords: ["kubernetes", "hpa", "scaling", "autoscaling", "pods"],
+    description: "Automatically adjusting the count of Kubernetes containers running in service groups based on CPU usage or custom network indicators.",
+    examplePrompt: "Configure a Kubernetes manifest file scaling prompt server container replicas from 2 to 10 when average CPU usage crosses 75%.",
+    tags: ["kubernetes", "scaling", "devops", "cloud"],
+    difficulty: "Advanced",
+    designTokens: {
+      colors: "none",
+      spacing: "none",
+      typography: "none",
+      developerNotes: "Allow warm-up intervals for new nodes before directing traffic."
+    },
+    snippet: "colors: none\nspacing: none\ntypography: none\nnotes: Allow warm-up intervals for new nodes before directing traffic."
+  },
+  {
+    id: "serverless-edge",
+    name: "Serverless Edge Functions",
+    category: "DevOps & Infrastructure",
+    keywords: ["serverless", "edge", "vercel", "latency", "cloudflare"],
+    description: "Microservices running at database/network edge nodes closest to the user, providing ultra-low network latency response speeds.",
+    examplePrompt: "Deploy serverless edge routes in Next.js performing geolocation checks and auth validations before fetching regional assets.",
+    tags: ["serverless", "edge", "latency", "nextjs"],
+    difficulty: "Intermediate",
+    designTokens: {
+      colors: "none",
+      spacing: "none",
+      typography: "none",
+      developerNotes: "Keep edge response processing times under 50ms."
+    },
+    snippet: "colors: none\nspacing: none\ntypography: none\nnotes: Keep edge response processing times under 50ms."
+  },
+
+  // ==================== ORIGINAL VISUAL DESIGN STYLES ====================
   {
     id: "glassmorphism",
     name: "Glassmorphism",
@@ -47,7 +569,7 @@ export const designVocabulary = [
   },
   {
     id: "bento-grid",
-    name: "Bento Grid Layout",
+    name: "Bento Grid Layout (Original)",
     category: "Visual Design Style",
     keywords: ["bento", "grid cards", "apple layout", "varying card size", "dashboard grid", "interactive widgets"],
     description: "A trendy layout organizing content into a grid of varying-sized rectangular cards, popularized by Apple WWDC and modern AI SaaS interfaces.",
@@ -64,8 +586,8 @@ export const designVocabulary = [
     examplePrompt: "Create a flat design vector workspace interface using simple solid background layers, bold iconography, and no gradients or drop shadows."
   },
   {
-    id: "material-design",
-    name: "Material Design",
+    id: "material-design-original",
+    name: "Material Design (Original)",
     category: "Visual Design Style",
     keywords: ["material", "elevation shadow", "ripple", "floating action button", "fab", "google design"],
     description: "Google's design language focused on physical sheets of virtual paper with logical elevation shadows, fluid ripple click feedback, and Floating Action Buttons (FAB).",
@@ -73,7 +595,7 @@ export const designVocabulary = [
     examplePrompt: "Build an enterprise-grade dashboard adhering to Material Design, complete with raised cards, ripple effects on buttons, and a bottom-right FAB."
   },
 
-  // ==================== LAYOUTS ====================
+  // ==================== ORIGINAL LAYOUTS ====================
   {
     id: "hero-section",
     name: "Hero Section",
@@ -111,7 +633,7 @@ export const designVocabulary = [
     examplePrompt: "Design an app shell layout featuring a collapsible vertical sidebar navigation, a sticky topbar with global search, and a grid content canvas."
   },
 
-  // ==================== COMPONENTS ====================
+  // ==================== ORIGINAL COMPONENTS ====================
   {
     id: "accordion",
     name: "Accordion",
@@ -194,7 +716,7 @@ export const designVocabulary = [
     examplePrompt: "Create a chronological project milestone timeline featuring left-aligned visual text items, pulsing node lights, and scroll-reveal triggers."
   },
 
-  // ==================== NAVIGATION ====================
+  // ==================== ORIGINAL NAVIGATION ====================
   {
     id: "dock-navigation",
     name: "Dock Navigation",
@@ -214,7 +736,7 @@ export const designVocabulary = [
     examplePrompt: "Create a premium responsive mega-menu that drops down on hover, dividing services into structured sections with icon descriptions and secondary callouts."
   },
 
-  // ==================== MOTION & ANIMATION ====================
+  // ==================== ORIGINAL MOTION & ANIMATION ====================
   {
     id: "micro-interactions",
     name: "Micro-interactions",
@@ -243,7 +765,7 @@ export const designVocabulary = [
     examplePrompt: "Construct a seamless horizontal partner logo marquee that infinitely loops logo elements from right to left, pausing on user mouse-hover."
   },
 
-  // ==================== MODERN AI / SAAS ====================
+  // ==================== ORIGINAL MODERN AI / SAAS ====================
   {
     id: "aurora-background",
     name: "Aurora Background",

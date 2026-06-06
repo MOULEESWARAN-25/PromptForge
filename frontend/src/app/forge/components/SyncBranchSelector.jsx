@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { useWizardAutoScroll } from '../hooks/useWizardAutoScroll';
 import { 
   Laptop, Database as DbIcon, ShieldCheck, Terminal, ShoppingBag, Sparkles, 
   Smartphone, Code, CheckCircle2, Layers, Cpu, Server, Globe, ArrowLeft, ArrowRight, Info, RotateCcw
@@ -119,6 +120,24 @@ export function SyncBranchSelector({
 }) {
   const [setupPage, setSetupPage] = useState(1);
   const activeIntegration = projectIntegration || 'new';
+
+  const continueButtonRef = useRef(null);
+
+  useWizardAutoScroll({
+    step: setupPage,
+    selectionDependencies: [
+      projectIntegration,
+      projectType,
+      frontendStack,
+      backendStack,
+      database,
+      authOption,
+      deployment,
+      additionalFeatures
+    ],
+    continueButtonRef
+  });
+
 
   // Dynamic colors based on active wizard mode
   const accentColor = 'var(--accent)';
@@ -636,6 +655,7 @@ export function SyncBranchSelector({
         </button>
 
         <button
+          ref={continueButtonRef}
           onClick={handleNextSubPage}
           className="pf-setup-nav-btn active-scale-95"
           style={{
