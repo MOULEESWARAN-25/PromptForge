@@ -115,15 +115,7 @@ export default function RootLayout({ children }) {
           <main id="main-content" style={mainWrapper}>
             {children}
           </main>
-          <footer style={globalFooterStyle}>
-            <div style={globalFooterBadge}>
-              <span style={badgeBeta}>Beta</span>
-              <span style={badgeDivider}>|</span>
-              <span style={badgeBrand}>Veyntra</span>
-              <span style={badgeDivider}>—</span>
-              <span style={badgeTagline}>Transform Vision Into Software</span>
-            </div>
-          </footer>
+
           <Toaster
             position="bottom-right"
             toastOptions={{
@@ -149,52 +141,4 @@ const mainWrapper = {
   flexDirection: 'column',
 };
 
-const globalFooterStyle = {
-  width: "100%",
-  padding: "1rem 1.5rem 1.25rem 1.5rem",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  background: "transparent",
-  zIndex: 10,
-  marginTop: "auto",
-};
 
-const globalFooterBadge = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "0.5rem",
-  padding: "0.35rem 0.75rem",
-  borderRadius: "999px",
-  background: "var(--input)",
-  border: "1px solid var(--border)",
-  fontSize: "0.75rem",
-  color: "var(--muted-foreground)",
-  fontWeight: "500",
-  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
-};
-
-const badgeBeta = {
-  fontWeight: "800",
-  fontSize: "0.65rem",
-  textTransform: "uppercase",
-  color: "var(--accent)",
-  background: "color-mix(in srgb, var(--accent) 10%, transparent)",
-  padding: "0.1rem 0.4rem",
-  borderRadius: "999px",
-  letterSpacing: "0.05em",
-};
-
-const badgeDivider = {
-  color: "var(--border)",
-  userSelect: "none",
-};
-
-const badgeBrand = {
-  fontWeight: "800",
-  color: "var(--foreground)",
-};
-
-const badgeTagline = {
-  fontWeight: "500",
-};

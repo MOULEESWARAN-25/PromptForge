@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { track, EVENTS } from '@/lib/analytics';
 import { compileForgePrompt, analyzePromptAmbiguity } from '../services/promptCompiler';
@@ -158,7 +158,7 @@ export function usePromptGeneration({
 
       const savedRecord = await savePromptRecord({
         mode: forgeState.activeMode,
-        title: compilationResult.title,
+        title: forgeState.templateTitle || compilationResult.title,
         query: compilationResult.query,
         theme: forgeState.selectedTheme || 'Sleek Dark Glassmorphic',
         resolvedPrompt: compilationResult.resolvedPrompt,
@@ -200,6 +200,13 @@ export function usePromptGeneration({
       setIsGenerating(false);
     }
   };
+
+  useEffect(() => {
+    if (forgeState.autoSubmitPrompt && forgeState.rawDescription) {
+      forgeState.setAutoSubmitPrompt(false);
+      handleForgeSubmit();
+    }
+  }, [forgeState.autoSubmitPrompt, forgeState.rawDescription]);
 
   return {
     isGenerating,

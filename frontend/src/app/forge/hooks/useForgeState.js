@@ -12,6 +12,8 @@ export function useForgeState(user, router) {
   const [activeMode, setActiveMode] = useState(null);
   const [draftRecovered, setDraftRecovered] = useState(false);
   const [showDraftBanner, setShowDraftBanner] = useState(false);
+  const [templateTitle, setTemplateTitle] = useState('');
+  const [autoSubmitPrompt, setAutoSubmitPrompt] = useState(false);
 
   // Universal Wizard States
   const [selectedTheme, setSelectedTheme] = useState(null);
@@ -107,13 +109,19 @@ export function useForgeState(user, router) {
   // Syncing prefill recovery & active intents queue on mount
   useEffect(() => {
     const quickQuery = localStorage.getItem('promptforge_quickquery');
+    const qTitle = localStorage.getItem('promptforge_template_title');
     if (quickQuery) {
       setRawDescription(quickQuery);
       setActiveMode('enhance');
       localStorage.setItem('promptforge_wmode', 'enhance');
+      if (qTitle) {
+        setTemplateTitle(qTitle);
+      }
+      setAutoSubmitPrompt(true);
       
       // Purge storage flags immediately to avoid stale state loops
       localStorage.removeItem('promptforge_quickquery');
+      localStorage.removeItem('promptforge_template_title');
       localStorage.removeItem('promptforge_draft'); // Priority 1 wins over Priority 2
       toast.success('Quick Forge loaded!', { description: 'Running automated intent discovery...' });
       track('quick_forge_prefilled', { length: quickQuery.length });
@@ -286,6 +294,8 @@ export function useForgeState(user, router) {
     selectedTheme, setSelectedTheme,
     selectedTypography, setSelectedTypography,
     selectedModel, setSelectedModel,
+    templateTitle, setTemplateTitle,
+    autoSubmitPrompt, setAutoSubmitPrompt,
     appCategory, setAppCategory,
     customCategory, setCustomCategory,
     selectedFeatures, setSelectedFeatures,
