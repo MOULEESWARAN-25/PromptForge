@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { useWizardAutoScroll } from '../hooks/useWizardAutoScroll';
 
 import { 
@@ -19,14 +20,14 @@ const IconMap = {
   Home,
   Code2
 };
-import { APP_CATEGORIES, CATEGORY_FEATURES } from '../constants/appCategories';
+import { APP_CATEGORIES, CATEGORY_FEATURES, AI_FEATURE_SUGGESTIONS } from '../constants/appCategories';
 import { ThemeSelector } from './ThemeSelector';
 import { TypographyPicker } from './TypographyPicker';
 import { SyncBranchSelector } from './SyncBranchSelector';
 import { ThemePreview } from './ThemePreview';
 import ShadcnDropdown from '@/components/ShadcnDropdown';
 
-const STEPS = ['Application', 'Features', 'Theme', 'Typography', 'Live Preview', 'Project Setup', 'Generate'];
+const STEPS = ['Application', 'Features', 'Theme', 'Typography', 'Live Preview', 'Project Setup', 'Review'];
 
 const slideVariants = {
   enter: (dir) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
@@ -50,6 +51,7 @@ export function ApplicationWizard({ forgeState, promptGeneration, apiKey }) {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [appSearch, setAppSearch] = useState('');
+  const router = useRouter();
 
   const continueButtonRef = useRef(null);
 
@@ -77,7 +79,6 @@ export function ApplicationWizard({ forgeState, promptGeneration, apiKey }) {
     handleCategorySelect, handleFeatureToggle, handleAddCustomFeature,
     projectName, setProjectName,
     projectDescription, setProjectDescription,
-    projectType, setProjectType,
     frontendStack, setFrontendStack,
     backendStack, setBackendStack,
     database, setDatabase,
@@ -106,6 +107,10 @@ export function ApplicationWizard({ forgeState, promptGeneration, apiKey }) {
   };
 
   const goBack = () => {
+    if (step === 1) {
+      router.push('/dashboard?action=create');
+      return;
+    }
     setDirection(-1);
     setStep(s => Math.max(s - 1, 1));
   };
@@ -204,7 +209,19 @@ return (
           const active = step === n;
           return (
             <React.Fragment key={label}>
-              <div style={stepItemStyle(active, done)}>
+              <div 
+                style={{
+                  ...stepItemStyle(active, done),
+                  cursor: done ? 'pointer' : 'default',
+                }}
+                onClick={() => {
+                  if (done) {
+                    setDirection(-1);
+                    setStep(n);
+                  }
+                }}
+                className={done ? "active-scale-95" : ""}
+              >
                 <div style={{
                   width: '16px', height: '16px', borderRadius: '50%', display: 'flex',
                   alignItems: 'center', justifyContent: 'center',
@@ -241,22 +258,24 @@ return (
             {/* ── Step 1: Application Type ── */}
             {step === 1 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div>
-                  <h3 style={stepTitle}>Select Application Type</h3>
-                  <p style={stepDesc}>What kind of digital product are you building?</p>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.45rem 0.75rem', width: '100%', maxWidth: '360px', boxSizing: 'border-box' }}>
-                  <Search size={14} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
-                  <input
-                    type="text"
-                    placeholder="Search application categories..."
-                    value={appSearch}
-                    onChange={(e) => setAppSearch(e.target.value)}
-                    style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.78rem', color: 'var(--foreground)', width: '100%', fontFamily: 'var(--font-sans)' }}
-                  />
-                  {appSearch && (
-                    <span onClick={() => setAppSearch('')} style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', cursor: 'pointer', fontWeight: 600 }}>Clear</span>
-                  )}
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+                  <div>
+                    <h3 style={stepTitle}>Select Application Type</h3>
+                    <p style={stepDesc}>What kind of digital product are you building?</p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.55rem 0.85rem', width: '280px', flexShrink: 0 }}>
+                    <Search size={15} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
+                    <input
+                      type="text"
+                      placeholder="Search application categories..."
+                      value={appSearch}
+                      onChange={(e) => setAppSearch(e.target.value)}
+                      style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.8rem', color: 'var(--foreground)', width: '100%', fontFamily: 'var(--font-sans)' }}
+                    />
+                    {appSearch && (
+                      <span onClick={() => setAppSearch('')} style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', cursor: 'pointer', fontWeight: 600 }}>Clear</span>
+                    )}
+                  </div>
                 </div>
                 <div className="category-grid" style={{ gap: '1rem' }}>
                   {APP_CATEGORIES.filter(cat => 
@@ -380,17 +399,44 @@ return (
                     <Plus size={14} /> Add
                   </button>
                 </form>
+
+                {/* AI Suggestions */}
+                {(() => {
+                  const suggestions = AI_FEATURE_SUGGESTIONS[appCategory] || AI_FEATURE_SUGGESTIONS['Custom'] || [];
+                  const availableSuggestions = suggestions.filter(s => !selectedFeatures.includes(s));
+                  
+                  if (availableSuggestions.length > 0) {
+                    return (
+                      <div style={{ marginTop: '0.75rem' }} className="animate-fade-in">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '0.5rem' }}>
+                          <Sparkles size={12} /> AI Suggestions
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          {availableSuggestions.map(sug => (
+                            <button
+                              key={sug}
+                              onClick={(e) => { e.preventDefault(); handleFeatureToggle(sug); }}
+                              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '0.35rem 0.65rem', borderRadius: '12px', border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)', background: 'color-mix(in srgb, var(--accent) 8%, transparent)', color: 'var(--accent)', fontSize: '0.75rem', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                              className="active-scale-95"
+                            >
+                              <Plus size={12} /> {sug}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
             )}
 
             {/* ── Step 3: Theme Selector ── */}
             {step === 3 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div>
-                  <h3 style={stepTitle}>Choose Theme Style</h3>
-                  <p style={stepDesc}>Select the visual design style for this application.</p>
-                </div>
                 <ThemeSelector
+                  headerTitle="Choose Theme Style"
+                  headerDescription="Select the visual design style for this application."
                   selectedTheme={selectedTheme}
                   setSelectedTheme={setSelectedTheme}
                   activeMode="application"
@@ -404,11 +450,9 @@ return (
             {/* ── Step 4: Typography ── */}
             {step === 4 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div>
-                  <h3 style={stepTitle}>Select Typography System</h3>
-                  <p style={stepDesc}>Pick a typography pairing tailored to the app's visual hierarchy.</p>
-                </div>
                 <TypographyPicker
+                  headerTitle="Select Typography System"
+                  headerDescription="Pick a typography pairing tailored to the app's visual hierarchy."
                   selectedTypography={selectedTypography}
                   setSelectedTypography={setSelectedTypography}
                 />
@@ -453,8 +497,6 @@ return (
                   setProjectName={setProjectName}
                   projectDescription={projectDescription}
                   setProjectDescription={setProjectDescription}
-                  projectType={projectType}
-                  setProjectType={setProjectType}
                   frontendStack={frontendStack}
                   setFrontendStack={setFrontendStack}
                   backendStack={backendStack}
@@ -474,61 +516,76 @@ return (
               </div>
             )}
 
-            {/* ── Step 7: Generate ── */}
+            {/* ── Step 7: Review ── */}
             {step === 7 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div>
-                  <h3 style={stepTitle}>Ready to Compile</h3>
-                  <p style={stepDesc}>Your selections are loaded. Veyntra will run the full RAG pipeline and compile a production-grade blueprint.</p>
+                  <h3 style={stepTitle}>Review Configuration</h3>
+                  <p style={stepDesc}>Verify your selections before compiling the application blueprint.</p>
                 </div>
-                {/* Summary pills */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  {[
-                    { label: 'App', value: appCategory === 'Custom' ? (customCategory || 'Custom') : appCategory },
-                    { label: 'Theme', value: selectedTheme },
-                    { label: 'Font', value: selectedTypography },
-                    { label: 'Project', value: projectIntegration === 'existing' ? `Existing · ${framework}` : 'New Project' },
-                  ].map(({ label, value }) => value && (
-                    <span key={label} style={{ fontSize: '0.72rem', fontWeight: '600', color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)', borderRadius: '8px', padding: '3px 10px' }}>
-                       {label}: {value}
-                    </span>
-                  ))}
-                </div>
-                {/* AI Generator Engine Selector */}
-                <div style={{ border: '1px solid var(--border)', borderRadius: '12px', padding: '0.85rem 1rem', background: 'var(--card)', display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', marginBottom: '0.5rem' }} className="animate-fade-in">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: '700', color: 'var(--foreground)' }}>
-                    <Sparkles size={13} style={{ color: 'var(--accent)' }} />
-                    AI Generator Engine
+                
+                {/* Detailed Summary Sections */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {/* Application Section */}
+                  <div style={{ padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.75rem', color: 'var(--foreground)' }}>Application</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8rem' }}>
+                      <div><span style={{ color: 'var(--muted-foreground)' }}>Category:</span> <span style={{ fontWeight: '500' }}>{appCategory === 'Custom' ? customCategory || 'Custom' : appCategory}</span></div>
+                      <div style={{ gridColumn: '1 / -1' }}><span style={{ color: 'var(--muted-foreground)' }}>Features:</span> <span style={{ fontWeight: '500' }}>{selectedFeatures.join(', ') || 'None'}</span></div>
+                    </div>
                   </div>
-                  <ShadcnDropdown
-                    value={selectedModel || 'gemini'}
-                    onChange={(val) => setSelectedModel(val)}
-                    options={[
-                      { label: 'Gemini 3.1 Pro (Flagship)', value: 'gemini' },
-                      { label: 'Groq Llama 3.3 70B (High Precision)', value: 'groq' }
-                    ]}
-                    triggerWidth="100%"
-                  />
-                  <p style={{ fontSize: '0.68rem', color: 'var(--muted-foreground)', margin: 0 }}>
-                    {selectedModel === 'groq' ? "⚡ Running Groq Llama 3.3 for faster, high-fidelity synthesis." : "✨ Running flagship Gemini 3.1 Pro synthesis."}
-                  </p>
+
+                  {/* Theme Section */}
+                  <div style={{ padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.75rem', color: 'var(--foreground)' }}>Theme & Typography</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8rem' }}>
+                      <div><span style={{ color: 'var(--muted-foreground)' }}>Selected Theme:</span> <span style={{ fontWeight: '500' }}>{selectedTheme}</span></div>
+                      <div><span style={{ color: 'var(--muted-foreground)' }}>Typography:</span> <span style={{ fontWeight: '500' }}>{selectedTypography}</span></div>
+                    </div>
+                  </div>
+
+                  {/* Project Setup Section */}
+                  <div style={{ padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.75rem', color: 'var(--foreground)' }}>Project Setup</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8rem' }}>
+                      <div><span style={{ color: 'var(--muted-foreground)' }}>Integration:</span> <span style={{ fontWeight: '500' }}>{projectIntegration === 'existing' ? 'Existing Project' : 'New Project'}</span></div>
+                      {projectIntegration === 'existing' ? (
+                        <div><span style={{ color: 'var(--muted-foreground)' }}>Framework:</span> <span style={{ fontWeight: '500' }}>{framework}</span></div>
+                      ) : (
+                        <>
+                          <div><span style={{ color: 'var(--muted-foreground)' }}>Frontend:</span> <span style={{ fontWeight: '500' }}>{frontendStack}</span></div>
+                          <div><span style={{ color: 'var(--muted-foreground)' }}>Backend:</span> <span style={{ fontWeight: '500' }}>{backendStack}</span></div>
+                          <div><span style={{ color: 'var(--muted-foreground)' }}>Database:</span> <span style={{ fontWeight: '500' }}>{database}</span></div>
+                          <div><span style={{ color: 'var(--muted-foreground)' }}>Auth:</span> <span style={{ fontWeight: '500' }}>{authOption}</span></div>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--muted-foreground)', justifyContent: 'center' }}>
-                  <Info size={15} />
-                  {apiKey ? 'Live Compiler active.' : 'Offline Compiler active.'}
+
+
+
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button
+                    onClick={goBack}
+                    className="active-scale-95"
+                    style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: '6px', padding: '0.85rem 1.25rem', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', fontSize: '0.95rem', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  >
+                    <ArrowLeft size={18} /> Back
+                  </button>
+                  <button
+                    onClick={handleForgeSubmit}
+                    className="btn-accent shine-effect"
+                    disabled={isGenerating}
+                    style={{ flex: 1, padding: '0.85rem', fontSize: '0.95rem', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'var(--accent)', color: 'var(--accent-foreground)', transition: 'all 0.2s ease' }}
+                  >
+                    {isGenerating
+                      ? <><Sliders size={18} className="animate-spin" /> Compiling Application Blueprint...</>
+                      : <><Sparkles size={18} /> Compile Application Blueprint</>
+                    }
+                  </button>
                 </div>
-                <button
-                  onClick={handleForgeSubmit}
-                  className="btn-accent shine-effect"
-                  disabled={isGenerating}
-                  style={{ width: '100%', padding: '0.85rem', fontSize: '0.95rem', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'var(--accent)', color: 'var(--accent-foreground)', transition: 'all 0.2s ease' }}
-                >
-                  {isGenerating
-                    ? <><Sliders size={18} className="animate-spin" /> Compiling Application Blueprint...</>
-                    : <><Sparkles size={18} /> Compile Application Blueprint</>
-                  }
-                </button>
               </div>
             )}
           </motion.div>
@@ -540,9 +597,8 @@ return (
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
           <button
             onClick={goBack}
-            disabled={step === 1}
             className="active-scale-95"
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.25rem', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', opacity: step === 1 ? 0.35 : 1, fontSize: '0.85rem', fontWeight: '600', cursor: step === 1 ? 'default' : 'pointer', transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.25rem', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}
           >
             <ArrowLeft size={15} /> Back
           </button>

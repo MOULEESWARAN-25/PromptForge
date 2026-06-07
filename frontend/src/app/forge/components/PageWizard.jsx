@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { useWizardAutoScroll } from '../hooks/useWizardAutoScroll';
 
 import { CheckCircle2, Plus, Sliders, Sparkles, Info, ArrowRight, ArrowLeft } from 'lucide-react';
@@ -11,7 +12,7 @@ import { SyncBranchSelector } from './SyncBranchSelector';
 import { ThemePreview } from './ThemePreview';
 import ShadcnDropdown from '@/components/ShadcnDropdown';
 
-const STEPS = ['Page Type', 'Components', 'Theme', 'Typography', 'Live Preview', 'Project Setup', 'Generate'];
+const STEPS = ['Page Type', 'Components', 'Theme', 'Typography', 'Live Preview', 'Project Setup', 'Review'];
 
 const AI_SUGGESTIONS_DICT = {
   'Dashboard Panel': [
@@ -76,6 +77,7 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
   const [direction, setDirection] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const router = useRouter();
 
   const continueButtonRef = useRef(null);
 
@@ -103,7 +105,6 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
     handleComponentToggle, handleAddCustomComponent,
     projectName, setProjectName,
     projectDescription, setProjectDescription,
-    projectType, setProjectType,
     frontendStack, setFrontendStack,
     backendStack, setBackendStack,
     database, setDatabase,
@@ -126,7 +127,14 @@ export function PageWizard({ forgeState, promptGeneration, apiKey }) {
   };
 
   const goNext = () => { if (canAdvance()) { setDirection(1); setStep(s => Math.min(s + 1, 7)); } };
-  const goBack = () => { setDirection(-1); setStep(s => Math.max(s - 1, 1)); };
+  const goBack = () => {
+    if (step === 1) {
+      router.push('/dashboard?action=create');
+      return;
+    }
+    setDirection(-1);
+    setStep(s => Math.max(s - 1, 1));
+  };
 
   const categoryCard = (isSelected) => ({
     position: 'relative', borderRadius: '12px',
@@ -246,7 +254,19 @@ return (
           const active = step === n;
           return (
             <React.Fragment key={label}>
-              <div style={stepItemStyle(active, done)}>
+              <div 
+                style={{
+                  ...stepItemStyle(active, done),
+                  cursor: done ? 'pointer' : 'default',
+                }}
+                onClick={() => {
+                  if (done) {
+                    setDirection(-1);
+                    setStep(n);
+                  }
+                }}
+                className={done ? "active-scale-95" : ""}
+              >
                 <div style={{
                   width: '16px', height: '16px', borderRadius: '50%', display: 'flex',
                   alignItems: 'center', justifyContent: 'center',
@@ -317,9 +337,24 @@ return (
             {/* Step 2 */}
             {step === 2 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div>
-                  <h3 style={stepTitle}>Select Components</h3>
-                  <p style={stepDesc}>Choose or search modular blocks, and review custom AI recommendations.</p>
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+                  <div>
+                    <h3 style={stepTitle}>Select Components</h3>
+                    <p style={stepDesc}>Choose or search modular blocks, and review custom AI recommendations.</p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.55rem 0.85rem', width: '280px', flexShrink: 0 }}>
+                    <Search size={15} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
+                    <input 
+                      type="text" 
+                      placeholder="Search components..." 
+                      value={searchQuery} 
+                      onChange={(e) => setSearchQuery(e.target.value)} 
+                      style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.8rem', color: 'var(--foreground)', width: '100%', fontFamily: 'var(--font-sans)' }} 
+                    />
+                    {searchQuery && (
+                      <span onClick={() => setSearchQuery('')} style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', cursor: 'pointer', fontWeight: 600 }}>Clear</span>
+                    )}
+                  </div>
                 </div>
 
                 {/* AI Suggestions Section */}
@@ -349,25 +384,8 @@ return (
                   </div>
                 </div>
 
-                {/* Search and Category Filters */}
+                {/* Category Filters */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                  <input 
-                    type="text" 
-                    placeholder="🔍 Search components..." 
-                    value={searchQuery} 
-                    onChange={(e) => setSearchQuery(e.target.value)} 
-                    style={{ 
-                      width: '100%', 
-                      background: 'rgba(0,0,0,0.15)', 
-                      border: '1px solid var(--border)', 
-                      borderRadius: '8px', 
-                      padding: '0.45rem 0.75rem', 
-                      fontSize: '0.78rem', 
-                      color: 'var(--foreground)', 
-                      outline: 'none' 
-                    }} 
-                    className="glass-input" 
-                  />
 
                   {/* Categories Row */}
                   <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
@@ -443,16 +461,28 @@ return (
             {/* Step 3 */}
             {step === 3 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div><h3 style={stepTitle}>Choose Theme</h3><p style={stepDesc}>Apply visual design tokens and HSL profiles.</p></div>
-                <ThemeSelector selectedTheme={selectedTheme} setSelectedTheme={setSelectedTheme} activeMode="page" pageType={pageType} selectedTypography={selectedTypography} hidePreview={true} />
+                <ThemeSelector 
+                  headerTitle="Choose Theme" 
+                  headerDescription="Apply visual design tokens and HSL profiles." 
+                  selectedTheme={selectedTheme} 
+                  setSelectedTheme={setSelectedTheme} 
+                  activeMode="page" 
+                  pageType={pageType} 
+                  selectedTypography={selectedTypography} 
+                  hidePreview={true} 
+                />
               </div>
             )}
 
             {/* Step 4 */}
             {step === 4 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div><h3 style={stepTitle}>Typography System</h3><p style={stepDesc}>Your font choice signals intent to the AI generator.</p></div>
-                <TypographyPicker selectedTypography={selectedTypography} setSelectedTypography={setSelectedTypography} />
+                <TypographyPicker 
+                  headerTitle="Typography System" 
+                  headerDescription="Your font choice signals intent to the AI generator." 
+                  selectedTypography={selectedTypography} 
+                  setSelectedTypography={setSelectedTypography} 
+                />
               </div>
             )}
 
@@ -489,8 +519,6 @@ return (
                   setProjectName={setProjectName}
                   projectDescription={projectDescription}
                   setProjectDescription={setProjectDescription}
-                  projectType={projectType}
-                  setProjectType={setProjectType}
                   frontendStack={frontendStack}
                   setFrontendStack={setFrontendStack}
                   backendStack={backendStack}
@@ -513,36 +541,61 @@ return (
             {/* Step 7 */}
             {step === 7 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div><h3 style={stepTitle}>Ready to Compile</h3><p style={stepDesc}>Review your selections and generate the prompt.</p></div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  {[{ label: 'Page', value: pageType }, { label: 'Components', value: `${selectedComponents.length} selected` }, { label: 'Theme', value: selectedTheme }, { label: 'Font', value: selectedTypography }, { label: 'Project', value: projectIntegration === 'existing' ? `Existing · ${framework}` : 'New' }].map(({ label, value }) => value && (
-                    <span key={label} style={{ fontSize: '0.72rem', fontWeight: '600', color: 'var(--accent)', background: 'rgba(104,67,236,0.08)', border: '1px solid rgba(104,67,236,0.2)', borderRadius: '8px', padding: '3px 10px' }}>{label}: {value}</span>
-                  ))}
-                </div>
-                {/* AI Generator Engine Selector */}
-                <div style={{ border: '1px solid var(--border)', borderRadius: '12px', padding: '0.85rem 1rem', background: 'var(--card)', display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', marginBottom: '0.5rem' }} className="animate-fade-in">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: '700', color: 'var(--foreground)' }}>
-                    <Sparkles size={13} style={{ color: 'var(--accent)' }} />
-                    AI Generator Engine
+                <div><h3 style={stepTitle}>Review Configuration</h3><p style={stepDesc}>Verify your selections before compiling the application blueprint.</p></div>
+                
+                {/* Detailed Summary Sections */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {/* Application Section */}
+                  <div style={{ padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.75rem', color: 'var(--foreground)' }}>Application</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8rem' }}>
+                      <div><span style={{ color: 'var(--muted-foreground)' }}>Page Type:</span> <span style={{ fontWeight: '500' }}>{pageType}</span></div>
+                      <div style={{ gridColumn: '1 / -1' }}><span style={{ color: 'var(--muted-foreground)' }}>Components:</span> <span style={{ fontWeight: '500' }}>{selectedComponents.join(', ') || 'None'}</span></div>
+                    </div>
                   </div>
-                  <ShadcnDropdown
-                    value={selectedModel || 'gemini'}
-                    onChange={(val) => setSelectedModel(val)}
-                    options={[
-                      { label: 'Gemini 3.1 Pro (Flagship)', value: 'gemini' },
-                      { label: 'Groq Llama 3.3 70B (High Precision)', value: 'groq' }
-                    ]}
-                    triggerWidth="100%"
-                  />
-                  <p style={{ fontSize: '0.68rem', color: 'var(--muted-foreground)', margin: 0 }}>
-                    {selectedModel === 'groq' ? "⚡ Running Groq Llama 3.3 for faster, high-fidelity synthesis." : "✨ Running flagship Gemini 3.1 Pro synthesis."}
-                  </p>
+
+                  {/* Theme Section */}
+                  <div style={{ padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.75rem', color: 'var(--foreground)' }}>Theme & Typography</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8rem' }}>
+                      <div><span style={{ color: 'var(--muted-foreground)' }}>Selected Theme:</span> <span style={{ fontWeight: '500' }}>{selectedTheme}</span></div>
+                      <div><span style={{ color: 'var(--muted-foreground)' }}>Typography:</span> <span style={{ fontWeight: '500' }}>{selectedTypography}</span></div>
+                    </div>
+                  </div>
+
+                  {/* Project Setup Section */}
+                  <div style={{ padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.75rem', color: 'var(--foreground)' }}>Project Setup</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8rem' }}>
+                      <div><span style={{ color: 'var(--muted-foreground)' }}>Integration:</span> <span style={{ fontWeight: '500' }}>{projectIntegration === 'existing' ? 'Existing Project' : 'New Project'}</span></div>
+                      {projectIntegration === 'existing' ? (
+                        <div><span style={{ color: 'var(--muted-foreground)' }}>Framework:</span> <span style={{ fontWeight: '500' }}>{framework}</span></div>
+                      ) : (
+                        <>
+                          <div><span style={{ color: 'var(--muted-foreground)' }}>Frontend:</span> <span style={{ fontWeight: '500' }}>{frontendStack}</span></div>
+                          <div><span style={{ color: 'var(--muted-foreground)' }}>Backend:</span> <span style={{ fontWeight: '500' }}>{backendStack}</span></div>
+                          <div><span style={{ color: 'var(--muted-foreground)' }}>Database:</span> <span style={{ fontWeight: '500' }}>{database}</span></div>
+                          <div><span style={{ color: 'var(--muted-foreground)' }}>Auth:</span> <span style={{ fontWeight: '500' }}>{authOption}</span></div>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--muted-foreground)', justifyContent: 'center' }}><Info size={15} />{apiKey ? 'Live Compiler active.' : 'Offline Compiler active.'}</div>
-                <button onClick={handleForgeSubmit} className="btn-accent shine-effect" disabled={isGenerating} style={{ width: '100%', padding: '0.85rem', fontSize: '0.95rem', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'var(--accent)', color: 'var(--accent-foreground)', transition: 'all 0.2s ease' }}>
-                  {isGenerating ? <><Sliders size={18} className="animate-spin" />Forging Page Blueprint...</> : <><Sparkles size={18} />Generate Page Prompt</>}
-                </button>
+
+
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button
+                    onClick={goBack}
+                    className="active-scale-95"
+                    style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: '6px', padding: '0.85rem 1.25rem', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', fontSize: '0.95rem', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  >
+                    <ArrowLeft size={18} /> Back
+                  </button>
+                  <button onClick={handleForgeSubmit} className="btn-accent shine-effect" disabled={isGenerating} style={{ flex: 1, padding: '0.85rem', fontSize: '0.95rem', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'var(--accent)', color: 'var(--accent-foreground)', transition: 'all 0.2s ease' }}>
+                    {isGenerating ? <><Sliders size={18} className="animate-spin" />Forging Page Blueprint...</> : <><Sparkles size={18} />Generate Page Prompt</>}
+                  </button>
+                </div>
               </div>
             )}
           </motion.div>
@@ -552,7 +605,7 @@ return (
       {/* Navigation */}
       {step < 7 && step !== 6 && (
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <button onClick={goBack} disabled={step === 1} className="active-scale-95" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.25rem', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', opacity: step === 1 ? 0.35 : 1, fontSize: '0.85rem', fontWeight: '600', cursor: step === 1 ? 'default' : 'pointer', transition: 'all 0.2s ease' }}>
+          <button onClick={goBack} className="active-scale-95" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.25rem', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}>
             <ArrowLeft size={15} />Back
           </button>
           <button

@@ -201,7 +201,7 @@ const getAccessibleTagColor = (color, isDark) => {
   }
 };
 
-export function TypographyPicker({ selectedTypography, setSelectedTypography, compact = false }) {
+export function TypographyPicker({ headerTitle, headerDescription, selectedTypography, setSelectedTypography, compact = false }) {
   const { theme } = useApp();
   const isDark = theme === 'dark';
   const [searchQuery, setSearchQuery] = useState('');
@@ -259,49 +259,55 @@ export function TypographyPicker({ selectedTypography, setSelectedTypography, co
     <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? '0.5rem' : '1rem' }}>
       
       {/* Search & Category Header - Only in Full Mode */}
-      {!compact && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '0.85rem' }} className="animate-fade-up">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.45rem 0.75rem' }}>
-            <Search size={14} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
+      {!compact && headerTitle && (
+        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+          <div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--foreground)', letterSpacing: '-0.02em' }}>{headerTitle}</h3>
+            {headerDescription && <p style={{ fontSize: '0.88rem', color: 'var(--muted-foreground)', marginTop: '0.35rem', lineHeight: '1.4' }}>{headerDescription}</p>}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.55rem 0.85rem', width: '280px', flexShrink: 0 }}>
+            <Search size={15} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
             <input
               type="text"
-              placeholder="Search typography (e.g. 'Inter', 'Code', 'SaaS'…)"
+              placeholder="Search typography (e.g. 'Inter', 'Code'…)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.78rem', color: 'var(--foreground)', width: '100%', fontFamily: 'var(--font-sans)' }}
+              style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.8rem', color: 'var(--foreground)', width: '100%', fontFamily: 'var(--font-sans)' }}
             />
             {searchQuery && (
-              <span onClick={() => setSearchQuery('')} style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', cursor: 'pointer', fontWeight: 600 }}>Clear</span>
+              <span onClick={() => setSearchQuery('')} style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', cursor: 'pointer', fontWeight: 600 }}>Clear</span>
             )}
           </div>
+        </div>
+      )}
 
-          <div style={{ display: 'flex', gap: '0.25rem', overflowX: 'auto', paddingBottom: '2px' }}>
-            {CATEGORIES.map(cat => {
-              const isActive = activeCategory === cat;
-              return (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setActiveCategory(cat)}
-                  style={{
-                    padding: '3px 8px',
-                    borderRadius: '12px',
-                    fontSize: '0.65rem',
-                    fontWeight: '700',
-                    background: isActive ? 'var(--accent)' : 'var(--input)',
-                    border: isActive ? '1px solid var(--accent)' : '1px solid var(--border)',
-                    color: isActive ? 'var(--accent-foreground)' : 'var(--muted-foreground)',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    whiteSpace: 'nowrap'
-                  }}
-                  className="active-scale-95"
-                >
-                  {cat}
-                </button>
-              );
-            })}
-          </div>
+      {!compact && (
+        <div style={{ display: 'flex', gap: '0.35rem', overflowX: 'auto', paddingBottom: '2px', marginTop: headerTitle ? '-0.5rem' : '0' }}>
+          {CATEGORIES.map(cat => {
+            const isActive = activeCategory === cat;
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setActiveCategory(cat)}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '12px',
+                  fontSize: '0.68rem',
+                  fontWeight: isActive ? '700' : '500',
+                  background: isActive ? 'var(--accent)' : 'var(--input)',
+                  border: isActive ? '1px solid var(--accent)' : '1px solid var(--border)',
+                  color: isActive ? 'var(--accent-foreground)' : 'var(--muted-foreground)',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  whiteSpace: 'nowrap'
+                }}
+                className="active-scale-95"
+              >
+                {cat}
+              </button>
+            );
+          })}
         </div>
       )}
 

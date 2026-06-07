@@ -31,6 +31,8 @@ const FILTERS = [
 ];
 
 export function ThemeSelector({
+  headerTitle,
+  headerDescription,
   selectedTheme,
   setSelectedTheme,
   activeMode,
@@ -179,11 +181,17 @@ export function ThemeSelector({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? '0.65rem' : '1.25rem' }}>
       
-      {/* ── SECTION 1: SEARCH & INTEGRATED FILTER PILLS ── */}
+      {/* ── SECTION 1: HEADER & SEARCH ── */}
       {!compact && (
-        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '0.75rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '0.75rem 1rem' }} className="animate-fade-up">
+        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '0.5rem' }} className="animate-fade-up">
+          {headerTitle && (
+            <div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--foreground)', letterSpacing: '-0.02em', margin: 0 }}>{headerTitle}</h3>
+              {headerDescription && <p style={{ fontSize: '0.88rem', color: 'var(--muted-foreground)', marginTop: '0.35rem', lineHeight: '1.4', margin: 0 }}>{headerDescription}</p>}
+            </div>
+          )}
           {/* Omni-search input */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.55rem 0.85rem', width: '240px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.55rem 0.85rem', width: '280px', flexShrink: 0 }}>
             <Search size={15} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
             <input
               type="text"
@@ -196,21 +204,23 @@ export function ThemeSelector({
               <span onClick={() => setSearchQuery('')} style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', cursor: 'pointer', fontWeight: 600 }}>Clear</span>
             )}
           </div>
+        </div>
+      )}
 
-          {/* Integrated Filter Pills */}
-          <div style={{ display: 'flex', gap: '0.35rem', overflowX: 'auto', flexGrow: 1, paddingBottom: '2px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            {FILTERS.map(filter => (
-              <button
-                key={filter.id}
-                type="button"
-                onClick={() => setActiveFilter(filter.id)}
-                style={selectBadge(activeFilter === filter.id)}
-                className="active-scale-95"
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
+      {/* FILTER PILLS */}
+      {!compact && (
+        <div style={{ display: 'flex', gap: '0.35rem', overflowX: 'auto', paddingBottom: '2px', scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="animate-fade-up">
+          {FILTERS.map(filter => (
+            <button
+              key={filter.id}
+              type="button"
+              onClick={() => setActiveFilter(filter.id)}
+              style={selectBadge(activeFilter === filter.id)}
+              className="active-scale-95"
+            >
+              {filter.label}
+            </button>
+          ))}
         </div>
       )}
 

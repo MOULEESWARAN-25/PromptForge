@@ -18,14 +18,7 @@ const FRAMEWORK_OPTIONS = [
   { value: 'Vanilla CSS Modules', label: 'Vanilla CSS Modules' }
 ];
 
-const PROJECT_TYPES = [
-  { id: 'SaaS Platform', label: 'SaaS Platform', icon: <Layers size={16} /> },
-  { id: 'E-commerce Store', label: 'E-commerce Store', icon: <ShoppingBag size={16} /> },
-  { id: 'Developer Tool / API', label: 'Developer Tool / API', icon: <Cpu size={16} /> },
-  { id: 'Portfolio / Marketing', label: 'Portfolio / Marketing', icon: <Laptop size={16} /> },
-  { id: 'Mobile Application', label: 'Mobile Application', icon: <Smartphone size={16} /> },
-  { id: 'Custom Setup', label: 'Custom Setup', icon: <Terminal size={16} /> }
-];
+
 
 const FRONTEND_STACKS = [
   { id: 'Next.js (App Router)', label: 'Next.js (App)', icon: <Globe size={16} /> },
@@ -99,8 +92,6 @@ export function SyncBranchSelector({
   setProjectName,
   projectDescription,
   setProjectDescription,
-  projectType,
-  setProjectType,
   frontendStack,
   setFrontendStack,
   backendStack,
@@ -127,7 +118,6 @@ export function SyncBranchSelector({
     step: setupPage,
     selectionDependencies: [
       projectIntegration,
-      projectType,
       frontendStack,
       backendStack,
       database,
@@ -392,29 +382,6 @@ export function SyncBranchSelector({
             </div>
           </div>
 
-          {/* Project Type Grid */}
-          <div>
-            <label style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--foreground)', display: 'block', marginBottom: '0.5rem' }}>
-              Project Type
-            </label>
-            <div className="pf-setup-grid-options">
-              {PROJECT_TYPES.map(opt => {
-                const isSelected = projectType === opt.id;
-                return (
-                  <div 
-                    key={opt.id}
-                    onClick={() => setProjectType(opt.id)}
-                    className={`pf-setup-card ${isSelected ? 'active' : ''}`}
-                  >
-                    {opt.icon}
-                    <span style={{ fontSize: '0.75rem', fontWeight: isSelected ? '700' : '500', color: isSelected ? 'var(--accent)' : 'var(--foreground)' }}>
-                      {opt.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
         </div>
       )}
 

@@ -666,19 +666,8 @@ function ForgeWizardContent() {
           }}
           className="forge-header-row"
         >
-          {/* Left: Back Button */}
-          <div style={{ display: "flex", justifyContent: "flex-start" }}>
-            <button
-              style={backBtn}
-              onClick={() => {
-                router.back();
-              }}
-              className="active-scale-95 glow-card-spotlight"
-            >
-              <ArrowLeft size={15} />
-              Back
-            </button>
-          </div>
+          {/* Left: Empty Spacer for Grid */}
+          <div style={{ display: "flex", justifyContent: "flex-start" }} />
 
           {/* Center: Title & Description */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem" }}>

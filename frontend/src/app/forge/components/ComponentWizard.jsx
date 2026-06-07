@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { useWizardAutoScroll } from '../hooks/useWizardAutoScroll';
 
 import { CheckCircle2, Sliders, Sparkles, Info, ArrowRight, ArrowLeft, Code2, Search } from 'lucide-react';
@@ -11,7 +12,7 @@ import { TypographyPicker } from './TypographyPicker';
 import { SyncBranchSelector } from './SyncBranchSelector';
 import { ThemePreview } from './ThemePreview';
 
-const STEPS = ['Component Type', 'Theme', 'Typography', 'Live Preview', 'Project Setup', 'Generate'];
+const STEPS = ['Component Type', 'Theme', 'Typography', 'Live Preview', 'Project Setup', 'Review'];
 
 const slideVariants = {
   enter: (dir) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
@@ -88,6 +89,7 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [componentSearch, setComponentSearch] = useState('');
+  const router = useRouter();
 
   const continueButtonRef = useRef(null);
 
@@ -113,7 +115,6 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
     ideResponseContext, setIdeResponseContext,
     projectName, setProjectName,
     projectDescription, setProjectDescription,
-    projectType, setProjectType,
     frontendStack, setFrontendStack,
     backendStack, setBackendStack,
     database, setDatabase,
@@ -141,6 +142,10 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
   };
 
   const goBack = () => {
+    if (step === 1) {
+      router.push('/dashboard?action=create');
+      return;
+    }
     setDirection(-1);
     setStep(s => Math.max(s - 1, 1));
   };
@@ -169,7 +174,19 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
           const active = step === n;
           return (
             <React.Fragment key={label}>
-              <div style={stepItemStyle(active, done)}>
+              <div 
+                style={{
+                  ...stepItemStyle(active, done),
+                  cursor: done ? 'pointer' : 'default',
+                }}
+                onClick={() => {
+                  if (done) {
+                    setDirection(-1);
+                    setStep(n);
+                  }
+                }}
+                className={done ? "active-scale-95" : ""}
+              >
                 <div style={{
                   width: '16px', height: '16px', borderRadius: '50%', display: 'flex',
                   alignItems: 'center', justifyContent: 'center',
@@ -206,23 +223,25 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
             {/* ── Step 1: Component Type ── */}
             {step === 1 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div>
-                  <h3 style={stepTitle}>Select Component Type</h3>
-                  <p style={stepDesc}>What kind of modular interactive component are you designing?</p>
-                </div>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.45rem 0.75rem', width: '100%', maxWidth: '360px', boxSizing: 'border-box' }}>
-                  <Search size={14} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
-                  <input
-                    type="text"
-                    placeholder="Search component templates..."
-                    value={componentSearch}
-                    onChange={(e) => setComponentSearch(e.target.value)}
-                    style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.78rem', color: 'var(--foreground)', width: '100%', fontFamily: 'var(--font-sans)' }}
-                  />
-                  {componentSearch && (
-                    <span onClick={() => setComponentSearch('')} style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', cursor: 'pointer', fontWeight: 600 }}>Clear</span>
-                  )}
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+                  <div>
+                    <h3 style={stepTitle}>Select Component Type</h3>
+                    <p style={stepDesc}>What kind of modular interactive component are you designing?</p>
+                  </div>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--input)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.55rem 0.85rem', width: '280px', flexShrink: 0 }}>
+                    <Search size={15} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
+                    <input
+                      type="text"
+                      placeholder="Search component templates..."
+                      value={componentSearch}
+                      onChange={(e) => setComponentSearch(e.target.value)}
+                      style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.8rem', color: 'var(--foreground)', width: '100%', fontFamily: 'var(--font-sans)' }}
+                    />
+                    {componentSearch && (
+                      <span onClick={() => setComponentSearch('')} style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', cursor: 'pointer', fontWeight: 600 }}>Clear</span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="category-grid" style={{ gap: '1rem' }}>
@@ -279,11 +298,9 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
             {/* ── Step 2: Theme Selector ── */}
             {step === 2 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div>
-                  <h3 style={stepTitle}>Choose Visual Theme</h3>
-                  <p style={stepDesc}>Select the visual design style and HSL tokens to apply to the component.</p>
-                </div>
                 <ThemeSelector
+                  headerTitle="Choose Visual Theme"
+                  headerDescription="Select the visual design style and HSL tokens to apply to the component."
                   selectedTheme={selectedTheme}
                   setSelectedTheme={setSelectedTheme}
                   activeMode="component"
@@ -347,8 +364,6 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
                   setProjectName={setProjectName}
                   projectDescription={projectDescription}
                   setProjectDescription={setProjectDescription}
-                  projectType={projectType}
-                  setProjectType={setProjectType}
                   frontendStack={frontendStack}
                   setFrontendStack={setFrontendStack}
                   backendStack={backendStack}
@@ -372,58 +387,71 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
             {step === 6 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div>
-                  <h3 style={stepTitle}>Ready to Compile</h3>
-                  <p style={stepDesc}>Your component setup is complete. Veyntra will run the RAG compilation pipeline to generate your prompt.</p>
+                  <h3 style={stepTitle}>Review Configuration</h3>
+                  <p style={stepDesc}>Verify your selections before compiling the component blueprint.</p>
                 </div>
                 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  {[
-                    { label: 'Component', value: componentType === 'Custom Component' ? (customComponentType || 'Custom') : componentType },
-                    { label: 'Theme', value: selectedTheme },
-                    { label: 'Font', value: selectedTypography },
-                    { label: 'Sync Integration', value: projectIntegration === 'existing' ? `Sync Enabled (${framework})` : 'Standalone Template' }
-                  ].map(({ label, value }) => value && (
-                    <span key={label} style={{ fontSize: '0.72rem', fontWeight: '600', color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)', borderRadius: '8px', padding: '3px 10px' }}>
-                      {label}: {value}
-                    </span>
-                  ))}
-                </div>
-
-                {/* AI Generator Engine Selector */}
-                <div style={{ border: '1px solid var(--border)', borderRadius: '12px', padding: '0.85rem 1rem', background: 'var(--card)', display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', marginBottom: '0.5rem' }} className="animate-fade-in">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: '700', color: 'var(--foreground)' }}>
-                    <Sparkles size={13} style={{ color: 'var(--accent)' }} />
-                    AI Generator Engine
+                {/* Detailed Summary Sections */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {/* Application Section */}
+                  <div style={{ padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.75rem', color: 'var(--foreground)' }}>Component</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8rem' }}>
+                      <div style={{ gridColumn: '1 / -1' }}><span style={{ color: 'var(--muted-foreground)' }}>Component Type:</span> <span style={{ fontWeight: '500' }}>{componentType === 'Custom Component' ? (customComponentType || 'Custom') : componentType}</span></div>
+                    </div>
                   </div>
-                  <ShadcnDropdown
-                    value={selectedModel || 'gemini'}
-                    onChange={(val) => setSelectedModel(val)}
-                    options={[
-                      { label: 'Gemini 3.1 Pro (Flagship)', value: 'gemini' },
-                      { label: 'Groq Llama 3.3 70B (High Precision)', value: 'groq' }
-                    ]}
-                    triggerWidth="100%"
-                  />
-                  <p style={{ fontSize: '0.68rem', color: 'var(--muted-foreground)', margin: 0 }}>
-                    {selectedModel === 'groq' ? "⚡ Running Groq Llama 3.3 for faster, high-fidelity synthesis." : "✨ Running flagship Gemini 3.1 Pro synthesis."}
-                  </p>
+
+                  {/* Theme Section */}
+                  <div style={{ padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.75rem', color: 'var(--foreground)' }}>Theme & Typography</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8rem' }}>
+                      <div><span style={{ color: 'var(--muted-foreground)' }}>Selected Theme:</span> <span style={{ fontWeight: '500' }}>{selectedTheme}</span></div>
+                      <div><span style={{ color: 'var(--muted-foreground)' }}>Typography:</span> <span style={{ fontWeight: '500' }}>{selectedTypography}</span></div>
+                    </div>
+                  </div>
+
+                  {/* Project Setup Section */}
+                  <div style={{ padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.75rem', color: 'var(--foreground)' }}>Project Setup</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8rem' }}>
+                      <div><span style={{ color: 'var(--muted-foreground)' }}>Integration:</span> <span style={{ fontWeight: '500' }}>{projectIntegration === 'existing' ? 'Existing Project' : 'New Project'}</span></div>
+                      {projectIntegration === 'existing' ? (
+                        <div><span style={{ color: 'var(--muted-foreground)' }}>Framework:</span> <span style={{ fontWeight: '500' }}>{framework}</span></div>
+                      ) : (
+                        <>
+                          <div><span style={{ color: 'var(--muted-foreground)' }}>Frontend:</span> <span style={{ fontWeight: '500' }}>{frontendStack}</span></div>
+                          <div><span style={{ color: 'var(--muted-foreground)' }}>Backend:</span> <span style={{ fontWeight: '500' }}>{backendStack}</span></div>
+                          <div><span style={{ color: 'var(--muted-foreground)' }}>Database:</span> <span style={{ fontWeight: '500' }}>{database}</span></div>
+                          <div><span style={{ color: 'var(--muted-foreground)' }}>Auth:</span> <span style={{ fontWeight: '500' }}>{authOption}</span></div>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--muted-foreground)', justifyContent: 'center' }}>
-                  <Info size={15} />
-                  {apiKey ? 'Live Compiler active.' : 'Offline Compiler active.'}
+
+
+
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button
+                    onClick={goBack}
+                    className="active-scale-95"
+                    style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: '6px', padding: '0.85rem 1.25rem', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', fontSize: '0.95rem', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  >
+                    <ArrowLeft size={18} /> Back
+                  </button>
+                  <button
+                    onClick={handleForgeSubmit}
+                    className="btn-accent shine-effect"
+                    disabled={isGenerating}
+                    style={{ flex: 1, padding: '0.85rem', fontSize: '0.95rem', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'var(--accent)', color: 'var(--accent-foreground)', transition: 'all 0.2s ease' }}
+                  >
+                    {isGenerating
+                      ? <><Sliders size={18} className="animate-spin" /> Compiling Component Blueprint...</>
+                      : <><Sparkles size={18} /> Compile Component Blueprint</>
+                    }
+                  </button>
                 </div>
-                <button
-                  onClick={handleForgeSubmit}
-                  className="btn-accent shine-effect"
-                  disabled={isGenerating}
-                  style={{ width: '100%', padding: '0.85rem', fontSize: '0.95rem', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'var(--accent)', color: 'var(--accent-foreground)', transition: 'all 0.2s ease' }}
-                >
-                  {isGenerating
-                    ? <><Sliders size={18} className="animate-spin" /> Compiling Component Blueprint...</>
-                    : <><Sparkles size={18} /> Compile Component Blueprint</>
-                  }
-                </button>
               </div>
             )}
           </motion.div>
@@ -435,9 +463,8 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
           <button
             onClick={goBack}
-            disabled={step === 1}
             className="active-scale-95"
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.25rem', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', opacity: step === 1 ? 0.35 : 1, fontSize: '0.85rem', fontWeight: '600', cursor: step === 1 ? 'default' : 'pointer', transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.25rem', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}
           >
             <ArrowLeft size={15} /> Back
           </button>
@@ -448,7 +475,7 @@ export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanc
             className={`active-scale-95 ${canAdvance() ? 'glow-pulse' : ''}`}
             style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.5rem', borderRadius: '10px', border: 'none', background: canAdvance() ? 'var(--accent)' : 'var(--muted)', color: canAdvance() ? 'var(--accent-foreground)' : 'var(--muted-foreground)', fontSize: '0.85rem', fontWeight: '700', cursor: canAdvance() ? 'pointer' : 'default', transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}
           >
-            Continue <ArrowRight size={15} />
+            {step === 5 ? 'Review' : 'Continue'} <ArrowRight size={15} />
           </button>
         </div>
       )}

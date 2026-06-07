@@ -21,3 +21,15 @@ export const CATEGORY_FEATURES = {
   'Real Estate Portal': ['Interactive Map Search', 'Property Detail Carousel', 'Mortgage Calculator', 'Agent Contact Panel', 'Filter Criteria (Price, Beds)', 'Virtual Tour Link Showcase', 'Saved Searches'],
   'Custom': ['User Authentication', 'Database API Connect', 'CRUD Action Panel', 'Responsive Grid Layout', 'Dark Mode Toggle', 'Email Notifications', 'Interactive Dashboard Panels', 'Activity Stream Log']
 };
+
+export const AI_FEATURE_SUGGESTIONS = {
+  'SaaS Dashboard Admin Panel': ['Multi-tenant Architecture', 'Webhook Integrations', 'Audit Logging', 'API Key Management', 'Custom Themes', 'Two-Factor Authentication (2FA)'],
+  'E-Commerce Marketplace': ['Abandoned Cart Recovery', 'AI Product Recommendations', 'Dynamic Pricing', 'Social Proof Popups', 'Multi-currency Support', 'Subscription Orders'],
+  'Student Management Hub': ['Automated Grading', 'Plagiarism Checker Integration', 'Video Classroom', 'Gamified Badges', 'Alumni Network', 'Behavioral Insights'],
+  'Freelancer Billing Platform': ['Automated Tax Calculation', 'Contract E-Signatures', 'Multi-currency Invoicing', 'Client Portal', 'Late Fee Automation'],
+  'Digital Creative Portfolio': ['3D Asset Viewer', 'Password Protected Galleries', 'Notion-like Blog', 'Client Feedback Comments', 'Custom Domain Setup'],
+  'Healthcare Tracker': ['Telemedicine Video Chat', 'HL7/FHIR Integration', 'Symptom Checker AI', 'Medication Reminders', 'Secure Document Vault'],
+  'Fitness Planner': ['Strava/Apple Health Sync', 'AI Workout Generator', 'Meal Plan Builder', 'Macro Calculator', 'Community Challenges'],
+  'Real Estate Portal': ['3D Virtual Tours', 'Neighborhood Crime Stats', 'Automated Valuation Model', 'Agent Lead Routing', 'Rent Payment Portal'],
+  'Custom': ['AI Content Generation', 'Real-time WebSockets', 'OAuth2 Social Login', 'Stripe Subscriptions', 'Analytics Dashboard', 'File Upload AWS S3']
+};

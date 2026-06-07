@@ -45,7 +45,6 @@ export function useForgeState(user, router) {
   // 5b. Detailed Project Setup States (Wizard pagination)
   const [projectName, setProjectName] = useState('my-awesome-project');
   const [projectDescription, setProjectDescription] = useState('A premium SaaS application.');
-  const [projectType, setProjectType] = useState('SaaS Platform');
   const [frontendStack, setFrontendStack] = useState('Next.js (App Router)');
   const [backendStack, setBackendStack] = useState('Next.js Serverless');
   const [database, setDatabase] = useState('PostgreSQL');
@@ -83,7 +82,6 @@ export function useForgeState(user, router) {
       if (draft.framework) setFramework(draft.framework);
       if (draft.projectName) setProjectName(draft.projectName);
       if (draft.projectDescription) setProjectDescription(draft.projectDescription);
-      if (draft.projectType) setProjectType(draft.projectType);
       if (draft.frontendStack) setFrontendStack(draft.frontendStack);
       if (draft.backendStack) setBackendStack(draft.backendStack);
       if (draft.database) setDatabase(draft.database);
@@ -167,7 +165,6 @@ export function useForgeState(user, router) {
         framework,
         projectName,
         projectDescription,
-        projectType,
         frontendStack,
         backendStack,
         database,
@@ -180,7 +177,7 @@ export function useForgeState(user, router) {
     }
   }, [
     activeMode, appCategory, selectedFeatures, selectedTheme, selectedTypography, selectedModel, pageType, selectedComponents, componentType, projectIntegration, framework,
-    projectName, projectDescription, projectType, frontendStack, backendStack, database, authOption, deployment, additionalFeatures
+    projectName, projectDescription, frontendStack, backendStack, database, authOption, deployment, additionalFeatures
   ]);
 
   // Redirect if not authenticated
@@ -312,7 +309,6 @@ export function useForgeState(user, router) {
     ideResponseContext, setIdeResponseContext,
     projectName, setProjectName,
     projectDescription, setProjectDescription,
-    projectType, setProjectType,
     frontendStack, setFrontendStack,
     backendStack, setBackendStack,
     database, setDatabase,

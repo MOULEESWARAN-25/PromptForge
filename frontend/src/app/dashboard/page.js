@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { track, EVENTS } from '@/lib/analytics';
 import HelpKeyboardOverlay from '@/components/HelpKeyboardOverlay';
+import CreateModal from '@/components/CreateModal';
 
 // ─── Animation ─────────────────────────────────────────────────
 const enter = {
@@ -62,6 +63,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [drafts, setDrafts] = useState([]);
   const [showHelp, setShowHelp] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [, startTransition] = useTransition();
 
   // Load drafts from local storage
@@ -121,6 +123,18 @@ export default function DashboardPage() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  // Handle ?action=create query param
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get('action') === 'create') {
+        setIsCreateModalOpen(true);
+        url.searchParams.delete('action');
+        window.history.replaceState({}, '', url.toString());
+      }
+    }
   }, []);
 
   const handleResumeDraft = (draft) => {
@@ -230,7 +244,7 @@ export default function DashboardPage() {
 
             {/* HERO COMMAND AREA */}
             <motion.div custom={1} variants={enter} initial="hidden" animate="show" style={S.heroCommandGrid}>
-              <button style={S.heroBtnPrimary} onClick={() => router.push('/create')} className="card-hover">
+              <button style={S.heroBtnPrimary} onClick={() => setIsCreateModalOpen(true)} className="card-hover">
                 <div style={S.heroBtnIconWrap}><Zap size={20} style={{ color: 'var(--background)' }} /></div>
                 <div style={S.heroBtnText}>
                   <div style={S.heroBtnTitle}>Build Something New</div>
@@ -377,6 +391,7 @@ export default function DashboardPage() {
       </main>
 
       <HelpKeyboardOverlay isOpen={showHelp} onClose={() => setShowHelp(false)} />
+      <CreateModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
 
       <style dangerouslySetInnerHTML={{ __html: `
         .continue-grid {
