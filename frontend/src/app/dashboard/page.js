@@ -7,26 +7,25 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
   Sparkles, Wand2, ArrowRight, Trash2, Clock, ChevronRight,
-  Search, Command, Home, FileText, Layers, Palette, Settings,
-  TerminalSquare, Box, Code, Play, LayoutTemplate, Zap,
-  Cloud, Database, GitBranch, ShieldCheck, Cpu, Activity,
-  ShoppingBag, Smartphone, PieChart, Calendar
+  FileText, Layers, Palette, TerminalSquare, Box, Code,
+  LayoutTemplate, Zap, Cpu, Activity, Calendar, FolderKanban,
+  ShoppingBag
 } from 'lucide-react';
 import { track, EVENTS } from '@/lib/analytics';
 import HelpKeyboardOverlay from '@/components/HelpKeyboardOverlay';
 import CreateModal from '@/components/CreateModal';
 
-// ─── Animation ─────────────────────────────────────────────────
-const enter = {
-  hidden: { opacity: 0, y: 8 },
+// ─── Animation Presets ─────────────────────────────────────────
+const enterVariants = {
+  hidden: { opacity: 0, y: 10 },
   show: (i = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.35, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.35, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] },
   }),
 };
 
-// ─── Time Ago ──────────────────────────────────────────────────
+// ─── Time Ago Helper ──────────────────────────────────────────
 function timeAgo(ts) {
   if (!ts) return '';
   const d = Date.now() - new Date(ts).getTime();
@@ -47,15 +46,12 @@ const READY_TEMPLATES = [
   { id: 'portfolio', icon: Box, title: 'Developer Portfolio', desc: 'Personal site with project galleries', mode: 'page', prompt: 'Design a sleek, minimalist developer portfolio. Include a hero section with a brief introduction, a skills grid, a projects gallery with cards, and a contact form. Use a dark theme with neon accents.' },
   { id: 'docs', icon: FileText, title: 'Documentation Hub', desc: 'Markdown-ready docs with sidebar navigation', mode: 'page', prompt: 'Create a documentation hub layout. Include a persistent left sidebar for nested navigation, a top bar with global search, and a main content area with typography optimized for long-form reading and code blocks.' },
   { id: 'ecommerce', icon: ShoppingBag, title: 'E-commerce Storefront', desc: 'Product grid, cart, and filtering', mode: 'application', prompt: 'Develop an e-commerce storefront. The home page should feature a promotional hero banner, a category sidebar with filters, and a responsive product grid. Include a shopping cart slide-out panel.' },
-  { id: 'admin', icon: TerminalSquare, title: 'Internal Tool', desc: 'Data management and CRUD UI', mode: 'application', prompt: 'Build an internal CRUD tool for employee management. The interface should have a large data table with sorting and filtering, and a slide-out modal for adding or editing employee records.' },
-  { id: 'mobile', icon: Smartphone, title: 'App Landing Page', desc: 'High-converting mobile app showcase', mode: 'page', prompt: 'Design a high-converting landing page for a mobile app. Include a split hero section with a phone mockup on the right and a call-to-action on the left. Follow with a features grid and a pricing section.' },
-  { id: 'auth', icon: ShieldCheck, title: 'Authentication Flow', desc: 'Login, register, and reset password', mode: 'component', prompt: 'Create a complete authentication flow component. Include a centered card with tabs for Login and Sign Up. The form should have inputs for email and password, a "Forgot Password" link, and social login buttons.' },
-  { id: 'analytics', icon: Activity, title: 'Data Analytics', desc: 'Complex charts and metric cards', mode: 'component', prompt: 'Build a data analytics dashboard component. Include a top row of summary metric cards showing positive/negative trends, followed by a large bar chart and a pie chart for demographic breakdown.' },
+  { id: 'admin', icon: TerminalSquare, title: 'Internal Tool', desc: 'Data management and CRUD UI', mode: 'application', prompt: 'Build an internal CRUD tool for employee management. The interface should have a large data table with sorting and filtering, and a slide-out modal for adding or editing employee records.' }
 ];
 
 const WORKSPACE_STATS = [
-  { id: 'lines', label: 'Lines Generated', value: '42.8k', icon: Code, color: 'var(--foreground)' },
-  { id: 'prompts', label: 'Prompts Compiled', value: '128', icon: Wand2, color: 'var(--accent)' },
+  { id: 'lines', label: 'Lines Generated', value: '42.8k', icon: Code, color: 'var(--accent)', change: '+12.4% this week' },
+  { id: 'prompts', label: 'Prompts Compiled', value: '128', icon: Wand2, color: 'var(--success)', change: '+18 today' },
 ];
 
 export default function DashboardPage() {
@@ -111,11 +107,6 @@ export default function DashboardPage() {
   // Help overlay keyboard shortcut
   useEffect(() => {
     const handler = (e) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        // Open search/command palette (for now just toast)
-        toast('Command palette coming soon');
-      }
       if (e.key === '?' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
         e.preventDefault();
         setShowHelp(p => !p);
@@ -150,7 +141,7 @@ export default function DashboardPage() {
     e.stopPropagation();
     localStorage.removeItem(key);
     setDrafts(prev => prev.filter(d => d.key !== key));
-    toast.success('Draft discarded');
+    toast.success('Draft discarded successfully');
     track('draft_discarded', { key });
   };
 
@@ -161,7 +152,7 @@ export default function DashboardPage() {
   };
 
   const handleStarter = (template) => {
-    toast(`Initializing ${template.title}...`);
+    toast(`Initializing template: ${template.title}`);
     localStorage.setItem('promptforge_wmode', template.mode);
     localStorage.setItem('promptforge_quickquery', template.prompt);
     localStorage.setItem('promptforge_template_title', template.title);
@@ -180,8 +171,8 @@ export default function DashboardPage() {
       setOptimisticHistory({ action: 'delete', id });
       try {
         await deletePromptRecord(id);
-        toast.success('Workspace deleted');
-      } catch { toast.error('Failed to delete'); }
+        toast.success('Blueprint record deleted');
+      } catch { toast.error('Failed to delete blueprint'); }
     });
   };
 
@@ -189,11 +180,10 @@ export default function DashboardPage() {
 
   if (loading || !user) {
     return (
-      <div style={S.pageContainer}>
-        <div style={S.loadingSkel}>
-          <div style={S.skelLine('200px', '16px')} />
-          <div style={S.skelLine('55%', '36px')} />
-        </div>
+      <div style={S.loadingSkel}>
+        <div style={S.skelLine('180px', '20px')} />
+        <div style={S.skelLine('40%', '42px')} />
+        <div style={S.skelLine('100%', '200px')} />
       </div>
     );
   }
@@ -204,221 +194,353 @@ export default function DashboardPage() {
   const continueWorkingItems = [
     ...drafts.map(d => ({ ...d, isDraft: true, timestamp: d.savedAt, id: d.key })),
     ...sortedHistory.map(h => ({ ...h, isDraft: false, title: h.title || 'Untitled Blueprint' }))
-  ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 8); // Top 8 items
+  ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5); // Top 5 items in clean rows
+
+  const getModeIcon = (mode) => {
+    switch (mode) {
+      case 'application': return <TerminalSquare size={16} />;
+      case 'page': return <LayoutTemplate size={16} />;
+      case 'component': return <Box size={16} />;
+      case 'enhance': return <Wand2 size={16} />;
+      default: return <FolderKanban size={16} />;
+    }
+  };
+
+  const getModeColor = (mode) => {
+    switch (mode) {
+      case 'application': return 'var(--workflow-application)';
+      case 'page': return 'var(--workflow-page)';
+      case 'component': return 'var(--workflow-component)';
+      case 'enhance': return 'var(--workflow-enhance)';
+      default: return 'var(--accent)';
+    }
+  };
 
   return (
     <div style={S.pageContainer}>
       
-      {/* ─── MAIN CONTENT AREA ──────────────────────────────────── */}
-      <main style={S.mainContent}>
+      {/* ─── BREADCRUMBS & INNER PAGE HEADER ────────────────────── */}
+      <div style={S.headerWrapper}>
+        <div style={S.breadcrumbs}>
+          <span>{userName}&apos;s Workspace</span>
+          <ChevronRight size={12} style={{ opacity: 0.4 }} />
+          <span style={{ color: 'var(--accent)', fontWeight: 600 }}>Home</span>
+        </div>
         
-        {/* TOP BAR */}
-        <header style={S.topBar}>
-          <div style={S.breadcrumbs}>
-            <span style={{ color: 'var(--muted-foreground)' }}>{userName}&apos;s Workspace</span>
-            <ChevronRight size={14} style={{ color: 'var(--muted-foreground)', opacity: 0.5 }} />
-            <span style={{ fontWeight: 500 }}>Home</span>
-          </div>
+        <div style={S.greetingArea}>
+          <h1 style={S.pageTitle}>
+            Welcome back, <span style={S.titleGradient}>{userName}</span>.
+          </h1>
+          <p style={S.pageSubtitle}>
+            Translate visual intent into high-fidelity architectural specs and components.
+          </p>
+        </div>
+      </div>
+
+      {/* ─── BALANCED BENTO GRID ───────────────────────────────── */}
+      <div style={S.dashboardGrid} className="dashboard-grid">
+        
+        {/* LEFT PANE: ACTIONS, RECENT WORK, STARTERS */}
+        <div style={S.leftPane}>
           
-          <div style={S.searchBar} onClick={() => toast('Command palette triggered')}>
-            <Search size={14} style={{ opacity: 0.5 }} />
-            <span style={S.searchPlaceholder}>Search commands, drafts, templates...</span>
-            <div style={S.shortcutBadge}>
-              <Command size={12} /> K
-            </div>
-          </div>
-
-          <div style={S.userProfile}>
-            <div style={S.avatar}>{userName.charAt(0).toUpperCase()}</div>
-          </div>
-        </header>
-
-        {/* SCROLLABLE CONTENT */}
-        <div style={S.contentScroll}>
-          <div style={S.contentInner}>
-            
-            <motion.div custom={0} variants={enter} initial="hidden" animate="show">
-              <h1 style={S.pageTitle}>Welcome back, {userName}.</h1>
-              <p style={S.pageSubtitle}>Ready to compile intent?</p>
-            </motion.div>
-
-            {/* HERO COMMAND AREA */}
-            <motion.div custom={1} variants={enter} initial="hidden" animate="show" style={S.heroCommandGrid}>
-              <button style={S.heroBtnPrimary} onClick={() => setIsCreateModalOpen(true)} className="card-hover">
-                <div style={S.heroBtnIconWrap}><Zap size={20} style={{ color: 'var(--background)' }} /></div>
-                <div style={S.heroBtnText}>
-                  <div style={S.heroBtnTitle}>Build Something New</div>
-                  <div style={S.heroBtnDesc}>Generate applications, pages, or components from scratch</div>
-                </div>
-              </button>
-
-              <button style={S.heroBtnSecondary} onClick={handleEnhance} className="card-hover">
-                <div style={{...S.heroBtnIconWrap, background: 'color-mix(in srgb, var(--accent) 15%, transparent)'}}>
-                  <Wand2 size={20} style={{ color: 'var(--accent)' }} />
-                </div>
-                <div style={S.heroBtnText}>
-                  <div style={{...S.heroBtnTitle, color: 'var(--foreground)'}}>Enhance Existing Prompt</div>
-                  <div style={S.heroBtnDesc}>Optimize your description with intelligent design tokens</div>
-                </div>
-              </button>
-            </motion.div>
-
-            {/* CONTINUE WORKING */}
-            <motion.div custom={2} variants={enter} initial="hidden" animate="show" style={S.section}>
-              <div style={S.sectionHeader}>
-                <h2 style={S.sectionTitle}>Continue Working</h2>
-                {continueWorkingItems.length > 0 && <button style={S.viewAllBtn}>View All</button>}
+          {/* Action Hubs */}
+          <div style={S.heroCommandGrid}>
+            <button style={S.heroBtnPrimary} onClick={() => setIsCreateModalOpen(true)} className="shine-effect">
+              <div style={S.heroBtnIconWrap}>
+                <Zap size={22} style={{ color: '#ffffff' }} />
               </div>
+              <div style={S.heroBtnText}>
+                <div style={S.heroBtnTitle}>Build Something New</div>
+                <div style={S.heroBtnDesc}>Generate specs or modular interfaces from scratch</div>
+              </div>
+              <ArrowRight size={18} style={S.heroBtnArrow} />
+            </button>
 
-              {continueWorkingItems.length === 0 ? (
-                <div style={S.emptyState}>No recent activity found. Start building to see your history here.</div>
-              ) : (
-                <div style={S.continueGrid} className="continue-grid">
-                  {continueWorkingItems.map((item) => (
+            <button style={S.heroBtnSecondary} onClick={handleEnhance} className="card-hover">
+              <div style={S.heroBtnIconWrapSec}>
+                <Wand2 size={20} style={{ color: 'var(--accent)' }} />
+              </div>
+              <div style={S.heroBtnText}>
+                <div style={S.heroBtnTitleSec}>Enhance Existing Prompt</div>
+                <div style={S.heroBtnDescSec}>Inject advanced layout tokens into instructions</div>
+              </div>
+              <ArrowRight size={18} style={S.heroBtnArrowSec} />
+            </button>
+          </div>
+
+          {/* Continue Working Rows (List format to prevent wide gaps) */}
+          <section style={S.section}>
+            <div style={S.sectionHeader}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Activity size={15} style={{ color: 'var(--accent)' }} />
+                <h2 style={S.sectionTitle}>Continue Working</h2>
+              </div>
+              <span style={S.sectionCount}>{continueWorkingItems.length} active</span>
+            </div>
+
+            {continueWorkingItems.length === 0 ? (
+              <div style={S.emptyState}>
+                <FolderKanban size={28} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
+                <p>No recent activity found. Initialize a workspace to begin.</p>
+              </div>
+            ) : (
+              <div style={S.continueList}>
+                {continueWorkingItems.map((item) => {
+                  const accentColor = getModeColor(item.mode);
+                  return (
                     <div 
                       key={item.id} 
-                      style={S.continueCard} 
-                      className="card-hover"
+                      style={S.continueRow} 
+                      className="card-glass continue-row-item"
                       onClick={() => item.isDraft ? handleResumeDraft(item) : router.push(`/chat?id=${item.id}`)}
                     >
-                      <div style={S.continueCardTop}>
-                        <div style={S.continueCardIcon}>
-                          {item.isDraft ? <FileText size={16} /> : <Layers size={16} />}
+                      <div style={S.continueRowLeft}>
+                        <div style={{ ...S.continueRowIcon, color: accentColor, background: `color-mix(in srgb, ${accentColor} 10%, transparent)` }}>
+                          {getModeIcon(item.mode)}
                         </div>
-                        <span style={S.continueCardBadge(item.isDraft)}>
-                          {item.isDraft ? 'Draft' : 'Blueprint'}
+                        <div style={S.continueRowTitleCol}>
+                          <div style={S.continueRowTitle}>{item.title}</div>
+                          <div style={S.continueRowMeta}>
+                            <Clock size={11} style={{ opacity: 0.6 }} />
+                            <span>Edited {timeAgo(item.timestamp)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={S.continueRowRight}>
+                        <span style={{ ...S.continueCardBadge, background: `color-mix(in srgb, ${accentColor} 10%, transparent)`, color: accentColor }}>
+                          {item.mode || 'blueprint'}
                         </span>
-                      </div>
-                      <div style={S.continueCardContent}>
-                        <div style={S.continueCardTitle}>{item.title}</div>
-                        <div style={S.continueCardMeta}>
-                          <Clock size={12} />
-                          Edited {timeAgo(item.timestamp)}
-                        </div>
+                        <span style={S.streamBadge(item.isDraft)}>
+                          {item.isDraft ? 'Draft' : 'Saved'}
+                        </span>
+                        
+                        {/* Inline sliding delete button */}
+                        <button 
+                          className="delete-row-btn"
+                          onClick={(e) => item.isDraft ? handleDiscardDraft(item.id, e) : handleDelete(item.id, e)}
+                          title={item.isDraft ? "Discard Draft" : "Delete Blueprint"}
+                          aria-label={item.isDraft ? "Discard Draft" : "Delete Blueprint"}
+                        >
+                          <Trash2 size={13} />
+                        </button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
 
-            {/* LOWER GRID: TEMPLATES & STATS */}
-            <div style={S.lowerGrid} className="lower-grid">
-              
-              {/* READY TEMPLATES */}
-              <motion.div custom={3} variants={enter} initial="hidden" animate="show" style={S.section}>
-                <div style={S.sectionHeader}>
-                  <h2 style={S.sectionTitle}>Ready Templates</h2>
-                </div>
-                <div style={S.startersGrid}>
-                  {READY_TEMPLATES.map(template => (
-                    <button key={template.id} style={S.starterCard} onClick={() => handleStarter(template)} className="card-hover">
-                      <template.icon size={20} style={{ color: 'var(--accent)', marginBottom: '0.5rem' }} />
-                      <div style={S.starterTitle}>{template.title}</div>
-                      <div style={S.starterDesc}>{template.desc}</div>
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-
-              {/* WORKSPACE STATS & TOKEN USAGE */}
-              <motion.div custom={4} variants={enter} initial="hidden" animate="show" style={S.section}>
-                <div style={S.sectionHeader}>
-                  <h2 style={S.sectionTitle}>Workspace Stats</h2>
-                </div>
-                <div style={S.tokensGrid}>
-                  {WORKSPACE_STATS.map(stat => (
-                    <div key={stat.id} style={S.tokenCard} className="card-hover">
-                      <div style={{ ...S.integrationIconWrap, color: stat.color }}>
-                        <stat.icon size={16} />
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', flex: 1 }}>
-                        <div style={S.tokenName}>{stat.label}</div>
-                      </div>
-                      <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--foreground)' }}>{stat.value}</div>
-                    </div>
-                  ))}
-                  
-                  {/* Monthly Activity Heatmap Card */}
-                  <div style={S.exampleOutputCard} className="card-hover" onClick={() => toast("Detailed Heatmap")}>
-                    <div style={S.exampleOutputHeader}>
-                      <Calendar size={14} style={{ color: 'var(--accent)' }} />
-                      <span>Activity Heatmap (30 Days)</span>
-                    </div>
-                    <div style={{ padding: '1rem', width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ fontSize: '1.2rem', fontWeight: 700 }}>128 <span style={{fontSize: '0.8rem', opacity: 0.5}}>intents</span></span>
-                          <span style={{ fontSize: '0.7rem', color: 'var(--muted-foreground)' }}>Compiled this month</span>
-                        </div>
-                      </div>
-                      
-                      {/* Heatmap Grid */}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '4px', width: '100%' }}>
-                        {[...Array(30)].map((_, i) => {
-                          const intensity = [0, 1, 0, 2, 4, 3, 0, 1, 1, 0, 0, 2, 3, 1, 4, 4, 2, 1, 0, 0, 1, 3, 4, 2, 1, 0, 2, 4, 3, 1][i];
-                          const opacities = ['0.05', '0.2', '0.4', '0.7', '1'];
-                          const d = new Date();
-                          d.setDate(d.getDate() - (29 - i));
-                          const count = intensity === 0 ? 'No' : (intensity * 3);
-                          return (
-                            <div 
-                              key={i} 
-                              title={`${count} intents on ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
-                              style={{ 
-                                aspectRatio: '1/1', 
-                                borderRadius: '3px', 
-                                background: intensity === 0 ? 'color-mix(in srgb, var(--foreground) 5%, transparent)' : `color-mix(in srgb, var(--accent) ${Number(opacities[intensity])*100}%, transparent)`,
-                                border: 'none'
-                              }} 
-                            />
-                          );
-                        })}
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--muted-foreground)' }}>
-                        <span>30 days ago</span>
-                        <span>Today</span>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </motion.div>
+          {/* Ready Starters (2 columns) */}
+          <section style={S.section}>
+            <div style={S.sectionHeader}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Sparkles size={15} style={{ color: 'var(--accent)' }} />
+                <h2 style={S.sectionTitle}>Ready Starters</h2>
+              </div>
             </div>
 
+            <div style={S.startersGrid} className="starters-grid">
+              {READY_TEMPLATES.map(template => {
+                const Icon = template.icon;
+                const accentColor = getModeColor(template.mode);
+                return (
+                  <button 
+                    key={template.id} 
+                    style={S.starterCard} 
+                    onClick={() => handleStarter(template)} 
+                    className="card-glass starter-item-card"
+                  >
+                    <div style={{ ...S.starterCardIcon, color: accentColor, background: `color-mix(in srgb, ${accentColor} 10%, transparent)` }}>
+                      <Icon size={16} />
+                    </div>
+                    <div style={S.starterTextWrap}>
+                      <div style={S.starterTitle}>{template.title}</div>
+                      <div style={S.starterDesc}>{template.desc}</div>
+                    </div>
+                    <div style={S.starterHoverHint} className="starter-hint">
+                      Compile <ArrowRight size={11} />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+        </div>
+
+        {/* RIGHT PANE: METRICS, ACTIVITY HEATMAP */}
+        <div style={S.rightPane}>
+          <div style={S.sectionHeader}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Cpu size={15} style={{ color: 'var(--accent)' }} />
+              <h2 style={S.sectionTitle}>Workspace Monitor</h2>
+            </div>
+          </div>
+
+          <div style={S.statsWrapper}>
+            {/* Metric Blocks */}
+            <div style={S.metricsRow}>
+              {WORKSPACE_STATS.map(stat => (
+                <div key={stat.id} style={S.statCard} className="card-glass">
+                  <div style={S.statCardHeader}>
+                    <span style={S.statLabel}>{stat.label}</span>
+                    <div style={{ ...S.statIconWrap, color: stat.color, background: `color-mix(in srgb, ${stat.color} 10%, transparent)` }}>
+                      <stat.icon size={13} />
+                    </div>
+                  </div>
+                  <div style={S.statValue}>{stat.value}</div>
+                  <div style={S.statChange}>{stat.change}</div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Activity Heatmap */}
+            <div style={S.heatmapCard} className="card-glass">
+              <div style={S.heatmapHeader}>
+                <Calendar size={13} style={{ color: 'var(--accent)' }} />
+                <span>Compilation Volume (30 Days)</span>
+              </div>
+              <div style={S.heatmapContent}>
+                <div style={S.heatmapHeaderMetric}>
+                  <span style={S.heatmapMainValue}>128 intents</span>
+                  <span style={S.heatmapSubText}>Compiled this month</span>
+                </div>
+                
+                {/* Heatmap Grid */}
+                <div style={S.heatmapGrid}>
+                  {[...Array(30)].map((_, i) => {
+                    const intensity = [0, 1, 0, 2, 4, 3, 0, 1, 1, 0, 0, 2, 3, 1, 4, 4, 2, 1, 0, 0, 1, 3, 4, 2, 1, 0, 2, 4, 3, 1][i];
+                    const opacities = ['0.05', '0.22', '0.45', '0.75', '1'];
+                    const d = new Date();
+                    d.setDate(d.getDate() - (29 - i));
+                    const count = intensity === 0 ? 'No' : (intensity * 3);
+                    return (
+                      <div 
+                        key={i} 
+                        title={`${count} intents compiled on ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
+                        style={{ 
+                          aspectRatio: '1/1', 
+                          borderRadius: '3px', 
+                          background: intensity === 0 
+                            ? 'color-mix(in srgb, var(--foreground) 6%, transparent)' 
+                            : `color-mix(in srgb, var(--accent) ${Number(opacities[intensity])*100}%, transparent)`,
+                          transition: 'transform 0.15s ease'
+                        }}
+                        className="heatmap-dot"
+                      />
+                    );
+                  })}
+                </div>
+                <div style={S.heatmapFooter}>
+                  <span>30d ago</span>
+                  <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.65rem' }}>Less</span>
+                    <div style={{ width: 6, height: 6, borderRadius: 1, background: 'color-mix(in srgb, var(--foreground) 6%, transparent)' }} />
+                    <div style={{ width: 6, height: 6, borderRadius: 1, background: 'color-mix(in srgb, var(--accent) 30%, transparent)' }} />
+                    <div style={{ width: 6, height: 6, borderRadius: 1, background: 'color-mix(in srgb, var(--accent) 70%, transparent)' }} />
+                    <div style={{ width: 6, height: 6, borderRadius: 1, background: 'var(--accent)' }} />
+                    <span style={{ fontSize: '0.65rem' }}>More</span>
+                  </div>
+                  <span>Today</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </main>
+
+      </div>
 
       <HelpKeyboardOverlay isOpen={showHelp} onClose={() => setShowHelp(false)} />
       <CreateModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
 
+      {/* ─── ANIMATED STYLING CONSOLE ──────────────────────────── */}
       <style dangerouslySetInnerHTML={{ __html: `
-        .continue-grid {
+        .dashboard-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 1rem;
-        }
-        .lower-grid {
-          display: grid;
-          grid-template-columns: 2fr 1fr;
+          grid-template-columns: 2.2fr 1.2fr;
           gap: 2rem;
+          width: 100%;
         }
-        @media (max-width: 1024px) {
-          .lower-grid {
+        .starters-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1rem;
+          width: 100%;
+        }
+        
+        /* Inline Sliding Delete Animations */
+        .continue-row-item {
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          cursor: pointer;
+        }
+        .continue-row-item:hover {
+          transform: translateX(4px);
+          border-color: var(--accent);
+          background: color-mix(in srgb, var(--accent) 3%, var(--card)) !important;
+        }
+         .delete-row-btn {
+          opacity: 0;
+          width: 0;
+          height: 26px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0;
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+          background: color-mix(in srgb, var(--destructive) 8%, transparent);
+          color: var(--destructive);
+          border: 1px solid color-mix(in srgb, var(--destructive) 15%, transparent);
+          border-radius: 6px;
+          cursor: pointer;
+          flex-shrink: 0;
+          overflow: hidden;
+        }
+        .continue-row-item:hover .delete-row-btn {
+          opacity: 1;
+          width: 26px;
+          margin-left: 0.35rem;
+        }
+        .delete-row-btn:hover {
+          background: var(--destructive) !important;
+          color: white !important;
+        }
+
+        .starter-item-card {
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+          text-align: left;
+        }
+        .starter-item-card:hover {
+          transform: translateY(-2px);
+          border-color: var(--accent);
+          box-shadow: var(--shadow-md);
+        }
+        .starter-hint {
+          opacity: 0;
+          transform: translateX(-4px);
+          transition: all 0.2s ease;
+        }
+        .starter-item-card:hover .starter-hint {
+          opacity: 1;
+          transform: translateX(0);
+        }
+        
+        .heatmap-dot:hover {
+          transform: scale(1.3);
+          box-shadow: 0 0 8px var(--accent);
+          z-index: 5;
+        }
+
+        @media (max-width: 1140px) {
+          .dashboard-grid {
             grid-template-columns: 1fr;
+            gap: 2rem;
           }
         }
         @media (max-width: 768px) {
-          .continue-grid {
-            display: flex;
-            overflow-x: auto;
-            padding-bottom: 1rem;
-            scroll-snap-type: x mandatory;
-          }
-          .continue-grid > div {
-            min-width: 280px;
-            scroll-snap-align: start;
+          .starters-grid {
+            grid-template-columns: 1fr;
           }
         }
       `}} />
@@ -426,243 +548,110 @@ export default function DashboardPage() {
   );
 }
 
-
-// ─── Style System ──────────────────────────────────────────────
+// ─── PREMIUM STYLE SYSTEM ──────────────────────────────────────
 const S = {
-  // Application Shell
   pageContainer: {
+    width: '100%',
+    maxWidth: '1600px',
+    margin: '0 auto',
+    padding: '0 2rem 4rem 2rem',
     display: 'flex',
-    height: '100vh',
-    width: '100vw',
-    backgroundColor: 'var(--background)',
-    color: 'var(--foreground)',
-    overflow: 'hidden',
+    flexDirection: 'column',
+    gap: '2.5rem',
     fontFamily: 'var(--font-sans)',
   },
 
-  // Sidebar
-  sidebar: {
-    width: '240px',
-    height: '100%',
-    borderRight: '1px solid var(--border)',
-    backgroundColor: 'var(--card)',
-    padding: '1.5rem 1rem',
+  headerWrapper: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '2rem',
-    flexShrink: 0,
-    zIndex: 10,
-  },
-  
-  sidebarHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem',
-    padding: '0 0.5rem',
-  },
-
-  logoMark: {
-    width: '24px',
-    height: '24px',
-    backgroundColor: 'var(--accent)',
-    color: 'var(--background)',
-    borderRadius: '6px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: '800',
-    fontSize: '0.85rem',
-  },
-
-  brandName: {
-    fontSize: '1rem',
-    fontWeight: '700',
-    fontFamily: 'var(--font-display)',
-    letterSpacing: '-0.02em',
-  },
-
-  navGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.25rem',
-  },
-
-  navLabel: {
-    fontSize: '0.7rem',
-    fontWeight: '600',
-    color: 'var(--muted-foreground)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    padding: '0 0.5rem',
-    marginBottom: '0.5rem',
-  },
-
-  navItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem',
-    padding: '0.5rem 0.75rem',
-    borderRadius: '8px',
-    border: 'none',
-    background: 'transparent',
-    color: 'var(--muted-foreground)',
-    fontSize: '0.85rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    textAlign: 'left',
-  },
-
-  navItemActive: {
-    background: 'color-mix(in srgb, var(--accent) 10%, transparent)',
-    color: 'var(--foreground)',
-    fontWeight: '600',
-  },
-
-  // Main Content
-  mainContent: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    minWidth: 0,
-    position: 'relative',
-  },
-
-  topBar: {
-    height: '56px',
-    borderBottom: '1px solid var(--border)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '0 1.5rem',
-    backgroundColor: 'var(--background)',
-    zIndex: 5,
+    gap: '1rem',
+    marginTop: '1.5rem',
   },
 
   breadcrumbs: {
     display: 'flex',
     alignItems: 'center',
-    gap: '0.5rem',
-    fontSize: '0.85rem',
-  },
-
-  searchBar: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    background: 'var(--card)',
-    border: '1px solid var(--border)',
-    borderRadius: '8px',
-    padding: '0.4rem 0.75rem',
-    width: '320px',
-    cursor: 'text',
+    gap: '0.4rem',
+    fontSize: '0.78rem',
     color: 'var(--muted-foreground)',
-    transition: 'border-color 0.2s',
-  },
-
-  searchPlaceholder: {
-    fontSize: '0.8rem',
-    flex: 1,
-  },
-
-  shortcutBadge: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.2rem',
-    background: 'color-mix(in srgb, var(--foreground) 10%, transparent)',
-    padding: '0.1rem 0.3rem',
-    borderRadius: '4px',
-    fontSize: '0.7rem',
-    color: 'var(--foreground)',
-    fontWeight: 500,
-  },
-
-  userProfile: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-
-  avatar: {
-    width: '28px',
-    height: '28px',
-    borderRadius: '50%',
-    background: 'color-mix(in srgb, var(--accent) 20%, transparent)',
-    border: '1px solid var(--accent)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '0.8rem',
+    textTransform: 'uppercase',
+    letterSpacing: '0.04em',
     fontWeight: '600',
-    color: 'var(--accent)',
   },
 
-  contentScroll: {
-    flex: 1,
-    overflowY: 'auto',
-    overflowX: 'hidden',
-  },
-
-  contentInner: {
-    padding: '3rem',
-    maxWidth: '1200px',
-    margin: '0 auto',
+  greetingArea: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '3rem',
+    gap: '0.25rem',
   },
 
   pageTitle: {
-    fontSize: '2rem',
-    fontWeight: '700',
+    fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
+    fontWeight: '800',
     margin: 0,
-    letterSpacing: '-0.02em',
+    letterSpacing: '-0.03em',
+    lineHeight: 1.15,
+  },
+
+  titleGradient: {
+    background: 'linear-gradient(135deg, var(--foreground) 30%, var(--accent) 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
   },
 
   pageSubtitle: {
-    fontSize: '1rem',
+    fontSize: 'clamp(0.9rem, 2vw, 1.05rem)',
     color: 'var(--muted-foreground)',
-    marginTop: '0.25rem',
+    margin: 0,
+    fontWeight: '400',
   },
 
-  // Hero Command Area
+  // Grid Panes
+  leftPane: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2rem',
+    minWidth: 0,
+  },
+
+  rightPane: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1.5rem',
+    minWidth: 0,
+  },
+
+  // Action Grid
   heroCommandGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-    gap: '1rem',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: '1.25rem',
+    width: '100%',
   },
 
   heroBtnPrimary: {
     display: 'flex',
     alignItems: 'center',
     gap: '1.25rem',
-    background: 'var(--accent)',
-    color: 'var(--background)',
+    background: 'linear-gradient(135deg, var(--accent) 0%, #4c2eb5 100%)',
+    color: '#ffffff',
     padding: '1.5rem',
-    borderRadius: '12px',
+    borderRadius: '16px',
     border: 'none',
     cursor: 'pointer',
     textAlign: 'left',
-    boxShadow: '0 4px 20px color-mix(in srgb, var(--accent) 30%, transparent)',
-  },
-
-  heroBtnSecondary: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1.25rem',
-    background: 'var(--card)',
-    color: 'var(--foreground)',
-    padding: '1.5rem',
-    borderRadius: '12px',
-    border: '1px solid var(--border)',
-    cursor: 'pointer',
-    textAlign: 'left',
+    position: 'relative',
+    boxShadow: '0 8px 24px color-mix(in srgb, var(--accent) 25%, transparent)',
+    transition: 'all 0.25s ease',
   },
 
   heroBtnIconWrap: {
-    width: '48px',
-    height: '48px',
+    width: '44px',
+    height: '44px',
     borderRadius: '10px',
-    background: 'color-mix(in srgb, var(--background) 20%, transparent)',
+    background: 'rgba(255, 255, 255, 0.16)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -673,25 +662,79 @@ const S = {
     display: 'flex',
     flexDirection: 'column',
     gap: '0.25rem',
+    flex: 1,
+    paddingRight: '1rem',
   },
 
   heroBtnTitle: {
-    fontSize: '1.1rem',
+    fontSize: '1.05rem',
     fontWeight: '700',
-    color: 'var(--background)',
+    color: '#ffffff',
   },
 
   heroBtnDesc: {
-    fontSize: '0.85rem',
-    opacity: 0.85,
+    fontSize: '0.8rem',
+    color: 'rgba(255, 255, 255, 0.78)',
     lineHeight: 1.4,
   },
 
-  // Sections Common
+  heroBtnArrow: {
+    color: '#ffffff',
+    opacity: 0.8,
+    flexShrink: 0,
+  },
+
+  heroBtnSecondary: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1.25rem',
+    background: 'var(--card)',
+    color: 'var(--foreground)',
+    padding: '1.5rem',
+    borderRadius: '16px',
+    border: '1px solid var(--border)',
+    cursor: 'pointer',
+    textAlign: 'left',
+    transition: 'all 0.25s ease',
+    position: 'relative',
+  },
+
+  heroBtnIconWrapSec: {
+    width: '44px',
+    height: '44px',
+    borderRadius: '10px',
+    background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+    border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+
+  heroBtnTitleSec: {
+    fontSize: '1.05rem',
+    fontWeight: '700',
+    color: 'var(--foreground)',
+  },
+
+  heroBtnDescSec: {
+    fontSize: '0.8rem',
+    color: 'var(--muted-foreground)',
+    lineHeight: 1.4,
+  },
+
+  heroBtnArrowSec: {
+    color: 'var(--muted-foreground)',
+    opacity: 0.6,
+    flexShrink: 0,
+  },
+
+  // Sections
   section: {
     display: 'flex',
     flexDirection: 'column',
     gap: '1rem',
+    width: '100%',
   },
 
   sectionHeader: {
@@ -699,228 +742,316 @@ const S = {
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottom: '1px solid var(--border)',
-    paddingBottom: '0.75rem',
+    paddingBottom: '0.5rem',
   },
 
   sectionTitle: {
-    fontSize: '1rem',
-    fontWeight: '600',
+    fontSize: '0.95rem',
+    fontWeight: '700',
     margin: 0,
     color: 'var(--foreground)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
   },
 
-  viewAllBtn: {
-    background: 'transparent',
-    border: 'none',
-    color: 'var(--accent)',
-    fontSize: '0.8rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    padding: 0,
+  sectionCount: {
+    fontSize: '0.78rem',
+    color: 'var(--muted-foreground)',
+    fontWeight: 500,
   },
 
   emptyState: {
-    padding: '3rem',
+    padding: '3rem 2rem',
     textAlign: 'center',
-    background: 'color-mix(in srgb, var(--card) 50%, transparent)',
+    background: 'var(--card)',
     border: '1px dashed var(--border)',
-    borderRadius: '12px',
+    borderRadius: '16px',
     color: 'var(--muted-foreground)',
     fontSize: '0.9rem',
-  },
-
-  // Continue Working
-  continueCard: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '1rem',
-    background: 'var(--card)',
-    border: '1px solid var(--border)',
-    padding: '1.25rem',
-    borderRadius: '12px',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-  },
-
-  continueCardTop: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-
-  continueCardIcon: {
-    width: '32px',
-    height: '32px',
-    borderRadius: '8px',
-    background: 'color-mix(in srgb, var(--muted-foreground) 10%, transparent)',
-    color: 'var(--muted-foreground)',
-    display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
   },
 
-  continueCardBadge: (isDraft) => ({
-    fontSize: '0.65rem',
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-    padding: '2px 6px',
-    borderRadius: '4px',
-    background: isDraft ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'color-mix(in srgb, var(--success) 15%, transparent)',
-    color: isDraft ? 'var(--accent)' : 'var(--success)',
-  }),
-
-  continueCardContent: {
+  // Continue Work List Rows
+  continueList: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.25rem',
+    gap: '0.75rem',
+    width: '100%',
   },
 
-  continueCardTitle: {
-    fontSize: '0.95rem',
-    fontWeight: '600',
+  continueRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '0.75rem 1rem',
+    borderRadius: '12px',
+    width: '100%',
+  },
+
+  continueRowLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+    minWidth: 0,
+    flex: 1,
+  },
+
+  continueRowIcon: {
+    width: '32px',
+    height: '32px',
+    borderRadius: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+
+  continueRowTitleCol: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.15rem',
+    minWidth: 0,
+  },
+
+  continueRowTitle: {
+    fontSize: '0.92rem',
+    fontWeight: '700',
     color: 'var(--foreground)',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   },
 
-  continueCardMeta: {
+  continueRowMeta: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.3rem',
+    fontSize: '0.72rem',
+    color: 'var(--muted-foreground)',
+    fontWeight: 500,
+  },
+
+  continueRowRight: {
     display: 'flex',
     alignItems: 'center',
     gap: '0.35rem',
-    fontSize: '0.75rem',
-    color: 'var(--muted-foreground)',
+    flexShrink: 0,
   },
 
-  // Starters Grid
-  startersGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-    gap: '1rem',
+  continueCardBadge: {
+    fontSize: '0.65rem',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: '0.04em',
+    padding: '2px 8px',
+    borderRadius: '4px',
   },
 
+  streamBadge: (isDraft) => ({
+    fontSize: '0.65rem',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: '0.04em',
+    padding: '2px 8px',
+    borderRadius: '4px',
+    background: isDraft ? 'color-mix(in srgb, var(--warning) 12%, transparent)' : 'color-mix(in srgb, var(--success) 12%, transparent)',
+    color: isDraft ? 'var(--warning)' : 'var(--success)',
+  }),
+
+  // Starter Cards
   starterCard: {
+    padding: '1rem 1.25rem',
+    borderRadius: '14px',
     display: 'flex',
-    flexDirection: 'column',
     alignItems: 'flex-start',
-    textAlign: 'left',
-    background: 'var(--card)',
-    border: '1px solid var(--border)',
-    padding: '1.25rem',
-    borderRadius: '12px',
-    cursor: 'pointer',
-  },
-
-  starterTitle: {
-    fontSize: '0.9rem',
-    fontWeight: '600',
-    color: 'var(--foreground)',
-    marginBottom: '0.25rem',
-  },
-
-  starterDesc: {
-    fontSize: '0.75rem',
-    color: 'var(--muted-foreground)',
-    lineHeight: 1.4,
-  },
-
-  // Tokens
-  tokensGrid: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.75rem',
-  },
-
-  tokenCard: {
-    display: 'flex',
-    alignItems: 'center',
     gap: '1rem',
-    background: 'var(--card)',
-    border: '1px solid var(--border)',
-    padding: '0.5rem',
-    borderRadius: '8px',
     cursor: 'pointer',
-    width: '100%',
+    position: 'relative',
+    overflow: 'hidden',
   },
 
-  integrationIconWrap: {
-    width: '36px',
-    height: '36px',
+  starterCardIcon: {
+    width: '32px',
+    height: '32px',
     borderRadius: '8px',
-    background: 'color-mix(in srgb, var(--foreground) 5%, transparent)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    border: '1px solid color-mix(in srgb, var(--foreground) 10%, transparent)',
+    flexShrink: 0,
   },
 
-  tokenName: {
-    fontSize: '0.85rem',
-    fontWeight: '500',
+  starterTextWrap: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.15rem',
+    flex: 1,
+    paddingRight: '1.5rem',
+  },
+
+  starterTitle: {
+    fontSize: '0.86rem',
+    fontWeight: '700',
     color: 'var(--foreground)',
   },
 
-  // Example Output
-  exampleOutputCard: {
-    marginTop: '0.5rem',
-    background: 'linear-gradient(135deg, color-mix(in srgb, var(--card) 40%, transparent), var(--card))',
-    border: '1px solid var(--border)',
-    borderRadius: '12px',
-    overflow: 'hidden',
-    cursor: 'pointer',
+  starterDesc: {
+    fontSize: '0.74rem',
+    color: 'var(--muted-foreground)',
+    lineHeight: 1.3,
   },
 
-  exampleOutputHeader: {
+  starterHoverHint: {
+    position: 'absolute',
+    bottom: '0.75rem',
+    right: '1rem',
+    fontSize: '0.65rem',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    color: 'var(--accent)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.2rem',
+  },
+
+  // Stats Column
+  statsWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1.25rem',
+    width: '100%',
+  },
+
+  metricsRow: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '1rem',
+    width: '100%',
+  },
+
+  statCard: {
+    padding: '1.25rem',
+    borderRadius: '14px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+  },
+
+  statCardHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+  },
+
+  statLabel: {
+    fontSize: '0.72rem',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    color: 'var(--muted-foreground)',
+    letterSpacing: '0.04em',
+  },
+
+  statIconWrap: {
+    width: '26px',
+    height: '26px',
+    borderRadius: '6px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  statValue: {
+    fontSize: '1.5rem',
+    fontWeight: '800',
+    color: 'var(--foreground)',
+    letterSpacing: '-0.02em',
+    lineHeight: 1.1,
+  },
+
+  statChange: {
+    fontSize: '0.68rem',
+    color: 'var(--muted-foreground)',
+    fontWeight: 500,
+  },
+
+  // Heatmap widget
+  heatmapCard: {
+    borderRadius: '14px',
+    overflow: 'hidden',
+  },
+
+  heatmapHeader: {
     background: 'color-mix(in srgb, var(--foreground) 3%, transparent)',
     borderBottom: '1px solid var(--border)',
-    padding: '0.5rem 0.75rem',
+    padding: '0.75rem 1.25rem',
     display: 'flex',
     alignItems: 'center',
     gap: '0.5rem',
     fontSize: '0.7rem',
-    fontWeight: '600',
+    fontWeight: '700',
     color: 'var(--muted-foreground)',
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
   },
 
-  exampleOutputContent: {
+  heatmapContent: {
     padding: '1.25rem',
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
-  },
-
-  mockGraph: {
-    display: 'flex',
-    alignItems: 'flex-end',
-    gap: '4px',
-    height: '40px',
+    gap: '1.25rem',
     width: '100%',
-    justifyContent: 'center',
   },
 
-  mockBar: {
-    width: '12px',
-    background: 'var(--accent)',
-    borderRadius: '2px 2px 0 0',
-    opacity: 0.8,
-  },
-
-  // Skel Loading
-  loadingSkel: {
-    padding: '3rem',
+  heatmapHeaderMetric: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '1rem',
+  },
+
+  heatmapMainValue: {
+    fontSize: '1.2rem',
+    fontWeight: '800',
+    color: 'var(--foreground)',
+  },
+
+  heatmapSubText: {
+    fontSize: '0.7rem',
+    color: 'var(--muted-foreground)',
+  },
+
+  heatmapGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(10, 1fr)',
+    gap: '5px',
+    width: '100%',
+  },
+
+  heatmapFooter: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: '0.65rem',
+    color: 'var(--muted-foreground)',
+    fontWeight: 500,
+  },
+
+  // Loading skeletons
+  loadingSkel: {
+    padding: '4rem 2rem',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1.5rem',
+    maxWidth: '1600px',
+    margin: '0 auto',
+    width: '100%',
   },
 
   skelLine: (w, h) => ({
     width: w,
     height: h,
     borderRadius: '8px',
-    background: 'var(--card)',
+    background: 'color-mix(in srgb, var(--foreground) 5%, transparent)',
     animation: 'pulse 1.5s ease-in-out infinite',
   }),
 };

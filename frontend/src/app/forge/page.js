@@ -777,7 +777,7 @@ function ForgeWizardContent() {
           width: 95%;
           max-width: 1600px;
           margin: 0 auto;
-          padding: 6.5rem 1.5rem 3rem 1.5rem;
+          padding: 1.5rem 1.5rem 3rem 1.5rem;
           display: flex;
           flex-direction: column;
           gap: 1rem;
