@@ -7,23 +7,122 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
   Sparkles, Wand2, ArrowRight, Trash2, Clock, ChevronRight,
-  FileText, Layers, Palette, TerminalSquare, Box, Code,
+  FileText, Layers, TerminalSquare, Box, Code,
   LayoutTemplate, Zap, Cpu, Activity, Calendar, FolderKanban,
-  ShoppingBag
+  ShoppingBag, HelpCircle
 } from 'lucide-react';
 import { track, EVENTS } from '@/lib/analytics';
 import HelpKeyboardOverlay from '@/components/HelpKeyboardOverlay';
 import CreateModal from '@/components/CreateModal';
 
-// ─── Animation Presets ─────────────────────────────────────────
-const enterVariants = {
-  hidden: { opacity: 0, y: 10 },
-  show: (i = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.35, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] },
-  }),
+// ─── Inline Animation SVG Compiler Illustration ──────────────────
+const CompilerIllustration = () => (
+  <svg width="220" height="110" viewBox="0 0 220 110" fill="none" xmlns="http://www.w3.org/2000/svg" className="compiler-illus" style={S.compilerIllustration}>
+    <defs>
+      <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.8" />
+        <stop offset="100%" stopColor="var(--workflow-page)" stopOpacity="0.2" />
+      </linearGradient>
+      <linearGradient id="compGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="var(--workflow-component)" stopOpacity="0.7" />
+        <stop offset="100%" stopColor="var(--workflow-enhance)" stopOpacity="0.3" />
+      </linearGradient>
+    </defs>
+
+    {/* Grid Backdrop */}
+    <rect x="0" y="0" width="220" height="110" rx="12" fill="var(--input)" opacity="0.3" />
+    <path d="M 22 0 L 22 110 M 44 0 L 44 110 M 66 0 L 66 110 M 88 0 L 88 110 M 110 0 L 110 110 M 132 0 L 132 110 M 154 0 L 154 110 M 176 0 L 176 110 M 198 0 L 198 110" stroke="var(--border)" strokeWidth="0.5" opacity="0.3" />
+    <path d="M 0 22 L 220 22 M 0 44 L 220 44 M 0 66 L 220 66 M 0 88 L 220 88" stroke="var(--border)" strokeWidth="0.5" opacity="0.3" />
+
+    {/* Glowing Data Flow Paths */}
+    <path d="M 25 55 Q 80 10 135 55 T 195 55" fill="none" stroke="url(#glowGrad)" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="6 4" className="flow-path-fast" />
+    <path d="M 25 55 Q 80 100 135 55 T 195 55" fill="none" stroke="url(#compGrad)" strokeWidth="2" strokeLinecap="round" strokeDasharray="4 6" className="flow-path-slow" />
+
+    {/* Intent Nodes */}
+    <circle cx="25" cy="55" r="4.5" fill="var(--accent)" className="illus-node-pulse" />
+    <circle cx="80" cy="32" r="5" fill="var(--workflow-application)" className="illus-node-pulse-delayed" />
+    <circle cx="135" cy="55" r="5" fill="var(--workflow-page)" className="illus-node-pulse" />
+    <circle cx="165" cy="78" r="5" fill="var(--workflow-enhance)" className="illus-node-pulse-delayed" />
+    <circle cx="195" cy="55" r="5.5" fill="var(--success)" className="illus-node-pulse" />
+  </svg>
+);
+
+// ─── Inline Compiler Console Logger ──────────────────────────────
+const TerminalConsole = () => {
+  const [lineIdx, setLineIdx] = useState(0);
+  const lines = [
+    '✓ Analyzing semantic design intent...',
+    '✓ Querying Vector DB for prompt layout patterns...',
+    '✓ Injected custom HSL color-scheme tokens...',
+    '✓ Integrated responsive Bento column rules...',
+    '✓ Synthesizing spec configurations...',
+    '✓ Blueprint status: IDLE (intent compiled)'
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLineIdx(p => (p + 1) % (lines.length + 1));
+    }, 2800);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div style={S.terminalContainer} className="card-glass noise-overlay">
+      <div style={S.terminalHeader}>
+        <div style={{ display: 'flex', gap: '4px' }}>
+          <div style={{ ...S.terminalDot, background: '#ef4444' }} />
+          <div style={{ ...S.terminalDot, background: '#f59e0b' }} />
+          <div style={{ ...S.terminalDot, background: '#22c55e' }} />
+        </div>
+        <span style={S.terminalTitle}>Compiler Console v3.0</span>
+      </div>
+      <div style={S.terminalBody}>
+        {lines.slice(0, lineIdx === 0 ? 1 : lineIdx).map((l, i) => (
+          <div
+            key={i}
+            style={{
+              ...S.terminalLine,
+              color: i === lines.length - 1 ? 'var(--success)' : 'var(--foreground)',
+              opacity: i === (lineIdx - 1) ? 1 : 0.65,
+              fontWeight: i === (lineIdx - 1) ? 600 : 400
+            }}
+          >
+            {l}
+          </div>
+        ))}
+        {lineIdx < lines.length && (
+          <span className="terminal-cursor" style={S.terminalCursor}>_</span>
+        )}
+      </div>
+    </div>
+  );
 };
+
+// ─── SVG Sparklines for Metrics ──────────────────────────────────
+const LinesSparkline = () => (
+  <svg width="65" height="26" viewBox="0 0 65 26" style={{ marginLeft: 'auto' }}>
+    <path
+      d="M0,22 Q10,4 22,16 T44,6 T65,2"
+      fill="none"
+      stroke="var(--accent)"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      className="sparkline-path"
+    />
+    <circle cx="65" cy="2" r="2.5" fill="var(--accent)" className="sparkline-dot" />
+  </svg>
+);
+
+const PromptsBarGraph = () => (
+  <svg width="60" height="24" viewBox="0 0 60 24" style={{ marginLeft: 'auto', display: 'flex', gap: '3px' }}>
+    <rect x="2" y="14" width="6" height="10" rx="1.5" fill="var(--success)" opacity="0.3" className="sparkbar-1" />
+    <rect x="12" y="10" width="6" height="14" rx="1.5" fill="var(--success)" opacity="0.5" className="sparkbar-2" />
+    <rect x="22" y="16" width="6" height="8" rx="1.5" fill="var(--success)" opacity="0.4" className="sparkbar-3" />
+    <rect x="32" y="6" width="6" height="18" rx="1.5" fill="var(--success)" opacity="0.7" className="sparkbar-4" />
+    <rect x="42" y="12" width="6" height="12" rx="1.5" fill="var(--success)" opacity="0.6" className="sparkbar-5" />
+    <rect x="52" y="2" width="6" height="22" rx="1.5" fill="var(--success)" className="sparkbar-6" />
+  </svg>
+);
 
 // ─── Time Ago Helper ──────────────────────────────────────────
 function timeAgo(ts) {
@@ -39,7 +138,6 @@ function timeAgo(ts) {
   return `${dy}d ago`;
 }
 
-// ─── Mock Data for Templates & Stats ───────────────────────────
 const READY_TEMPLATES = [
   { id: 'saas', icon: LayoutTemplate, title: 'SaaS Dashboard', desc: 'Pre-configured prompt for admin panels', mode: 'application', prompt: 'Create a comprehensive SaaS admin dashboard with a sidebar navigation, a top header with user profile and search, and a main content area containing data cards, a line chart for revenue, and a recent transactions table. Use a clean, modern aesthetic with a primary blue accent.' },
   { id: 'ai', icon: Sparkles, title: 'AI Chat Interface', desc: 'Ready-to-compile conversational UI', mode: 'application', prompt: 'Build an AI chat interface similar to ChatGPT. Include a sidebar for chat history, a main chat area with distinct user and AI message bubbles, and a sticky input area at the bottom with a submit button and attachment icon.' },
@@ -50,8 +148,8 @@ const READY_TEMPLATES = [
 ];
 
 const WORKSPACE_STATS = [
-  { id: 'lines', label: 'Lines Generated', value: '42.8k', icon: Code, color: 'var(--accent)', change: '+12.4% this week' },
-  { id: 'prompts', label: 'Prompts Compiled', value: '128', icon: Wand2, color: 'var(--success)', change: '+18 today' },
+  { id: 'lines', label: 'Lines Generated', value: '42.8k', icon: Code, color: 'var(--accent)', change: '+12.4% this week', spark: <LinesSparkline /> },
+  { id: 'prompts', label: 'Prompts Compiled', value: '128', icon: Wand2, color: 'var(--success)', change: '+18 today', spark: <PromptsBarGraph /> },
 ];
 
 export default function DashboardPage() {
@@ -77,9 +175,9 @@ export default function DashboardPage() {
                 key,
                 title: parsed.projectName || (
                   parsed.mode === 'application' ? 'SaaS Application Blueprint' :
-                  parsed.mode === 'page' ? 'Web Page Design Blueprint' :
-                  parsed.mode === 'component' ? 'Single Component Blueprint' :
-                  'Prompt Enhancement'
+                    parsed.mode === 'page' ? 'Web Page Design Blueprint' :
+                      parsed.mode === 'component' ? 'Single Component Blueprint' :
+                        'Prompt Enhancement'
                 ),
                 mode: parsed.mode,
                 savedAt: parsed.savedAt || Date.now(),
@@ -189,7 +287,7 @@ export default function DashboardPage() {
   }
 
   const sortedHistory = [...optimisticHistory].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-  
+
   // Merge drafts and history into one "Continue Working" stream
   const continueWorkingItems = [
     ...drafts.map(d => ({ ...d, isDraft: true, timestamp: d.savedAt, id: d.key })),
@@ -218,31 +316,36 @@ export default function DashboardPage() {
 
   return (
     <div style={S.pageContainer}>
-      
+
       {/* ─── BREADCRUMBS & INNER PAGE HEADER ────────────────────── */}
       <div style={S.headerWrapper}>
-        <div style={S.breadcrumbs}>
-          <span>{userName}&apos;s Workspace</span>
-          <ChevronRight size={12} style={{ opacity: 0.4 }} />
-          <span style={{ color: 'var(--accent)', fontWeight: 600 }}>Home</span>
-        </div>
-        
-        <div style={S.greetingArea}>
-          <h1 style={S.pageTitle}>
-            Welcome back, <span style={S.titleGradient}>{userName}</span>.
-          </h1>
-          <p style={S.pageSubtitle}>
-            Translate visual intent into high-fidelity architectural specs and components.
-          </p>
+        <div style={S.headerSplit}>
+          <div style={S.greetingArea}>
+            <div style={S.breadcrumbs}>
+              <span>{userName}&apos;s Workspace</span>
+              <ChevronRight size={12} style={{ opacity: 0.4 }} />
+              <span style={{ color: 'var(--accent)', fontWeight: 600 }}>Home</span>
+            </div>
+
+            <h1 style={S.pageTitle}>
+              Welcome back, <span style={S.titleGradient}>{userName}</span>.
+            </h1>
+            <p style={S.pageSubtitle}>
+              Translate visual intent into high-fidelity architectural specs and components.
+            </p>
+          </div>
+
+          {/* Animated SVG compiler illustration */}
+          <CompilerIllustration />
         </div>
       </div>
 
       {/* ─── BALANCED BENTO GRID ───────────────────────────────── */}
       <div style={S.dashboardGrid} className="dashboard-grid">
-        
+
         {/* LEFT PANE: ACTIONS, RECENT WORK, STARTERS */}
         <div style={S.leftPane}>
-          
+
           {/* Action Hubs */}
           <div style={S.heroCommandGrid}>
             <button style={S.heroBtnPrimary} onClick={() => setIsCreateModalOpen(true)} className="shine-effect">
@@ -268,7 +371,7 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {/* Continue Working Rows (List format to prevent wide gaps) */}
+          {/* Continue Working Rows */}
           <section style={S.section}>
             <div style={S.sectionHeader}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -288,9 +391,9 @@ export default function DashboardPage() {
                 {continueWorkingItems.map((item) => {
                   const accentColor = getModeColor(item.mode);
                   return (
-                    <div 
-                      key={item.id} 
-                      style={S.continueRow} 
+                    <div
+                      key={item.id}
+                      style={S.continueRow}
                       className="card-glass continue-row-item"
                       onClick={() => item.isDraft ? handleResumeDraft(item) : router.push(`/chat?id=${item.id}`)}
                     >
@@ -314,9 +417,9 @@ export default function DashboardPage() {
                         <span style={S.streamBadge(item.isDraft)}>
                           {item.isDraft ? 'Draft' : 'Saved'}
                         </span>
-                        
+
                         {/* Inline sliding delete button */}
-                        <button 
+                        <button
                           className="delete-row-btn"
                           onClick={(e) => item.isDraft ? handleDiscardDraft(item.id, e) : handleDelete(item.id, e)}
                           title={item.isDraft ? "Discard Draft" : "Delete Blueprint"}
@@ -346,10 +449,10 @@ export default function DashboardPage() {
                 const Icon = template.icon;
                 const accentColor = getModeColor(template.mode);
                 return (
-                  <button 
-                    key={template.id} 
-                    style={S.starterCard} 
-                    onClick={() => handleStarter(template)} 
+                  <button
+                    key={template.id}
+                    style={S.starterCard}
+                    onClick={() => handleStarter(template)}
                     className="card-glass starter-item-card"
                   >
                     <div style={{ ...S.starterCardIcon, color: accentColor, background: `color-mix(in srgb, ${accentColor} 10%, transparent)` }}>
@@ -370,7 +473,7 @@ export default function DashboardPage() {
 
         </div>
 
-        {/* RIGHT PANE: METRICS, ACTIVITY HEATMAP */}
+        {/* RIGHT PANE: METRICS, LIVE COMPILE CONSOLE, ACTIVITY HEATMAP */}
         <div style={S.rightPane}>
           <div style={S.sectionHeader}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -380,7 +483,7 @@ export default function DashboardPage() {
           </div>
 
           <div style={S.statsWrapper}>
-            {/* Metric Blocks */}
+            {/* Metric Blocks with Sparklines */}
             <div style={S.metricsRow}>
               {WORKSPACE_STATS.map(stat => (
                 <div key={stat.id} style={S.statCard} className="card-glass">
@@ -390,12 +493,20 @@ export default function DashboardPage() {
                       <stat.icon size={13} />
                     </div>
                   </div>
-                  <div style={S.statValue}>{stat.value}</div>
-                  <div style={S.statChange}>{stat.change}</div>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', marginTop: '0.5rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div style={S.statValue}>{stat.value}</div>
+                      <div style={S.statChange}>{stat.change}</div>
+                    </div>
+                    {stat.spark}
+                  </div>
                 </div>
               ))}
             </div>
-            
+
+            {/* Real-time Compiler Console widget */}
+            <TerminalConsole />
+
             {/* Activity Heatmap */}
             <div style={S.heatmapCard} className="card-glass">
               <div style={S.heatmapHeader}>
@@ -407,7 +518,7 @@ export default function DashboardPage() {
                   <span style={S.heatmapMainValue}>128 intents</span>
                   <span style={S.heatmapSubText}>Compiled this month</span>
                 </div>
-                
+
                 {/* Heatmap Grid */}
                 <div style={S.heatmapGrid}>
                   {[...Array(30)].map((_, i) => {
@@ -417,15 +528,15 @@ export default function DashboardPage() {
                     d.setDate(d.getDate() - (29 - i));
                     const count = intensity === 0 ? 'No' : (intensity * 3);
                     return (
-                      <div 
-                        key={i} 
+                      <div
+                        key={i}
                         title={`${count} intents compiled on ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
-                        style={{ 
-                          aspectRatio: '1/1', 
-                          borderRadius: '3px', 
-                          background: intensity === 0 
-                            ? 'color-mix(in srgb, var(--foreground) 6%, transparent)' 
-                            : `color-mix(in srgb, var(--accent) ${Number(opacities[intensity])*100}%, transparent)`,
+                        style={{
+                          aspectRatio: '1/1',
+                          borderRadius: '3px',
+                          background: intensity === 0
+                            ? 'color-mix(in srgb, var(--foreground) 6%, transparent)'
+                            : `color-mix(in srgb, var(--accent) ${Number(opacities[intensity]) * 100}%, transparent)`,
                           transition: 'transform 0.15s ease'
                         }}
                         className="heatmap-dot"
@@ -456,7 +567,8 @@ export default function DashboardPage() {
       <CreateModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
 
       {/* ─── ANIMATED STYLING CONSOLE ──────────────────────────── */}
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .dashboard-grid {
           display: grid;
           grid-template-columns: 2.2fr 1.2fr;
@@ -470,6 +582,66 @@ export default function DashboardPage() {
           width: 100%;
         }
         
+        /* Compiler Vector SVG Animations */
+        @keyframes dashFlow {
+          to {
+            stroke-dashoffset: -100;
+          }
+        }
+        @keyframes nodePulsing {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.8;
+          }
+          50% {
+            transform: scale(1.3);
+            opacity: 1;
+            filter: drop-shadow(0 0 5px var(--accent));
+          }
+        }
+        .flow-path-fast {
+          animation: dashFlow 12s linear infinite;
+        }
+        .flow-path-slow {
+          animation: dashFlow 20s linear infinite reverse;
+        }
+        .illus-node-pulse {
+          animation: nodePulsing 2s infinite ease-in-out;
+          transform-origin: center;
+        }
+        .illus-node-pulse-delayed {
+          animation: nodePulsing 2.5s infinite ease-in-out 0.6s;
+          transform-origin: center;
+        }
+        
+        /* Sparkline and Sparkbar Keyframes */
+        @keyframes pathReveal {
+          from { stroke-dasharray: 100; stroke-dashoffset: 100; }
+          to { stroke-dasharray: 100; stroke-dashoffset: 0; }
+        }
+        .sparkline-path {
+          animation: pathReveal 2s ease-out forwards;
+        }
+        @keyframes barGrow {
+          from { transform: scaleY(0); transform-origin: bottom; }
+          to { transform: scaleY(1); transform-origin: bottom; }
+        }
+        .sparkbar-1 { animation: barGrow 0.5s ease-out 0.1s both; }
+        .sparkbar-2 { animation: barGrow 0.5s ease-out 0.2s both; }
+        .sparkbar-3 { animation: barGrow 0.5s ease-out 0.3s both; }
+        .sparkbar-4 { animation: barGrow 0.5s ease-out 0.4s both; }
+        .sparkbar-5 { animation: barGrow 0.5s ease-out 0.5s both; }
+        .sparkbar-6 { animation: barGrow 0.5s ease-out 0.6s both; }
+
+        /* Typewriter Terminal Blink */
+        @keyframes blinkCursor {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+        .terminal-cursor {
+          animation: blinkCursor 1s infinite;
+        }
+        
         /* Inline Sliding Delete Animations */
         .continue-row-item {
           transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -480,14 +652,13 @@ export default function DashboardPage() {
           border-color: var(--accent);
           background: color-mix(in srgb, var(--accent) 3%, var(--card)) !important;
         }
-         .delete-row-btn {
+        .delete-row-btn {
           opacity: 0;
           width: 0;
           height: 26px;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 0;
           transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
           background: color-mix(in srgb, var(--destructive) 8%, transparent);
           color: var(--destructive);
@@ -496,6 +667,7 @@ export default function DashboardPage() {
           cursor: pointer;
           flex-shrink: 0;
           overflow: hidden;
+          padding: 0;
         }
         .continue-row-item:hover .delete-row-btn {
           opacity: 1;
@@ -537,6 +709,9 @@ export default function DashboardPage() {
             grid-template-columns: 1fr;
             gap: 2rem;
           }
+          .compiler-illus {
+            display: none;
+          }
         }
         @media (max-width: 768px) {
           .starters-grid {
@@ -568,6 +743,22 @@ const S = {
     marginTop: '1.5rem',
   },
 
+  headerSplit: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '2rem',
+    width: '100%',
+  },
+
+  compilerIllustration: {
+    flexShrink: 0,
+    borderRadius: '12px',
+    boxShadow: 'var(--shadow-sm)',
+    border: '1px solid var(--border)',
+    background: 'var(--card)',
+  },
+
   breadcrumbs: {
     display: 'flex',
     alignItems: 'center',
@@ -577,12 +768,14 @@ const S = {
     textTransform: 'uppercase',
     letterSpacing: '0.04em',
     fontWeight: '600',
+    marginBottom: '0.4rem',
   },
 
   greetingArea: {
     display: 'flex',
     flexDirection: 'column',
     gap: '0.25rem',
+    flex: 1,
   },
 
   pageTitle: {
@@ -916,6 +1109,59 @@ const S = {
     gap: '0.2rem',
   },
 
+  // Compiler Console Logger widget
+  terminalContainer: {
+    borderRadius: '14px',
+    overflow: 'hidden',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '0.72rem',
+    padding: '1rem',
+    background: 'var(--card)',
+    border: '1px solid var(--border)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem',
+  },
+
+  terminalHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottom: '1px solid var(--border)',
+    paddingBottom: '0.5rem',
+  },
+
+  terminalDot: {
+    width: '7px',
+    height: '7px',
+    borderRadius: '50%',
+  },
+
+  terminalTitle: {
+    color: 'var(--muted-foreground)',
+    fontSize: '0.64rem',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: '0.04em',
+  },
+
+  terminalBody: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.4rem',
+    minHeight: '110px',
+  },
+
+  terminalLine: {
+    lineHeight: '1.4',
+    transition: 'all 0.15s ease',
+  },
+
+  terminalCursor: {
+    color: 'var(--accent)',
+    fontWeight: '800',
+  },
+
   // Stats Column
   statsWrapper: {
     display: 'flex',
@@ -936,7 +1182,7 @@ const S = {
     borderRadius: '14px',
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.5rem',
+    gap: '0.25rem',
   },
 
   statCardHeader: {
@@ -964,7 +1210,7 @@ const S = {
   },
 
   statValue: {
-    fontSize: '1.5rem',
+    fontSize: '1.45rem',
     fontWeight: '800',
     color: 'var(--foreground)',
     letterSpacing: '-0.02em',
@@ -972,9 +1218,10 @@ const S = {
   },
 
   statChange: {
-    fontSize: '0.68rem',
+    fontSize: '0.65rem',
     color: 'var(--muted-foreground)',
     fontWeight: 500,
+    marginTop: '0.15rem',
   },
 
   // Heatmap widget
