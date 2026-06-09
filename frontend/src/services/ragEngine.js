@@ -1,5 +1,3 @@
-import { designVocabulary } from '../data/designVocabulary';
-
 // A collection of standard stopwords to filter out noisy tokens
 const STOP_WORDS = new Set([
   'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 
@@ -43,42 +41,6 @@ function getTermFrequencies(tokens) {
   return tf;
 }
 
-// =========================================================================
-// Pre-calculate document vectors and Inverse Document Frequencies (IDF)
-// =========================================================================
-const documentCount = designVocabulary.length;
-const documentRepresentations = designVocabulary.map(doc => {
-  // Combine all searchable text fields, giving additional weight to name and keywords
-  const weightedText = `
-    ${doc.name} ${doc.name} ${doc.name} 
-    ${doc.category} 
-    ${doc.keywords.join(' ')} ${doc.keywords.join(' ')} 
-    ${doc.description}
-  `;
-  const tokens = tokenize(weightedText);
-  return {
-    docId: doc.id,
-    tokens,
-    tf: getTermFrequencies(tokens)
-  };
-});
-
-// Calculate Document Frequency (DF) for each unique token in the corpus
-const docFrequencies = {};
-documentRepresentations.forEach(repr => {
-  const uniqueTokens = new Set(repr.tokens);
-  uniqueTokens.forEach(token => {
-    docFrequencies[token] = (docFrequencies[token] || 0) + 1;
-  });
-});
-
-// Calculate Inverse Document Frequency (IDF) for each unique token
-const idf = {};
-Object.keys(docFrequencies).forEach(token => {
-  // Formula: log(1 + (Total Documents / Document Frequency of Term))
-  idf[token] = Math.log(1 + (documentCount / docFrequencies[token]));
-});
-
 /**
  * Calculates the cosine similarity between two numeric maps representing vectors.
  * @param {Map<string, number>} vec1 
@@ -113,13 +75,51 @@ function calculateCosineSimilarity(vec1, vec2) {
  * @param {string} query The raw user query
  * @param {number} limit Maximum number of records to retrieve (default: 3)
  * @param {string} [boostCategory] Optional category to boost (e.g. "Component")
+ * @param {Array} vocabulary The dynamically loaded vocabulary array from DB
  * @returns {Array<{term: object, score: number}>} matched terms with scores
  */
-export function searchVectorVocabulary(query, limit = 3, boostCategory = null) {
+export function searchVectorVocabulary(query, limit = 3, boostCategory = null, vocabulary = []) {
+  if (!vocabulary || vocabulary.length === 0) {
+    return [];
+  }
+
+  const documentCount = vocabulary.length;
+  const documentRepresentations = vocabulary.map(doc => {
+    // Combine all searchable text fields, giving additional weight to name and keywords
+    const weightedText = `
+      ${doc.name} ${doc.name} ${doc.name} 
+      ${doc.category} 
+      ${(doc.keywords || []).join(' ')} ${(doc.keywords || []).join(' ')} 
+      ${doc.description}
+    `;
+    const tokens = tokenize(weightedText);
+    return {
+      docId: doc.id,
+      tokens,
+      tf: getTermFrequencies(tokens)
+    };
+  });
+
+  // Calculate Document Frequency (DF) for each unique token in the corpus
+  const docFrequencies = {};
+  documentRepresentations.forEach(repr => {
+    const uniqueTokens = new Set(repr.tokens);
+    uniqueTokens.forEach(token => {
+      docFrequencies[token] = (docFrequencies[token] || 0) + 1;
+    });
+  });
+
+  // Calculate Inverse Document Frequency (IDF) for each unique token
+  const idf = {};
+  Object.keys(docFrequencies).forEach(token => {
+    // Formula: log(1 + (Total Documents / Document Frequency of Term))
+    idf[token] = Math.log(1 + (documentCount / docFrequencies[token]));
+  });
+
   const queryTokens = tokenize(query);
   if (queryTokens.length === 0) {
     // If no query tokens, return top elements of specified category or general items
-    const fallback = designVocabulary
+    const fallback = vocabulary
       .filter(item => !boostCategory || item.category.toLowerCase().includes(boostCategory.toLowerCase()))
       .slice(0, limit)
       .map(item => ({ term: item, score: 0.1 }));
@@ -144,7 +144,7 @@ export function searchVectorVocabulary(query, limit = 3, boostCategory = null) {
     });
 
     let score = calculateCosineSimilarity(queryVector, docVector);
-    const vocabularyItem = designVocabulary.find(item => item.id === repr.docId);
+    const vocabularyItem = vocabulary.find(item => item.id === repr.docId);
 
     // Apply exact substring matches boost for keywords
     if (vocabularyItem) {
@@ -155,7 +155,7 @@ export function searchVectorVocabulary(query, limit = 3, boostCategory = null) {
       }
       
       // Keywords matches
-      vocabularyItem.keywords.forEach(kw => {
+      (vocabularyItem.keywords || []).forEach(kw => {
         if (queryLower.includes(kw.toLowerCase())) {
           score += 0.25;
         }

@@ -32,6 +32,15 @@ export function AppProvider({ children }) {
   const [dbConnected, setDbConnected] = useState(false);
   // ── Save status: 'idle' | 'saving' | 'saved' | 'error'
   const [saveStatus, setSaveStatus] = useState("idle");
+  // ── Dynamic vocabulary and global stats
+  const [vocabulary, setVocabulary] = useState(null);
+  const [vocabLoading, setVocabLoading] = useState(true);
+  const [vocabError, setVocabError] = useState(false);
+  const [globalStats, setGlobalStats] = useState({
+    total_specifications_compiled: 12400,
+    total_design_patterns: 60,
+    ai_tools_supported: 8
+  });
   // ── Activity tracking (replaces streak — utility tool, not daily habit)
   const [activityStats, setActivityStats] = useState({
     sessionsThisMonth: 0,
@@ -82,6 +91,37 @@ export function AppProvider({ children }) {
     async function initDb() {
       const isDbLive = await testDatabaseConnectivity();
       setDbConnected(isDbLive);
+
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      
+      // Fetch vocabulary dynamically
+      try {
+        setVocabLoading(true);
+        const res = await fetch(`${backendUrl}/api/vocabulary`);
+        if (res.ok) {
+          const data = await res.json();
+          setVocabulary(data);
+          setVocabError(false);
+        } else {
+          setVocabError(true);
+        }
+      } catch (e) {
+        console.error("Failed to fetch vocabulary from backend:", e);
+        setVocabError(true);
+      } finally {
+        setVocabLoading(false);
+      }
+
+      // Fetch global statistics
+      try {
+        const res = await fetch(`${backendUrl}/api/vocabulary/stats`);
+        if (res.ok) {
+          const data = await res.json();
+          setGlobalStats(data);
+        }
+      } catch (e) {
+        console.error("Failed to fetch global statistics:", e);
+      }
     }
     initDb();
 
@@ -796,6 +836,37 @@ export function AppProvider({ children }) {
     }
   };
 
+  const reloadVocabulary = async () => {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+    try {
+      setVocabLoading(true);
+      setVocabError(false);
+      const res = await fetch(`${backendUrl}/api/vocabulary`);
+      if (res.ok) {
+        const data = await res.json();
+        setVocabulary(data);
+        setVocabError(false);
+        
+        // Also reload global stats
+        const statsRes = await fetch(`${backendUrl}/api/vocabulary/stats`);
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setGlobalStats(statsData);
+        }
+        return true;
+      } else {
+        setVocabError(true);
+        return false;
+      }
+    } catch (e) {
+      console.error("Failed to reload vocabulary:", e);
+      setVocabError(true);
+      return false;
+    } finally {
+      setVocabLoading(false);
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -831,6 +902,12 @@ export function AppProvider({ children }) {
         // ── Aha Moment / First Blueprint
         showFirstBlueprintSuccess,
         dismissFirstBlueprintSuccess: () => setShowFirstBlueprintSuccess(false),
+        // ── Dynamic vocabulary and global stats
+        vocabulary,
+        vocabLoading,
+        vocabError,
+        globalStats,
+        reloadVocabulary,
       }}
     >
       {children}

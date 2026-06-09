@@ -39,7 +39,7 @@ const darkerGrotesque = Darker_Grotesque({
 });
 
 export const metadata = {
-  title: "Veyntra — Developer Intent Compiler",
+  title: "Veyntra - Developer Intent Compiler",
   description: "Transform Vision Into Software. Compile ideas into architecture, specifications, components, pages, and applications for Cursor, Bolt, Lovable, and v0.",
   keywords: ["Veyntra", "intent compilation", "architecture synthesis", "specification compilation", "Cursor", "Lovable", "v0", "Bolt", "RAG"],
   metadataBase: new URL(`https://${process.env.NEXT_PUBLIC_APP_DOMAIN || "veyntra.vercel.app"}`),

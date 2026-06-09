@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, Search, Sparkles, Monitor, Tablet, Smartphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { themeStyles } from '@/data/designVocabulary';
+import { themeStyles } from '@/config/themeStyles';
 import { getThemeCardDynamicStyles } from '../utils/themeStyles';
 import { ThemePreview } from './ThemePreview';
 

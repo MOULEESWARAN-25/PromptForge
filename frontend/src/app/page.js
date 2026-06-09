@@ -30,7 +30,6 @@ import {
   Moon,
 } from "lucide-react";
 import { useApp } from "@/context/AppContext";
-import { designVocabulary } from "@/data/designVocabulary";
 import { toast } from "sonner";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -122,7 +121,7 @@ const AUDIENCES = [
 ];
 
 export default function PremiumLandingPage() {
-  const { theme, user, toggleTheme } = useApp();
+  const { theme, user, toggleTheme, vocabulary, vocabLoading, vocabError, reloadVocabulary } = useApp();
   const isDark = theme === "dark";
 
   // Interactive Drawer & Tab States
@@ -1323,23 +1322,67 @@ export default function PremiumLandingPage() {
 
         {/* Chips Grid */}
         <div className="anim-voc chips-wrap-grid" style={chipsWrapGrid}>
-          {designVocabulary.slice(0, 16).map((token) => (
-            <motion.button
-              key={token.id}
-              onClick={() => {
-                setSelectedToken(token);
-                setDrawerOpen(true);
-              }}
-              style={tokenChipStyle(selectedToken?.id === token.id, isDark)}
-              whileHover={{ scale: 1.03, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              className="chip-focus"
-              aria-label={`Open educational drawer for ${token.name}`}
-            >
-              <BookOpen size={11} style={{ opacity: 0.7 }} />
-              {token.name}
-            </motion.button>
-          ))}
+          {vocabLoading ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center' }}>
+              {[...Array(16)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  animate={{ opacity: [0.3, 0.7, 0.3] }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut", delay: i * 0.08 }}
+                  style={{
+                    width: '120px',
+                    height: '32px',
+                    borderRadius: '999px',
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    border: '1.5px solid var(--border)',
+                  }}
+                />
+              ))}
+            </div>
+          ) : vocabError ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', width: '100%', padding: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--warning)', fontSize: '0.85rem', fontWeight: 600 }}>
+                <X size={15} style={{ color: 'var(--warning)' }} />
+                <span>Database Connection Offline</span>
+              </div>
+              <button
+                onClick={reloadVocabulary}
+                style={{
+                  padding: '0.5rem 1.2rem',
+                  borderRadius: '8px',
+                  fontSize: '0.75rem',
+                  fontWeight: '700',
+                  color: '#fff',
+                  background: 'var(--accent)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(104, 67, 236, 0.25)',
+                  transition: 'opacity 0.2s ease',
+                }}
+                className="btn-focus active-scale-95"
+              >
+                Retry Connection
+              </button>
+            </div>
+          ) : (
+            (vocabulary || []).slice(0, 16).map((token) => (
+              <motion.button
+                key={token.id}
+                onClick={() => {
+                  setSelectedToken(token);
+                  setDrawerOpen(true);
+                }}
+                style={tokenChipStyle(selectedToken?.id === token.id, isDark)}
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="chip-focus"
+                aria-label={`Open educational drawer for ${token.name}`}
+              >
+                <BookOpen size={11} style={{ opacity: 0.7 }} />
+                {token.name}
+              </motion.button>
+            ))
+          )}
         </div>
 
         {/* Educational Slide Drawer Panel (Audit: Accessible Focus trap and Esc close) */}
@@ -1409,14 +1452,14 @@ export default function PremiumLandingPage() {
                       <span>Compiled AI Prompt Segment</span>
                     </div>
                     <p style={drawerPromptBody}>
-                      "{selectedToken.examplePrompt}"
+                      "{selectedToken.examplePrompt || selectedToken.example_prompt}"
                     </p>
 
                     <button
                       onClick={(e) =>
                         handleCopy(
                           selectedToken.id,
-                          selectedToken.examplePrompt,
+                          selectedToken.examplePrompt || selectedToken.example_prompt,
                           e,
                         )
                       }

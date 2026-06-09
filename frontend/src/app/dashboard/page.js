@@ -147,10 +147,7 @@ const READY_TEMPLATES = [
   { id: 'admin', icon: TerminalSquare, title: 'Internal Tool', desc: 'Data management and CRUD UI', mode: 'application', prompt: 'Build an internal CRUD tool for employee management. The interface should have a large data table with sorting and filtering, and a slide-out modal for adding or editing employee records.' }
 ];
 
-const WORKSPACE_STATS = [
-  { id: 'lines', label: 'Lines Generated', value: '42.8k', icon: Code, color: 'var(--accent)', change: '+12.4% this week', spark: <LinesSparkline /> },
-  { id: 'prompts', label: 'Prompts Compiled', value: '128', icon: Wand2, color: 'var(--success)', change: '+18 today', spark: <PromptsBarGraph /> },
-];
+// WORKSPACE_STATS is computed dynamically inside the component
 
 export default function DashboardPage() {
   const { user, history, deletePromptRecord, loading, recordActivity } = useApp();
@@ -159,6 +156,63 @@ export default function DashboardPage() {
   const [showHelp, setShowHelp] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [, startTransition] = useTransition();
+
+  // Dynamic statistics calculations based on user history context
+  const promptsCount = history.length;
+  const totalLines = history.reduce((acc, h) => acc + (h.resolvedPrompt ? h.resolvedPrompt.split('\n').length : 0), 0);
+  const formattedLines = totalLines >= 1000 ? `${(totalLines / 1000).toFixed(1)}k` : totalLines.toString();
+
+  const nowMs = Date.now();
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayStartMs = todayStart.getTime();
+
+  const promptsToday = history.filter(h => h.timestamp >= todayStartMs).length;
+  const promptsChangeTodayText = promptsToday > 0 ? `+${promptsToday} today` : 'No compilations today';
+
+  const sevenDaysAgoMs = nowMs - 7 * 24 * 60 * 60 * 1000;
+  const fourteenDaysAgoMs = nowMs - 14 * 24 * 60 * 60 * 1000;
+
+  const linesThisWeek = history
+    .filter(h => h.timestamp >= sevenDaysAgoMs)
+    .reduce((acc, h) => acc + (h.resolvedPrompt ? h.resolvedPrompt.split('\n').length : 0), 0);
+  const linesLastWeek = history
+    .filter(h => h.timestamp < sevenDaysAgoMs && h.timestamp >= fourteenDaysAgoMs)
+    .reduce((acc, h) => acc + (h.resolvedPrompt ? h.resolvedPrompt.split('\n').length : 0), 0);
+
+  let linesChangePct = 0;
+  if (linesLastWeek > 0) {
+    linesChangePct = Math.round(((linesThisWeek - linesLastWeek) / linesLastWeek) * 100);
+  } else if (linesThisWeek > 0) {
+    linesChangePct = 100;
+  }
+  const linesChangeText = linesChangePct >= 0 ? `+${linesChangePct}% this week` : `${linesChangePct}% this week`;
+
+  const workspaceStats = [
+    { id: 'lines', label: 'Lines Generated', value: formattedLines, icon: Code, color: 'var(--accent)', change: linesChangeText, spark: <LinesSparkline /> },
+    { id: 'prompts', label: 'Prompts Compiled', value: promptsCount.toString(), icon: Wand2, color: 'var(--success)', change: promptsChangeTodayText, spark: <PromptsBarGraph /> },
+  ];
+
+  // Dynamic Heatmap volume mapping for past 30 days
+  const heatmapData = Array.from({ length: 30 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (29 - i));
+    d.setHours(0, 0, 0, 0);
+    const dayStart = d.getTime();
+    const dayEnd = dayStart + 24 * 60 * 60 * 1000;
+
+    const count = history.filter(h => h.timestamp >= dayStart && h.timestamp < dayEnd).length;
+
+    let intensity = 0;
+    if (count === 1) intensity = 1;
+    else if (count >= 2 && count <= 3) intensity = 2;
+    else if (count >= 4 && count <= 5) intensity = 3;
+    else if (count >= 6) intensity = 4;
+
+    return { date: d, count, intensity };
+  });
+
+  const totalIntentsThisMonth = history.filter(h => h.timestamp >= nowMs - 30 * 24 * 60 * 60 * 1000).length;
 
   // Load drafts from local storage
   useEffect(() => {
@@ -485,7 +539,7 @@ export default function DashboardPage() {
           <div style={S.statsWrapper}>
             {/* Metric Blocks with Sparklines */}
             <div style={S.metricsRow}>
-              {WORKSPACE_STATS.map(stat => (
+              {workspaceStats.map(stat => (
                 <div key={stat.id} style={S.statCard} className="card-glass">
                   <div style={S.statCardHeader}>
                     <span style={S.statLabel}>{stat.label}</span>
@@ -515,28 +569,25 @@ export default function DashboardPage() {
               </div>
               <div style={S.heatmapContent}>
                 <div style={S.heatmapHeaderMetric}>
-                  <span style={S.heatmapMainValue}>128 intents</span>
-                  <span style={S.heatmapSubText}>Compiled this month</span>
+                  <span style={S.heatmapMainValue}>{totalIntentsThisMonth} intents</span>
+                  <span style={S.heatmapSubText}>Compiled past 30 days</span>
                 </div>
 
                 {/* Heatmap Grid */}
                 <div style={S.heatmapGrid}>
-                  {[...Array(30)].map((_, i) => {
-                    const intensity = [0, 1, 0, 2, 4, 3, 0, 1, 1, 0, 0, 2, 3, 1, 4, 4, 2, 1, 0, 0, 1, 3, 4, 2, 1, 0, 2, 4, 3, 1][i];
+                  {heatmapData.map((dayData, i) => {
                     const opacities = ['0.05', '0.22', '0.45', '0.75', '1'];
-                    const d = new Date();
-                    d.setDate(d.getDate() - (29 - i));
-                    const count = intensity === 0 ? 'No' : (intensity * 3);
+                    const countText = dayData.count === 0 ? 'No' : dayData.count;
                     return (
                       <div
                         key={i}
-                        title={`${count} intents compiled on ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
+                        title={`${countText} intents compiled on ${dayData.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
                         style={{
                           aspectRatio: '1/1',
                           borderRadius: '3px',
-                          background: intensity === 0
+                          background: dayData.intensity === 0
                             ? 'color-mix(in srgb, var(--foreground) 6%, transparent)'
-                            : `color-mix(in srgb, var(--accent) ${Number(opacities[intensity]) * 100}%, transparent)`,
+                            : `color-mix(in srgb, var(--accent) ${Number(opacities[dayData.intensity]) * 100}%, transparent)`,
                           transition: 'transform 0.15s ease'
                         }}
                         className="heatmap-dot"

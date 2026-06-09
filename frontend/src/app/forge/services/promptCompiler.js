@@ -39,6 +39,7 @@ export async function compileForgePrompt({
   additionalFeatures,
   apiKey,
   modelProvider = "gemini",
+  vocabulary = []
 }) {
   let finalQuery = "";
   let title = "";
@@ -164,6 +165,7 @@ ${projectSetupDetails}`;
     theme: selectedTheme || "Sleek Dark Glassmorphic",
     apiKey,
     modelProvider,
+    vocabulary
   };
 
   if (activeMode === "application") {

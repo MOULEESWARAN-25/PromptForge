@@ -135,280 +135,32 @@ function SaveStatusBadge({ status }) {
 }
 
 // ─── Vocabulary Learning Drawer ───────────────────────────────────
-// Inline knowledge base for educational term explanations
-const TERM_KNOWLEDGE = {
-  Glassmorphism: {
-    explanation:
-      "Semi-transparent layered surface style mimicking physical frosted glass.",
-    visualDescription:
-      "High backdrop blur opacity overlay with fine thin borders and a translucent light reflection.",
-    designTokens: [
-      "backdrop-blur-md",
-      "bg-white/5",
-      "border-white/10",
-      "shadow-xl",
-    ],
-    why: "Creates premium depth perception that separates content layers visually.",
-  },
-  "Spotlight Cursor Hook": {
-    explanation:
-      "Interactive cursor tracker highlighting component borders with a radial glowing gradient.",
-    visualDescription:
-      "A colored spotlight following mouse movements over glass borders.",
-    designTokens: [
-      "bg-[radial-gradient(circle_at_var(--mouse-x)_var(--mouse-y),rgba(124,58,237,0.15),transparent_40%)]",
-    ],
-    why: "Dramatically increases perceived interactivity and premium feel of cards.",
-  },
-  "Bento Grid Layout": {
-    explanation:
-      "Asymmetric multi-column cell mapping inspired by visual Japanese bento trays.",
-    visualDescription:
-      "Visually grouped grid rows where key elements span wider or taller columns.",
-    designTokens: [
-      "grid",
-      "grid-cols-1",
-      "md:grid-cols-3",
-      "gap-4",
-      "col-span-2",
-      "row-span-1",
-    ],
-    why: "Creates visual rhythm and hierarchy without rigid uniform column constraints.",
-  },
-  "Spring Animation Physics": {
-    explanation:
-      "Animation parameters modeled on hookean elastic springs for organic tactile feedback.",
-    visualDescription:
-      "Components scaling or moving with realistic micro-bounce rather than simple linear speeds.",
-    designTokens: [
-      "transition-all",
-      "duration-300",
-      "active:scale-95",
-      "ease-[cubic-bezier(0.34,1.56,0.64,1)]",
-    ],
-    why: "Makes UI feel physically responsive and alive, dramatically improving perceived quality.",
-  },
-  "Infinite Marquee Ticker": {
-    explanation:
-      "CSS keyframe slider translating elements continuously for displaying static logos.",
-    visualDescription:
-      "A seamless horizontal line of elements looping endlessly with zero stutter.",
-    designTokens: [
-      "flex",
-      "animate-marquee",
-      "whitespace-nowrap",
-      "will-change-transform",
-    ],
-    why: "Communicates social proof and brand trust without static grid placement.",
-  },
-  "Command Palette Search": {
-    explanation:
-      "Keyboard-triggered modal indexing actions and filtering matching queries fuzzy matching.",
-    visualDescription:
-      "A clean center overlay with instantaneous response, shortcuts, and grouped filters.",
-    designTokens: [
-      "absolute",
-      "z-50",
-      "max-w-xl",
-      "overflow-hidden",
-      "rounded-xl",
-      "divide-y",
-    ],
-    why: "Power-user shortcut that dramatically reduces navigation friction.",
-  },
-  "Skeleton Shimmer Loader": {
-    explanation:
-      "Grey geometric placeholders pulsing or shimmering to indicate active fetch states.",
-    visualDescription:
-      "Light silver bars carrying a moving light ray gradient overlay.",
-    designTokens: [
-      "animate-pulse",
-      "bg-neutral-800",
-      "before:animate-[shimmer_2s_infinite]",
-      "before:bg-gradient-to-r",
-    ],
-    why: "Perceived performance — users feel the app is faster when structure appears immediately.",
-  },
-  "Neo-Brutalist Layout": {
-    explanation:
-      "High-contrast structural panels featuring thick pure black borders and solid non-blurred shadows.",
-    visualDescription:
-      "Vibrant colors outlined with thick dark lines, casting solid offset box blocks.",
-    designTokens: [
-      "border-3",
-      "border-black",
-      "shadow-[4px_4px_0px_#000000]",
-      "hover:shadow-[6px_6px_0px_#000000]",
-    ],
-    why: "Anti-minimalism design signal — bold, unapologetically visible structural borders.",
-  },
-  "Ambient Drop Glow": {
-    explanation:
-      "Backdrop colored shadow layers creating depth and premium spatial contrast.",
-    visualDescription:
-      "A soft tinted ambient cloud radiating behind components.",
-    designTokens: ["shadow-[0_0_50px_-12px_var(--accent)]"],
-    why: "Creates a light source illusion that makes dark interfaces feel three-dimensional.",
-  },
-  "Staggered Entrance Animation": {
-    explanation:
-      "Sequential delays applied to list elements to direct user gaze hierarchy.",
-    visualDescription:
-      "Cards or list lines fading up in a micro-delayed chronological wave.",
-    designTokens: [
-      "animate-fade-up",
-      "animation-delay-100",
-      "animation-delay-200",
-      "animation-delay-300",
-    ],
-    why: "Guides the user's eye down the page in a natural choreographed reading flow.",
-  },
-  "Frosted Modal Overlay": {
-    explanation:
-      "Overlay dialog positioning crucial settings in focus and dimming other areas.",
-    visualDescription:
-      "A central crisp window floating over a deeply blurred dark background layer.",
-    designTokens: [
-      "fixed",
-      "inset-0",
-      "z-50",
-      "bg-black/60",
-      "backdrop-blur-sm",
-    ],
-    why: "Contextually isolates focus-critical tasks without losing screen context.",
-  },
-  "Interactive Accordion Panel": {
-    explanation:
-      "Toggle panel revealing detailed explanations inline and contracting other rows.",
-    visualDescription:
-      "List headers clicking to slide down additional textual lines smoothly.",
-    designTokens: [
-      "overflow-hidden",
-      "transition-all",
-      "duration-200",
-      "ease-out",
-    ],
-    why: "Progressively discloses complexity — reduces cognitive load on first render.",
-  },
-  "Dynamic Floating Navbar": {
-    explanation:
-      "A floating header menu morphing or shrinking dynamically during scroll bounds.",
-    visualDescription:
-      "A small pill-shaped frosted menu floating at the top of the viewport.",
-    designTokens: [
-      "sticky",
-      "top-4",
-      "mx-auto",
-      "max-w-fit",
-      "rounded-full",
-      "backdrop-blur-md",
-    ],
-    why: "Stays accessible during long scrolls without dominating viewport real estate.",
-  },
-  "Active Tab Slide Switcher": {
-    explanation:
-      "A control where an active highlighted visual pill slides behind selected buttons.",
-    visualDescription:
-      "A pill-shaped button group where a dark background slides smoothly under clicked tabs.",
-    designTokens: [
-      "relative",
-      "flex",
-      "rounded-full",
-      "p-1",
-      "bg-neutral-900",
-      "transition-all",
-    ],
-    why: "Makes mode switching immediately readable — no ambiguity about active state.",
-  },
-  "Tactile Form Input Validation": {
-    explanation:
-      "Interactive inputs changing border highlights and rendering animations upon syntax correctness.",
-    visualDescription:
-      "Input boxes glowing amber during typing, snapping green upon valid emails.",
-    designTokens: [
-      "focus:ring-2",
-      "focus:ring-accent",
-      "border-red-500",
-      "border-emerald-500",
-    ],
-    why: "Immediate visual feedback eliminates form submission errors and frustration.",
-  },
-  "Toast Status Banner": {
-    explanation:
-      "Temporary floating notifications sliding in near view borders to deliver quick logs.",
-    visualDescription:
-      "A sleek dark floating rectangle sliding from the bottom right with a micro-icon.",
-    designTokens: [
-      "fixed",
-      "bottom-4",
-      "right-4",
-      "z-50",
-      "animate-slide-in",
-      "rounded-lg",
-    ],
-    why: "Non-blocking feedback that confirms actions without interrupting the user flow.",
-  },
-  "Avatar Profile Panel": {
-    explanation:
-      "Circular photo mask rendering loading rings and fallback user initials.",
-    visualDescription:
-      "A round profile mask displaying crisp shadows and interactive hover overlays.",
-    designTokens: [
-      "rounded-full",
-      "overflow-hidden",
-      "border-2",
-      "border-white/10",
-    ],
-    why: "Immediately humanizes the interface by anchoring user identity to a visual token.",
-  },
-  "AI Spotlight Button": {
-    explanation:
-      "Call-to-action buttons featuring gradient borders, particle sparks, or micro-shimmers.",
-    visualDescription:
-      "A gorgeous accent button with a fine shifting neon line circling its boundaries.",
-    designTokens: [
-      "bg-gradient-to-r",
-      "from-purple-600",
-      "to-pink-600",
-      "active:scale-98",
-    ],
-    why: "Primary CTA must demand attention — gradient shimmer outperforms flat color for conversion.",
-  },
-  "Interactive Tag Filter Cloud": {
-    explanation:
-      "Pill-shaped tag indicators toggleable to refine grid search scopes.",
-    visualDescription:
-      "A dense group of rounded capsule badges lighting up active state borders when clicked.",
-    designTokens: [
-      "flex",
-      "flex-wrap",
-      "gap-2",
-      "rounded-full",
-      "px-3",
-      "py-1",
-      "text-xs",
-    ],
-    why: "Multi-dimension filtering without page reload — exploratory UX for data-heavy grids.",
-  },
-  "Multi-Step Navigation Wizard": {
-    explanation:
-      "Component dividing comprehensive workflows into numbered sequenced views.",
-    visualDescription:
-      "Progress lines connecting numbered circular dot progress status bubbles.",
-    designTokens: [
-      "flex",
-      "items-center",
-      "justify-between",
-      "step-connector",
-      "step-dot",
-    ],
-    why: "Reduces overwhelm on complex forms by chunking input into digestible stages.",
-  },
-};
-
+// Dynamic knowledge base for educational term explanations queried from context vocabulary
 function TermChip({ term }) {
   const [expanded, setExpanded] = useState(false);
-  const knowledge = TERM_KNOWLEDGE[term];
+  const { vocabulary, vocabLoading } = useApp();
+
+  // Find vocabulary item by name or keywords dynamically
+  const vocabItem = (vocabulary || []).find(item => {
+    const termLower = term.toLowerCase();
+    const itemNameLower = item.name.toLowerCase();
+    
+    // Exact or substring match
+    if (itemNameLower === termLower || termLower.includes(itemNameLower) || itemNameLower.includes(termLower)) {
+      return true;
+    }
+    
+    // Keyword match
+    const termWords = termLower.split(/\s+/);
+    return item.keywords.some(kw => termWords.includes(kw.toLowerCase()));
+  });
+
+  const knowledge = vocabItem ? {
+    explanation: vocabItem.description,
+    visualDescription: vocabItem.examplePrompt || vocabItem.example_prompt || "",
+    designTokens: vocabItem.snippet ? vocabItem.snippet.split('\n') : [],
+    why: vocabItem.description
+  } : null;
 
   return (
     <div style={{ width: "100%" }}>
@@ -433,11 +185,11 @@ function TermChip({ term }) {
         }}
         whileHover={{ scale: 1.03 }}
         whileTap={{ scale: 0.97 }}
-        title={knowledge ? "Click to learn what this term means" : term}
+        title={vocabLoading ? "Loading definitions..." : knowledge ? "Click to learn what this term means" : term}
       >
         <CheckCircle2 size={10} style={{ color: "var(--accent)" }} />
         {term}
-        {knowledge && (
+        {(vocabLoading || knowledge) && (
           <span style={{ fontSize: "0.6rem", opacity: 0.6, marginLeft: "2px" }}>
             {expanded ? "▲" : "▼"}
           </span>
@@ -445,7 +197,7 @@ function TermChip({ term }) {
       </motion.button>
 
       <AnimatePresence>
-        {expanded && knowledge && (
+        {expanded && (
           <motion.div
             initial={{ height: 0, opacity: 0, y: -4 }}
             animate={{ height: "auto", opacity: 1, y: 0 }}
@@ -464,117 +216,133 @@ function TermChip({ term }) {
                 gap: "0.5rem",
               }}
             >
-              {/* What it is */}
-              <div>
-                <div
-                  style={{
-                    fontSize: "0.65rem",
-                    fontWeight: "700",
-                    color: "var(--accent)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                    marginBottom: "0.2rem",
-                  }}
-                >
-                  What it is
+              {vocabLoading ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', opacity: 0.5 }}>
+                  <div style={{ width: '50%', height: 10, background: 'var(--accent)', borderRadius: '4px' }} className="animate-pulse" />
+                  <div style={{ width: '90%', height: 8, background: 'var(--border)', borderRadius: '4px' }} className="animate-pulse" />
+                  <div style={{ width: '80%', height: 8, background: 'var(--border)', borderRadius: '4px' }} className="animate-pulse" />
                 </div>
-                <div
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "var(--foreground)",
-                    lineHeight: "1.5",
-                  }}
-                >
-                  {knowledge.explanation}
+              ) : !knowledge ? (
+                <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontStyle: 'italic' }}>
+                  No database explanation found for styling keyword '{term}'.
                 </div>
-              </div>
-
-              {/* What it looks like */}
-              <div>
-                <div
-                  style={{
-                    fontSize: "0.65rem",
-                    fontWeight: "700",
-                    color: "var(--accent)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                    marginBottom: "0.2rem",
-                  }}
-                >
-                  What it looks like
-                </div>
-                <div
-                  style={{
-                    fontSize: "0.72rem",
-                    color: "var(--muted-foreground)",
-                    lineHeight: "1.5",
-                    fontStyle: "italic",
-                  }}
-                >
-                  {knowledge.visualDescription}
-                </div>
-              </div>
-
-              {/* Why it was used */}
-              <div>
-                <div
-                  style={{
-                    fontSize: "0.65rem",
-                    fontWeight: "700",
-                    color: "var(--success)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                    marginBottom: "0.2rem",
-                  }}
-                >
-                  Why it was injected
-                </div>
-                <div
-                  style={{
-                    fontSize: "0.72rem",
-                    color: "var(--foreground)",
-                    lineHeight: "1.5",
-                  }}
-                >
-                  {knowledge.why}
-                </div>
-              </div>
-
-              {/* CSS Tokens */}
-              <div>
-                <div
-                  style={{
-                    fontSize: "0.65rem",
-                    fontWeight: "700",
-                    color: "var(--muted-foreground)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                    marginBottom: "0.35rem",
-                  }}
-                >
-                  Tailwind CSS tokens
-                </div>
-                <div
-                  style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}
-                >
-                  {knowledge.designTokens.map((token, i) => (
-                    <code
-                      key={i}
+              ) : (
+                <>
+                  {/* What it is */}
+                  <div>
+                    <div
                       style={{
-                        fontSize: "0.62rem",
-                        fontFamily: "var(--font-mono)",
+                        fontSize: "0.65rem",
+                        fontWeight: "700",
                         color: "var(--accent)",
-                        background: "var(--muted)",
-                        borderRadius: "4px",
-                        padding: "2px 5px",
-                        border: "1px solid var(--border)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.06em",
+                        marginBottom: "0.2rem",
                       }}
                     >
-                      {token}
-                    </code>
-                  ))}
-                </div>
-              </div>
+                      What it is
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "var(--foreground)",
+                        lineHeight: "1.5",
+                      }}
+                    >
+                      {knowledge.explanation}
+                    </div>
+                  </div>
+
+                  {/* What it looks like */}
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "0.65rem",
+                        fontWeight: "700",
+                        color: "var(--accent)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.06em",
+                        marginBottom: "0.2rem",
+                      }}
+                    >
+                      What it looks like
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "0.72rem",
+                        color: "var(--muted-foreground)",
+                        lineHeight: "1.5",
+                        fontStyle: "italic",
+                      }}
+                    >
+                      {knowledge.visualDescription}
+                    </div>
+                  </div>
+
+                  {/* Why it was used */}
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "0.65rem",
+                        fontWeight: "700",
+                        color: "var(--success)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.06em",
+                        marginBottom: "0.2rem",
+                      }}
+                    >
+                      Why it was injected
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "0.72rem",
+                        color: "var(--foreground)",
+                        lineHeight: "1.5",
+                      }}
+                    >
+                      {knowledge.why}
+                    </div>
+                  </div>
+
+                  {/* CSS Tokens */}
+                  {knowledge.designTokens.length > 0 && (
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "0.65rem",
+                          fontWeight: "700",
+                          color: "var(--muted-foreground)",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.06em",
+                          marginBottom: "0.35rem",
+                        }}
+                      >
+                        Tailwind CSS tokens
+                      </div>
+                      <div
+                        style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}
+                      >
+                        {knowledge.designTokens.map((token, i) => (
+                          <code
+                            key={i}
+                            style={{
+                              fontSize: "0.62rem",
+                              fontFamily: "var(--font-mono)",
+                              color: "var(--accent)",
+                              background: "var(--muted)",
+                              borderRadius: "4px",
+                              padding: "2px 5px",
+                              border: "1px solid var(--border)",
+                            }}
+                          >
+                            {token}
+                          </code>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </motion.div>
         )}
@@ -1143,7 +911,7 @@ function GeneratingLoader() {
 
 // ─── Main Chat Content ────────────────────────────────────────
 function ChatContent() {
-  const { user, history, updatePromptChat, apiKey, saveStatus } = useApp();
+  const { user, history, updatePromptChat, apiKey, saveStatus, vocabulary } = useApp();
   const searchParams = useSearchParams();
   const router = useRouter();
   const promptId = searchParams.get("id");
@@ -1213,6 +981,7 @@ function ChatContent() {
         history: apiHistory,
         apiKey,
         modelProvider: promptRecord.ragDetails?.modelProvider || "gemini",
+        vocabulary,
       });
       const finalMessages = [
         ...updatedMessages,
@@ -1258,6 +1027,7 @@ function ChatContent() {
         components: promptRecord.components,
         apiKey,
         modelProvider: promptRecord.ragDetails?.modelProvider || "gemini",
+        vocabulary,
       });
       const regenMessages = [
         ...chatMessages,

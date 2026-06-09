@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 import { generateEnhancedPrompt } from '@/services/gemini';
-import { designVocabulary, themeStyles } from '@/data/designVocabulary';
+import { themeStyles } from '@/config/themeStyles';
 import { 
   Sparkles, Search, Send, Copy, Check, Info, 
   RefreshCw, Layers, ArrowLeft, Sliders, CheckCircle2, ChevronRight
@@ -91,17 +91,25 @@ function parseInlineMarkdown(text) {
 }
 
 export default function ComponentForgePage() {
-  const { user, savePromptRecord, updatePromptChat, history, apiKey } = useApp();
+  const { user, savePromptRecord, updatePromptChat, history, apiKey, vocabulary, vocabLoading, vocabError, reloadVocabulary } = useApp();
   const router = useRouter();
 
-  // Filter designVocabulary for components
-  const allComponents = designVocabulary.filter(item => item.category === 'Component');
+  // Filter vocabulary for components dynamically
+  const vocabList = vocabulary || [];
+  const allComponents = vocabList.filter(item => item.category === 'Component');
 
   // Component catalog states
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedComp, setSelectedComp] = useState(allComponents[0]);
+  const [selectedComp, setSelectedComp] = useState(null);
   const [selectedTheme, setSelectedTheme] = useState('Sleek Dark Glassmorphic');
   const [promptGenerated, setPromptGenerated] = useState(false);
+
+  // Set default selection when allComponents loads
+  useEffect(() => {
+    if (allComponents.length > 0 && !selectedComp) {
+      setSelectedComp(allComponents[0]);
+    }
+  }, [allComponents, selectedComp]);
 
   // Generation / Chat states
   const [activeSession, setActiveSession] = useState(null); // Saved record in context
@@ -120,6 +128,51 @@ export default function ComponentForgePage() {
       router.push('/auth');
     }
   }, [user, router]);
+
+  if (!user) return null;
+
+  if (vocabLoading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80vh', flexDirection: 'column', gap: '1.25rem' }}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+          .spinner { animation: spin 1s linear infinite; border: 2px solid rgba(255,255,255,0.06); border-top-color: var(--accent); border-radius: 50%; }
+        `}} />
+        <div className="spinner" style={{ width: 36, height: 36 }} />
+        <p style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', fontWeight: '600' }}>Loading Component Forge catalog...</p>
+      </div>
+    );
+  }
+
+  if (vocabError) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80vh', flexDirection: 'column', gap: '1.25rem', padding: '2rem', textAlign: 'center' }}>
+        <div style={{ border: '1px solid var(--warning)', background: 'color-mix(in srgb, var(--warning) 6%, transparent)', padding: '0.6rem', borderRadius: '10px' }}>
+          <span style={{ fontSize: '1.5rem' }}>⚠️</span>
+        </div>
+        <p style={{ fontSize: '0.95rem', fontWeight: '800', color: 'var(--warning)' }}>Database Connection Offline</p>
+        <p style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)', maxWidth: '420px', lineHeight: '1.4' }}>
+          We could not establish a connection to retrieve the components database. Please verify your connection or retry.
+        </p>
+        <button
+          onClick={reloadVocabulary}
+          style={{
+            padding: '0.55rem 1.4rem',
+            borderRadius: '8px',
+            fontSize: '0.8rem',
+            fontWeight: '700',
+            color: '#fff',
+            background: 'var(--accent)',
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(104, 67, 236, 0.25)',
+          }}
+        >
+          Retry Database Connection
+        </button>
+      </div>
+    );
+  }
 
   // Sync state on component selection
   useEffect(() => {
@@ -159,7 +212,8 @@ export default function ComponentForgePage() {
         query: `Create a professional ${selectedComp.name} with standard requirements.`,
         theme: selectedTheme,
         componentName: selectedComp.name,
-        apiKey
+        apiKey,
+        vocabulary
       });
 
       // Save a new prompt record in global history
@@ -209,7 +263,8 @@ export default function ComponentForgePage() {
         theme: selectedTheme,
         componentName: selectedComp.name,
         history: apiHistory,
-        apiKey
+        apiKey,
+        vocabulary
       });
 
       const finalMessages = [...updatedMessages, { role: 'model', content: response.prompt }];

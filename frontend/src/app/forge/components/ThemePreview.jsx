@@ -1,6 +1,6 @@
 import React from 'react';
 import { getThemeCardDynamicStyles } from '../utils/themeStyles';
-import { themeStyles } from '@/data/designVocabulary';
+import { themeStyles } from '@/config/themeStyles';
 
 const FONT_MAP = {
   'Inter':             "var(--font-inter)",

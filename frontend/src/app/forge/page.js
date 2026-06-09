@@ -369,7 +369,7 @@ function ForgeIntelligenceRail({ forgeState, history, isGenerating }) {
 }
 
 function ForgeWizardContent() {
-  const { user, savePromptRecord, apiKey, history } = useApp();
+  const { user, savePromptRecord, apiKey, history, vocabulary } = useApp();
   const router = useRouter();
 
   // Force scroll to top on initial page load to prevent scroll position carryover
@@ -397,6 +397,7 @@ function ForgeWizardContent() {
     apiKey,
     router,
     forgeState,
+    vocabulary,
   });
 
   // Advanced settings are now visible to all users by default

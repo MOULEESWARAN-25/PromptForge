@@ -14,6 +14,9 @@ CREATE TABLE design_vocabulary (
   description TEXT NOT NULL,
   snippet TEXT NOT NULL,
   example_prompt TEXT NOT NULL,
+  difficulty VARCHAR,
+  tags TEXT[],
+  design_tokens JSONB,
   embedding vector(3072) -- 3072 dimensions for Gemini gemini-embedding-001/gemini-embedding-2
 );
 

@@ -7,7 +7,8 @@ export function usePromptGeneration({
   savePromptRecord,
   apiKey,
   router,
-  forgeState
+  forgeState,
+  vocabulary
 }) {
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -153,7 +154,8 @@ export function usePromptGeneration({
         deployment: forgeState.deployment,
         additionalFeatures: forgeState.additionalFeatures,
         apiKey,
-        modelProvider: forgeState.selectedModel
+        modelProvider: forgeState.selectedModel,
+        vocabulary
       });
 
       const savedRecord = await savePromptRecord({

@@ -9,6 +9,8 @@
     "install:frontend": "npm install --prefix frontend",
     "install:backend": "npm install --prefix backend",
     "install:all": "npm install --prefix frontend && npm install --prefix backend",
-    "seed": "npm run seed --prefix backend"
+    "seed": "npm run seed --prefix backend",
+    "guardrail": "npm run guardrail --prefix backend",
+    "test:regression": "npm run test:regression --prefix backend"
   }
 }

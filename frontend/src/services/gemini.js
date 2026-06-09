@@ -1,5 +1,5 @@
 import { searchVectorVocabulary } from './ragEngine';
-import { themeStyles } from '../data/designVocabulary';
+import { themeStyles } from '../config/themeStyles';
 import { resolveAccessibilitySpecs } from './accessibilitySpecs';
 
 /**
@@ -30,7 +30,8 @@ export async function generateEnhancedPrompt({
   apiKey,
   codebaseContext,
   framework,
-  modelProvider = 'gemini'
+  modelProvider = 'gemini',
+  vocabulary = []
 }) {
   const startTime = Date.now();
   
@@ -81,7 +82,7 @@ export async function generateEnhancedPrompt({
   // 2. CLIENT-SIDE LOCAL RAG FALLBACK
   // Construct a retrieval anchor combining query and choices to search our semantic DB
   const retrievalAnchor = `${query} ${category || ''} ${pageType || ''} ${componentName || ''} ${components.join(' ')}`;
-  const searchResults = searchVectorVocabulary(retrievalAnchor, 3);
+  const searchResults = searchVectorVocabulary(retrievalAnchor, 3, null, vocabulary);
   
   // Extract retrieved technical terminology
   const retrievedTerms = searchResults.map(res => res.term);

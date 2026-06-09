@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sparkles, Wand2, RotateCcw, Sliders, Info, ChevronRight } from 'lucide-react';
 import ShadcnDropdown from '@/components/ShadcnDropdown';
-import { themeStyles } from '@/data/designVocabulary';
+import { themeStyles } from '@/config/themeStyles';
 import { ClarificationLayer } from './ClarificationLayer';
 
 export function PromptEnhancer({

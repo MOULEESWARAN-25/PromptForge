@@ -96,9 +96,29 @@ export default function AuthPage() {
     resendVerification, 
     changeEmailAddress,
     loginAsDemo,
-    theme 
+    theme,
+    globalStats
   } = useApp();
   const router = useRouter();
+
+  const getSlideTag = (index) => {
+    if (index === 0) {
+      return globalStats?.total_specifications_compiled 
+        ? `${globalStats.total_specifications_compiled.toLocaleString()}+ Specifications Compiled` 
+        : 'Loading specifications stats...';
+    }
+    if (index === 1) {
+      return globalStats?.total_design_patterns 
+        ? `${globalStats.total_design_patterns}+ Design Patterns` 
+        : 'Loading pattern stats...';
+    }
+    if (index === 2) {
+      return globalStats?.ai_tools_supported 
+        ? `${globalStats.ai_tools_supported} AI Tools Supported` 
+        : 'AI Tools Supported';
+    }
+    return SLIDES[index]?.tag;
+  };
 
   // Authentication Views State
   const [isLogin, setIsLogin] = useState(true);
@@ -656,7 +676,7 @@ export default function AuthPage() {
 
               <div style={{ ...statTag, color: cur.accent, borderColor: `color-mix(in srgb, ${cur.accent} 15%, transparent)`, background: `color-mix(in srgb, ${cur.accent} 4%, transparent)` }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: cur.accent }} />
-                {cur.tag}
+                {getSlideTag(slide)}
               </div>
             </motion.div>
           </AnimatePresence>

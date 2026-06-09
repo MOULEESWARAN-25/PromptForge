@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
-import { designVocabulary } from '@/data/designVocabulary';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
@@ -76,7 +75,7 @@ const getCatMeta = (cat, isDark) => {
 };
 
 export default function VocabularyPage() {
-  const { user, theme } = useApp();
+  const { user, theme, vocabulary, vocabLoading, vocabError, reloadVocabulary } = useApp();
   const isDark = theme === 'dark';
   const router = useRouter();
 
@@ -143,7 +142,7 @@ export default function VocabularyPage() {
 
       const matchingCategories = [];
       ACTIVE_CATEGORIES.forEach(cat => {
-        const hasMatch = designVocabulary.some(item => {
+        const hasMatch = (vocabulary || []).some(item => {
           if (item.category !== cat) return false;
           const q = debouncedSearchQuery.toLowerCase().trim();
           return (
@@ -170,7 +169,7 @@ export default function VocabularyPage() {
         preSearchExpandedSections.current = null;
       }
     }
-  }, [debouncedSearchQuery]);
+  }, [debouncedSearchQuery, vocabulary]);
 
   // 5. URL Deep Linking: Read hash on mount/hash change
   useEffect(() => {
@@ -213,7 +212,8 @@ export default function VocabularyPage() {
   if (!user) return null;
 
   // 6. Filter & prepare vocabulary items (Display ONLY the 6 specified categories)
-  const vocabularyData = designVocabulary.filter(item => ACTIVE_CATEGORIES.includes(item.category));
+  const vocabList = vocabulary || [];
+  const vocabularyData = vocabList.filter(item => ACTIVE_CATEGORIES.includes(item.category));
   
   const filteredData = vocabularyData.filter(item => {
     const q = debouncedSearchQuery.toLowerCase().trim();
@@ -418,7 +418,65 @@ export default function VocabularyPage() {
 
       {/* ── Sections & Cards Container ───────────────────────── */}
       <div>
-        {filteredData.length === 0 ? (
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes pulse {
+            0%, 100% { opacity: 0.35; }
+            50% { opacity: 0.75; }
+          }
+          .pulse-loader {
+            animation: pulse 1.5s infinite ease-in-out;
+            background: rgba(255, 255, 255, 0.04);
+          }
+        `}} />
+
+        {vocabLoading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+            {[1, 2, 3].map(sec => (
+              <div key={sec} style={{ opacity: 0.7 }}>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '1.25rem' }}>
+                  <div className="pulse-loader" style={{ width: 28, height: 28, borderRadius: '8px' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <div className="pulse-loader" style={{ width: 140, height: 14, borderRadius: '4px' }} />
+                    <div className="pulse-loader" style={{ width: 65, height: 9, borderRadius: '4px' }} />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
+                  {[1, 2, 3].map(card => (
+                    <div key={card} className="card-glass pulse-loader" style={{ height: 180, borderRadius: '16px', border: '1px solid var(--border)' }} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : vocabError ? (
+          <div style={emptyWrap}>
+            <div style={{ ...emptyIconWrap, borderColor: 'var(--warning)', background: 'color-mix(in srgb, var(--warning) 8%, transparent)' }} className="glass-panel">
+              <X size={24} style={{ color: 'var(--warning)' }} />
+            </div>
+            <p style={emptyTitle}>Database Connection Offline</p>
+            <p style={emptyDesc}>We were unable to load design terminology from the database. Please verify your connection status and retry.</p>
+            <motion.button
+              onClick={reloadVocabulary}
+              style={{
+                marginTop: '1.5rem',
+                padding: '0.6rem 1.4rem',
+                borderRadius: '8px',
+                fontSize: '0.8rem',
+                fontWeight: '700',
+                color: '#fff',
+                background: 'var(--accent)',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(104, 67, 236, 0.3)',
+                transition: 'opacity 0.2s ease',
+              }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Retry Database Connection
+            </motion.button>
+          </div>
+        ) : filteredData.length === 0 ? (
           <div style={emptyWrap}>
             <div style={emptyIconWrap} className="glass-panel">
               <Search size={24} style={{ color: 'var(--accent)' }} />
