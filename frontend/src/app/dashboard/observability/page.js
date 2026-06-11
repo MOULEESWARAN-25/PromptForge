@@ -47,23 +47,28 @@ export default function ObservabilityPage() {
 
       // 1. Fetch Summary
       const resSummary = await fetch(`${backendUrl}/summary`);
-      if (resSummary.ok) setSummary(await resSummary.json());
+      if (!resSummary.ok) throw new Error(`Summary API returned status ${resSummary.status}`);
+      setSummary(await resSummary.json());
 
       // 2. Fetch Analytics
       const resAnalytics = await fetch(`${backendUrl}/analytics`);
-      if (resAnalytics.ok) setAnalytics(await resAnalytics.json());
+      if (!resAnalytics.ok) throw new Error(`Analytics API returned status ${resAnalytics.status}`);
+      setAnalytics(await resAnalytics.json());
 
       // 3. Fetch Trends
       const resTrends = await fetch(`${backendUrl}/trends`);
-      if (resTrends.ok) setTrends(await resTrends.json());
+      if (!resTrends.ok) throw new Error(`Trends API returned status ${resTrends.status}`);
+      setTrends(await resTrends.json());
 
       // 4. Fetch Integrity
       const resIntegrity = await fetch(`${backendUrl}/integrity`);
-      if (resIntegrity.ok) setIntegrity(await resIntegrity.json());
+      if (!resIntegrity.ok) throw new Error(`Integrity API returned status ${resIntegrity.status}`);
+      setIntegrity(await resIntegrity.json());
 
       // 5. Fetch A/B Comparison
       const resAb = await fetch(`${backendUrl}/ab_comparison`);
-      if (resAb.ok) setAbComparison(await resAb.json());
+      if (!resAb.ok) throw new Error(`A/B Comparison API returned status ${resAb.status}`);
+      setAbComparison(await resAb.json());
 
       // 6. Fetch Gaps list (initially unfiltered)
       await fetchGaps();

@@ -5,6 +5,75 @@ import { calculateEntityCoverage } from './coverageScorer.js';
 const STRUCTURAL_TYPES = ['application', 'feature', 'page', 'backend_module', 'database_entity'];
 const LEAF_TYPES = ['component', 'typography', 'theme', 'wizard_step'];
 
+const LAYER_WEIGHTS = {
+  has_feature: 0.30,
+  renders_page: 0.20,
+  contains_component: 0.20,
+  requires_backend: 0.15,
+  uses_db_model: 0.15
+};
+
+/**
+ * Calculates layer-by-layer and weighted overall coverage for a given entity
+ * based on its expected relationships and the set of resolved entities.
+ */
+function calculateEntityCoverageSync(entityId, resolvedEntityIds, entityRels) {
+  const rels = entityRels || [];
+  
+  const expectedByLayer = {
+    has_feature: [],
+    renders_page: [],
+    contains_component: [],
+    requires_backend: [],
+    uses_db_model: []
+  };
+
+  rels.forEach(rel => {
+    const type = rel.relation_type;
+    if (expectedByLayer[type] !== undefined) {
+      expectedByLayer[type].push(rel.target_id);
+    }
+  });
+
+  const coverageByLayer = {};
+  let weightedScoreSum = 0;
+  let totalActiveWeight = 0;
+
+  Object.keys(expectedByLayer).forEach(layer => {
+    const expectedTargets = expectedByLayer[layer];
+    const totalExpected = expectedTargets.length;
+
+    if (totalExpected === 0) {
+      coverageByLayer[layer] = null;
+    } else {
+      let resolvedCount = 0;
+      expectedTargets.forEach(targetId => {
+        if (resolvedEntityIds.includes(targetId)) {
+          resolvedCount++;
+        }
+      });
+
+      const layerScore = parseFloat(((resolvedCount / totalExpected) * 100).toFixed(2));
+      coverageByLayer[layer] = layerScore;
+
+      const weight = LAYER_WEIGHTS[layer];
+      weightedScoreSum += layerScore * weight;
+      totalActiveWeight += weight;
+    }
+  });
+
+  let overallScore = 100.00;
+  if (totalActiveWeight > 0) {
+    overallScore = parseFloat((weightedScoreSum / totalActiveWeight).toFixed(2));
+  }
+
+  return {
+    entity_id: entityId,
+    overall_score: overallScore,
+    coverage_by_layer: coverageByLayer
+  };
+}
+
 /**
  * Calculates coverage for all entities using cached values when available,
  * falling back to dynamic calculation when missing.
@@ -37,13 +106,30 @@ async function getAllEntityCoverages() {
     .eq('engine_version', 'phase2')
     .eq('telemetry_source', 'production');
 
+  // 4. Batch fetch all relationships for missing cache calculations
+  const { data: allRels, error: relsErr } = await supabase
+    .from('kb_relationships')
+    .select('source_id, target_id, relation_type');
+
+  if (relsErr) throw relsErr;
+
+  const relsBySource = {};
+  if (allRels) {
+    allRels.forEach(rel => {
+      if (!relsBySource[rel.source_id]) {
+        relsBySource[rel.source_id] = [];
+      }
+      relsBySource[rel.source_id].push(rel);
+    });
+  }
+
   const results = [];
 
   for (const entity of entities) {
     let score = cacheMap[entity.id];
 
     if (score === undefined) {
-      // Missing in cache, calculate dynamically
+      // Missing in cache, calculate dynamically in-memory
       const resolvedIds = new Set();
       if (runs) {
         runs.forEach(run => {
@@ -57,7 +143,7 @@ async function getAllEntityCoverages() {
           }
         });
       }
-      const profile = await calculateEntityCoverage(entity.id, Array.from(resolvedIds));
+      const profile = calculateEntityCoverageSync(entity.id, Array.from(resolvedIds), relsBySource[entity.id]);
       score = profile.overall_score;
     }
 
