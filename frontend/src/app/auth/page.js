@@ -529,11 +529,13 @@ export default function AuthPage() {
               </div>
 
               <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.25rem', marginTop: '0.5rem' }}>
-                <label style={dynamicFieldLabel}>Change Email Address</label>
+                <label style={dynamicFieldLabel} htmlFor="change-email-input">Change Email Address</label>
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.45rem' }}>
                   <div style={{ ...dynamicInputWrap(newEmailFocus, cur.accent), flex: 1 }}>
                     <Mail size={15} style={dynamicInputIcon} />
                     <input
+                      id="change-email-input"
+                      name="change-email"
                       type="email"
                       placeholder="new-email@example.com"
                       value={newEmail}
@@ -771,10 +773,12 @@ export default function AuthPage() {
             {!isLogin && (
               <>
                 <div style={fieldGroup}>
-                  <label style={dynamicFieldLabel}>Full Name</label>
+                  <label style={dynamicFieldLabel} htmlFor="register-fullname-input">Full Name</label>
                   <div style={dynamicInputWrap(nameFocus, cur.accent)}>
                     <User size={15} style={dynamicInputIcon} />
                     <input 
+                      id="register-fullname-input"
+                      name="fullname"
                       type="text" 
                       placeholder="Jane Doe" 
                       value={fullName}
@@ -789,9 +793,11 @@ export default function AuthPage() {
                 </div>
 
                 <div style={fieldGroup}>
-                  <label style={dynamicFieldLabel}>Role</label>
+                  <label style={dynamicFieldLabel} htmlFor="register-role-select">Role</label>
                   <div style={{ ...dynamicInputWrap(false, cur.accent), padding: '0 0.4rem' }}>
                     <select
+                      id="register-role-select"
+                      name="role"
                       value={role}
                       onChange={e => setRole(e.target.value)}
                       disabled={loading}
@@ -814,9 +820,11 @@ export default function AuthPage() {
                 </div>
 
                 <div style={fieldGroup}>
-                  <label style={dynamicFieldLabel}>Primary Tool</label>
+                  <label style={dynamicFieldLabel} htmlFor="register-primarytool-select">Primary Tool</label>
                   <div style={{ ...dynamicInputWrap(false, cur.accent), padding: '0 0.4rem' }}>
                     <select
+                      id="register-primarytool-select"
+                      name="primaryTool"
                       value={primaryTool}
                       onChange={e => setPrimaryTool(e.target.value)}
                       disabled={loading}
@@ -841,10 +849,12 @@ export default function AuthPage() {
             )}
 
             <div style={fieldGroup}>
-              <label style={dynamicFieldLabel}>Email Address</label>
+              <label style={dynamicFieldLabel} htmlFor="auth-email-input">Email Address</label>
               <div style={dynamicInputWrap(emailFocus, cur.accent)}>
                 <Mail size={15} style={dynamicInputIcon} />
                 <input 
+                  id="auth-email-input"
+                  name="email"
                   type="email" 
                   placeholder="name@email.com" 
                   value={email}
@@ -859,10 +869,12 @@ export default function AuthPage() {
             </div>
 
             <div style={fieldGroup}>
-              <label style={dynamicFieldLabel}>Password</label>
+              <label style={dynamicFieldLabel} htmlFor="auth-password-input">Password</label>
               <div style={dynamicInputWrap(passwordFocus, cur.accent)}>
                 <Lock size={15} style={dynamicInputIcon} />
                 <input 
+                  id="auth-password-input"
+                  name="password"
                   type={showPassword ? 'text' : 'password'} 
                   placeholder="••••••••" 
                   value={password}
