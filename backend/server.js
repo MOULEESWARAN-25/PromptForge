@@ -37,8 +37,18 @@ const PORT = process.env.PORT || 8000;
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:3000',
   process.env.FRONTEND_URL_PRODUCTION || 'https://veyntra.vercel.app',
+  'https://veyntra.vercel.app',
+  'https://www.veyntra.vercel.app',
   'http://127.0.0.1:3000'
 ].filter(Boolean);
+
+// Support Google Chrome's Private Network Access (PNA) preflight requirements
+app.use((req, res, next) => {
+  if (req.headers['access-control-request-private-network'] === 'true') {
+    res.setHeader('Access-Control-Allow-Private-Network', 'true');
+  }
+  next();
+});
 
 // Enable CORS for the Next.js frontend and JSON parsing
 app.use(cors({
@@ -47,7 +57,7 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    return callback(new Error(`Origin not allowed by CORS: ${origin}`));
+    return callback(null, false);
   },
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
