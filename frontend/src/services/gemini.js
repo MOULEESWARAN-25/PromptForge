@@ -1,6 +1,7 @@
 import { searchVectorVocabulary } from './ragEngine';
 import { themeStyles } from '../config/themeStyles';
 import { resolveAccessibilitySpecs } from './accessibilitySpecs';
+import { API_BASE_URL } from '../config/api';
 
 /**
  * Main service to compile and enhance prompts using either the Google Gemini API (Free Tier)
@@ -31,7 +32,25 @@ export async function generateEnhancedPrompt({
   codebaseContext,
   framework,
   modelProvider = 'gemini',
-  vocabulary = []
+  vocabulary = [],
+  projectName,
+  projectDescription,
+  frontendStack,
+  backendStack,
+  database,
+  authOption,
+  deployment,
+  additionalFeatures = [],
+  projectIntegration = 'new',
+  customCategory,
+  customComponentType,
+  rawDescription,
+  selectedQualities,
+  selectedMotions,
+  selectedTypography,
+  clarifiedAudience,
+  clarifiedDensity,
+  clarifiedViewport
 }) {
   const startTime = Date.now();
   
@@ -43,7 +62,7 @@ export async function generateEnhancedPrompt({
     const timeout = Number(process.env.NEXT_PUBLIC_API_TIMEOUT_MS || 60000);
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-    const backendUrl = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_BACKEND_URL) || 'http://localhost:8000';
+    const backendUrl = API_BASE_URL;
     const backendResponse = await fetch(`${backendUrl}/api/forge`, {
       method: "POST",
       headers: {
@@ -61,7 +80,25 @@ export async function generateEnhancedPrompt({
         history,
         codebaseContext,
         framework,
-        modelProvider
+        modelProvider,
+        projectName,
+        projectDescription,
+        frontendStack,
+        backendStack,
+        database,
+        authOption,
+        deployment,
+        additionalFeatures,
+        projectIntegration,
+        customCategory,
+        customComponentType,
+        rawDescription,
+        selectedQualities,
+        selectedMotions,
+        selectedTypography,
+        clarifiedAudience,
+        clarifiedDensity,
+        clarifiedViewport
       })
     });
 
@@ -91,6 +128,7 @@ export async function generateEnhancedPrompt({
     results: searchResults.map(res => ({
       name: res.term.name,
       category: res.term.category,
+      kb_type: res.term.kb_type || 'common',
       score: res.score,
       description: res.term.description
     })),

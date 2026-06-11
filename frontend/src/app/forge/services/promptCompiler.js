@@ -165,12 +165,31 @@ ${projectSetupDetails}`;
     theme: selectedTheme || "Sleek Dark Glassmorphic",
     apiKey,
     modelProvider,
-    vocabulary
+    vocabulary,
+    projectName,
+    projectDescription,
+    frontendStack,
+    backendStack,
+    database,
+    authOption,
+    deployment,
+    additionalFeatures,
+    projectIntegration,
+    customCategory,
+    customComponentType,
+    rawDescription,
+    selectedQualities,
+    selectedMotions,
+    selectedTypography,
+    clarifiedAudience,
+    clarifiedDensity,
+    clarifiedViewport
   };
 
   if (activeMode === "application") {
     generationParams.category =
       appCategory === "Custom" ? customCategory : appCategory;
+    generationParams.components = selectedFeatures;
   } else if (activeMode === "page") {
     generationParams.pageType = pageType;
     generationParams.components = selectedComponents;

@@ -392,13 +392,13 @@ export default function ComponentForgePage() {
                 </div>
               )}
 
-              {selectedComp?.examplePrompt && (
+              {(selectedComp?.examplePrompt || selectedComp?.example_prompt) && (
                 <div style={examplePromptBox}>
                   <div style={exampleLabelRow}>
                     <Info size={14} style={{ color: '#6843EC' }} />
                     <span>Target Directive Example</span>
                   </div>
-                  <p style={exampleText}>{selectedComp.examplePrompt}</p>
+                  <p style={exampleText}>{selectedComp.examplePrompt || selectedComp.example_prompt}</p>
                 </div>
               )}
             </div>

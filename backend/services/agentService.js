@@ -1,6 +1,6 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatGroq } from "@langchain/groq";
-import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
+import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 import { resolveAccessibilitySpecs } from "./accessibilitySpecs.js";
 import { telemetryService } from "./telemetryService.js";
 import dotenv from "dotenv";
@@ -17,18 +17,18 @@ const geminiModel = new ChatGoogleGenerativeAI({
   model: "gemini-2.5-flash",
   temperature: 0.7,
   maxOutputTokens: 4096,
-  maxRetries: 0, // Fail fast to trigger immediate failover
+  maxRetries: 0
 });
 
-// Initialize ChatGroq Model via LangChain with fail-fast maxRetries: 0
+// Initialize ChatGroq Model via LangChain with Llama 3.3
 let groqModel = null;
 if (process.env.GROQ_API_KEY) {
   try {
     groqModel = new ChatGroq({
       apiKey: process.env.GROQ_API_KEY,
       model: "llama-3.3-70b-versatile",
-      temperature: 0.7,
-      maxRetries: 0, // Fail fast to trigger immediate failover
+      temperature: 0.2, // Low temp for structured review audits
+      maxRetries: 0
     });
   } catch (err) {
     console.error(`[agent] Failed to initialize Groq model: ${err.message}`);
@@ -36,163 +36,417 @@ if (process.env.GROQ_API_KEY) {
 }
 
 /**
- * Orchestrates prompt engineering agent workflow via LangChain.
- * Integrates user intents with RAG retrieved design vectors and visual themes.
- * 
- * @param {object} params
- * @param {string} params.mode
- * @param {string} params.query
- * @param {object} [params.theme]
- * @param {string} [params.category]
- * @param {string} [params.pageType]
- * @param {string[]} [params.components]
- * @param {string} [params.componentName]
- * @param {Array<{role: string, content: string}>} [params.history]
- * @param {object[]} params.retrievedTerms
- * @param {string} [params.modelProvider] - 'gemini' | 'groq'
- * @returns {Promise<string>} Enhanced copiable prompt
+ * Helper to call Gemini and fall back to Groq Llama 3.3 if Gemini is offline/503-limited.
+ */
+async function executeLlmCall(provider, systemInstruction, userMessage) {
+  if (provider === 'groq') {
+    if (!groqModel) throw new Error("Groq model not configured");
+    telemetryService.recordRequest("groq");
+    const response = await groqModel.invoke([
+      new SystemMessage(systemInstruction),
+      new HumanMessage(userMessage)
+    ]);
+    return response.content.trim();
+  } else {
+    telemetryService.recordRequest("gemini");
+    const response = await geminiModel.invoke([
+      new SystemMessage(systemInstruction),
+      new HumanMessage(userMessage)
+    ]);
+    return response.content.trim();
+  }
+}
+
+async function callLlmWithFallback(systemInstruction, userMessage) {
+  const primary = (process.env.PRIMARY_MODEL_PROVIDER || 'gemini').toLowerCase();
+  const fallback = primary === 'groq' ? 'gemini' : 'groq';
+
+  try {
+    return await executeLlmCall(primary, systemInstruction, userMessage);
+  } catch (primaryError) {
+    console.warn(`[agent] Primary provider "${primary}" call failed (${primaryError.message}). Triggering failover to "${fallback}"...`);
+    try {
+      return await executeLlmCall(fallback, systemInstruction, userMessage);
+    } catch (fallbackError) {
+      console.error(`[agent] Both primary ("${primary}") and fallback ("${fallback}") calls failed. Failover exhausted. Fallback error: ${fallbackError.message}`);
+      throw primaryError;
+    }
+  }
+}
+
+/**
+ * Stage 1: Validation of User Manual Description (Standalone Projects)
+ */
+export async function validateManualDescription(description) {
+  if (!description || !description.trim()) {
+    return "";
+  }
+
+  const systemInstruction = `You are a Project Requirement Validator. Analyze the following project description entered manually by a user.
+Detect:
+1. Spelling mistakes or technical typos.
+2. Technical ambiguity (unclear specifications).
+3. Incompleteness (does it explain what needs to be built?).
+Output a corrected, professional, clear, and complete description of the project's requirements. Expand on vague terms with industry-standard patterns. If the user's input is extremely short or lacks clarity, infer the logical requirements based on best practices and add them to make the prompt robust. Return ONLY the validated description text.`;
+
+  try {
+    return await callLlmWithFallback(systemInstruction, description);
+  } catch (error) {
+    console.error(`[validator] Validation failed, fallback to raw description: ${error.message}`);
+    return description;
+  }
+}
+
+/**
+ * Stage 3: Generate Initial Prompt Draft
+ */
+async function generateInitialDraft({
+  blueprint,
+  context,
+  a11yBlock
+}) {
+  const systemInstruction = `You are a Professional AI Prompt Architect & Senior Frontend Architect. Your goal is to draft a comprehensive, high-fidelity prompt blueprint for development tools like Lovable, Cursor, and v0.
+You must combine the user's choices, blueprint details, and the retrieved domain knowledge.
+
+Here is the retrieved Knowledge Graph domain context and prompt fragments:
+${context}
+
+${a11yBlock}
+
+CRITICAL DIRECTIVE:
+1. Generate the initial draft based strictly on the provided blueprint.
+2. Incorporate structural layouts, bento grid configurations, color variables, and state controllers.
+3. Keep the output highly detailed and clean.`;
+
+  const userInstruction = `Generate the initial detailed prompt draft matching this system blueprint:
+${blueprint}`;
+
+  return await callLlmWithFallback(systemInstruction, userInstruction);
+}
+
+/**
+ * Stage 5: Parallel Expert Panel Review (Groq)
+ */
+function computeBlueprintComposition(blueprintJson) {
+  return {
+    features:          (blueprintJson.features || []).length,
+    pages:             (blueprintJson.pages || []).length,
+    components:        (blueprintJson.components || []).length,
+    backend_modules:   (blueprintJson.backend_modules || []).length,
+    database_entities: (blueprintJson.database_entities || []).length,
+    has_application:   !!blueprintJson.application
+  };
+}
+
+function selectExperts(mode, blueprintJson) {
+  if (!blueprintJson) {
+    return getDefaultExpertsForMode(mode);
+  }
+
+  const composition = computeBlueprintComposition(blueprintJson);
+  const candidates = [];
+
+  // 1. System Architect
+  if (composition.features >= 4 || composition.has_application) {
+    candidates.push({
+      role: "System Architect",
+      score: (composition.features >= 4 ? 4 : 0) + (composition.has_application ? 2 : 0),
+      instruction: "Evaluate the initial prompt draft. Analyze system modularity, folder configurations, and deployment strategies. Return a JSON containing missing_items, improvements, and risks."
+    });
+  }
+
+  // 2. Backend & API Engineer
+  if (composition.backend_modules >= 3) {
+    candidates.push({
+      role: "Backend & API Engineer",
+      score: composition.backend_modules,
+      instruction: "Evaluate the initial prompt draft. Analyze backend APIs, database schemas, tables, relationships, indexes, and ORM operations. Return a JSON containing missing_items, improvements, and risks."
+    });
+  }
+
+  // 3. Database Architect
+  if (composition.database_entities >= 3) {
+    candidates.push({
+      role: "Database Architect",
+      score: composition.database_entities,
+      instruction: "Evaluate the initial prompt draft. Analyze database structure, tables, columns, constraints, indexes, and relationships. Return a JSON containing missing_items, improvements, and risks."
+    });
+  }
+
+  // 4. Design System Expert
+  if (composition.components >= 6) {
+    candidates.push({
+      role: "Design System Expert",
+      score: composition.components,
+      instruction: "Evaluate the initial prompt draft. Analyze style variables (HSL colors, border blurs), design token consistency, and visual themes. Return a JSON containing missing_items, improvements, and risks."
+    });
+  }
+
+  // 5. Frontend & UX Architect
+  if (composition.pages >= 2) {
+    candidates.push({
+      role: "Frontend & UX Architect",
+      score: composition.pages,
+      instruction: "Evaluate the initial prompt draft. Analyze visual layout grids, styling themes, bento widgets, and overall user flow hierarchy. Return a JSON containing missing_items, improvements, and risks."
+    });
+  }
+
+  // 6. Security & DevOps Reviewer
+  if (composition.backend_modules >= 2 && composition.database_entities >= 2) {
+    candidates.push({
+      role: "Security & DevOps Reviewer",
+      score: (composition.backend_modules + composition.database_entities) / 2,
+      instruction: "Evaluate the initial prompt draft. Analyze access controls (RBAC), authentication checks, session token storage, CORS, and hosting architectures. Return a JSON containing missing_items, improvements, and risks."
+    });
+  }
+
+  // Sort candidates by score descending
+  candidates.sort((a, b) => b.score - a.score);
+
+  if (candidates.length >= 2) {
+    // Limit to top 3 experts
+    return candidates.slice(0, 3);
+  }
+
+  // If not enough experts are triggered, fallback to default mode-based list
+  return getDefaultExpertsForMode(mode);
+}
+
+function getDefaultExpertsForMode(mode) {
+  if (mode === "application") {
+    return [
+      {
+        role: "System Architect",
+        instruction: "Evaluate the initial prompt draft. Analyze system modularity, folder configurations, and deployment strategies. Return a JSON containing missing_items, improvements, and risks."
+      },
+      {
+        role: "Backend & DB Architect",
+        instruction: "Evaluate the initial prompt draft. Analyze backend APIs, database schemas, tables, relationships, indexes, and ORM operations. Return a JSON containing missing_items, improvements, and risks."
+      },
+      {
+        role: "Security & DevOps Architect",
+        instruction: "Evaluate the initial prompt draft. Analyze access controls (RBAC), authentication checks, session token storage, CORS, and hosting architectures. Return a JSON containing missing_items, improvements, and risks."
+      }
+    ];
+  } else if (mode === "page") {
+    return [
+      {
+        role: "Product Designer / UX Architect",
+        instruction: "Evaluate the initial prompt draft. Analyze visual layout grids, styling themes, bento widgets, and overall user flow hierarchy. Return a JSON containing missing_items, improvements, and risks."
+      },
+      {
+        role: "Frontend Architect & Accessibility Expert",
+        instruction: "Evaluate the initial prompt draft. Analyze component conventions, state management (Zustand/Context), keyboard accessibility, focus indicators, and ARIA markup. Return a JSON containing missing_items, improvements, and risks."
+      }
+    ];
+  } else {
+    return [
+      {
+        role: "Design System Expert",
+        instruction: "Evaluate the initial prompt draft. Analyze style variables (HSL colors, border blurs), design token consistency, and visual themes. Return a JSON containing missing_items, improvements, and risks."
+      },
+      {
+        role: "Component Engineer & Accessibility Specialist",
+        instruction: "Evaluate the initial prompt draft. Analyze component API boundary, reusability, Framer Motion transition dynamics, focus cycling, and ARIA trigger controls. Return a JSON containing missing_items, improvements, and risks."
+      }
+    ];
+  }
+}
+
+async function runParallelExpertReview(draft, mode, blueprintJson = null) {
+  if (!groqModel) {
+    console.warn("[agent] Groq model not configured. Skipping expert panel review.");
+    return [];
+  }
+
+  // Determine active expert panel based on composition or mode fallback
+  const expertRoles = selectExperts(mode, blueprintJson);
+
+  console.log(`[agent] Running parallel review with ${expertRoles.length} experts on Groq: [${expertRoles.map(e => e.role).join(', ')}]...`);
+
+  const promises = expertRoles.map(async (expert) => {
+    const systemPrompt = `You are a professional ${expert.role} Reviewer.
+Your job is to perform a strict audit of the provided prompt draft and report missing items, improvements, and risks.
+
+You MUST respond ONLY with a JSON object in this format:
+{
+  "expert_role": "${expert.role}",
+  "missing_items": [
+    "List of critical details that are missing from the prompt"
+  ],
+  "improvements": [
+    "Recommended additions to improve prompt clarity and output fidelity"
+  ],
+  "risks": [
+    "Potential bugs, vulnerabilities, or bad practices present in the prompt"
+  ]
+}
+Ensure output is valid JSON.`;
+
+    const userMessage = `Audit this prompt draft:\n"${draft}"\n\nSpecific Directive: ${expert.instruction}`;
+
+    try {
+      telemetryService.recordRequest("groq");
+      const response = await groqModel.invoke([
+        new SystemMessage(systemPrompt),
+        new HumanMessage(userMessage)
+      ]);
+      const content = response.content;
+      const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/) || content.match(/```\n([\s\S]*?)\n```/) || [null, content];
+      const parsed = JSON.parse(jsonMatch[1].trim());
+      return parsed;
+    } catch (err) {
+      console.error(`[expert-review] ${expert.role} failed: ${err.message}`);
+      return {
+        expert_role: expert.role,
+        missing_items: [],
+        improvements: [],
+        risks: [`Reviewer experienced processing error: ${err.message}`]
+      };
+    }
+  });
+
+  return Promise.all(promises);
+}
+
+/**
+ * Stage 6: Consolidator Agent
+ */
+async function consolidatePrompt({
+  blueprint,
+  draft,
+  reviews,
+  context
+}) {
+  const systemInstruction = `You are a Senior Prompt Architect & Consolidator.
+Your goal is to take an initial prompt draft, merge in the structured review audits from a panel of specialized domain experts, and generate a final high-fidelity prompt.
+
+You MUST apply all the improvements, fill in the missing items, mitigate the risks, and respect the baseline system blueprint constraints.
+
+Expert Review Audits:
+${JSON.stringify(reviews, null, 2)}
+
+Knowledge Graph Fragments for Reference:
+${context}
+
+CRITICAL FORMATTING DIRECTIVE:
+1. ALWAYS output your final generated prompt inside a single code block starting with \`\`\`prompt. Do not use normal markdown backticks, use ONLY \`\`\`prompt.
+2. In your normal conversational response, briefly list the critical improvements made (e.g. database schema additions, access controls, accessibility tags) and technical terms injected.
+3. Write in a professional, supportive senior software architect tone.`;
+
+  const userMessage = `Here is the system blueprint:\n${blueprint}\n\nHere is the initial draft prompt:\n"${draft}"\n\nConsolidate and compile the final enhanced prompt.`;
+
+  return await callLlmWithFallback(systemInstruction, userMessage);
+}
+
+/**
+ * Stage 7: Prompt Quality Evaluator
+ */
+async function evaluatePromptQuality(promptText) {
+  const systemInstruction = `You are a Prompt Quality Evaluator. Analyze the provided prompt and grade its readiness on a scale of 0 to 100.
+Evaluate:
+1. Completeness (Are all modules specified?).
+2. Architecture Coverage (Are DB tables, schema relations, API endpoints defined?).
+3. Security & Access (Are RBAC limits, JWT, or parent restrictions clearly stated?).
+4. Accessibility Coverage (Are ARIA roles, tab index, keyboard focus guidelines in place?).
+5. Theme Consistency (Are CSS variables, borders, and blurs aligned?).
+
+You MUST respond ONLY with a JSON object in this format:
+{
+  "score": 85,
+  "missing": [
+    "List of missing constraints or configurations"
+  ]
+}
+Ensure output is valid JSON.`;
+
+  try {
+    telemetryService.recordRequest("gemini");
+    const response = await geminiModel.invoke([
+      new SystemMessage(systemInstruction),
+      new HumanMessage(promptText)
+    ]);
+    const content = response.content;
+    const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/) || content.match(/```\n([\s\S]*?)\n```/) || [null, content];
+    return JSON.parse(jsonMatch[1].trim());
+  } catch (error) {
+    console.warn(`[evaluator] Quality evaluation failed via Gemini: ${error.message}. Failover to Groq...`);
+    if (groqModel) {
+      try {
+        const response = await groqModel.invoke([
+          new SystemMessage(systemInstruction),
+          new HumanMessage(promptText)
+        ]);
+        const content = response.content;
+        const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/) || content.match(/```\n([\s\S]*?)\n```/) || [null, content];
+        return JSON.parse(jsonMatch[1].trim());
+      } catch (e) {
+        return { score: 85, missing: [] };
+      }
+    }
+    return { score: 85, missing: [] };
+  }
+}
+
+/**
+ * Main Orchestrated Prompt Generator
  */
 export async function runPromptEnhancerAgent({
   mode,
   query,
-  theme,
-  category,
-  pageType,
-  components = [],
-  componentName,
+  blueprint,
+  context,
+  selections,
   history = [],
-  retrievedTerms = [],
-  codebaseContext,
-  framework,
-  modelProvider = 'gemini'
+  blueprintJson = null
 }) {
   try {
-    // 0. Resolve component-aware accessibility specifications
-    const a11yBlock = resolveAccessibilitySpecs({ mode, componentName, components, pageType, query });
-
-    // 1. Construct LangChain System Message with a built-in Self-Critique & Refinement loop directive
-    let systemInstruction = `You are a Professional AI Prompt Architect & Senior Frontend Architect. Your goal is to take a user's rough, vague frontend development descriptions and translate them into incredibly detailed, high-fidelity prompts that AI tools like Lovable, Cursor, and v0 understand best.
-
-You will execute a rigorous MULTI-STEP REFINEMENT & CRITIQUE LOOP internally to craft the final output:
-1. INTERNAL DRAFTING: Draft a comprehensive UI blueprint layout based on the user's input.
-2. SYSTEMATIC CRITIQUE: Critique the draft against the retrieved semantic design tokens and accessibility specifications. Ensure zero placeholders are used.
-3. FINAL BLUEPRINT GENERATION: Synthesize the critique and compile a premium production-ready prompt.
-
-You will use professional, highly precise UI/UX design language, components, visual styles, layouts, animations, and motion terminology to guarantee outstanding layout results.
-
-Here is some RETRIEVED SEMANTIC DESIGN DOMAIN KNOWLEDGE from our Supabase Vector Database that you MUST weave into your generated prompt:
-${retrievedTerms.map(term => `- **${term.name}** (${term.category}): ${term.description}. CSS Property Example: \`${term.snippet}\``).join('\n')}
-
-${theme ? `The user expects a **${theme.name}** theme. Style Keywords: ${theme.keywords}. Description: ${theme.description}.` : ''}
-
-${framework ? `\nTarget UI Framework: ${framework}. Follow standard development patterns, class configurations, and semantic syntax for ${framework}.\n` : ''}
-
-${codebaseContext ? `\nCRITICAL DIRECTIVE - EXISTING PROJECT INTEGRATION:\nThis UI element must integrate seamlessly into an existing codebase. Here is the user's codebase folder structure and styling patterns gathered from their IDE:\n---START CODEBASE CONTEXT---\n${codebaseContext}\n---END CODEBASE CONTEXT---\nYou MUST structure the generated prompt to strictly fit their current folders layout, reuse their existing styling variables/utilities, and respect their dependency rules.\n` : ''}
-
-${a11yBlock}
-
-CRITICAL FORMATTING INSTRUCTIONS:
-1. ALWAYS output your final generated enhanced prompt in a single, distinct code block starting with \`\`\`prompt. Do not use normal markdown backticks or python labels, use ONLY \`\`\`prompt as the opening.
-2. In your normal chat dialogue, explain the changes or architectural decisions you made, and outline the technical terminology you injected.
-3. Be professional, supportive, and act as a senior software architect. Encourage the user to chat with you to refine details (e.g. colors, transitions, typography).
-4. ACCESSIBILITY MANDATE: Every component in the generated prompt MUST include its specific ARIA roles, keyboard navigation pattern, focus management strategy, and the rationale explaining WHY each accessibility requirement exists. Do not omit accessibility — it is a first-class requirement.`;
-
-    // 2. Format User query based on active mode
-    let userPromptText = "";
-    if (mode === "application") {
-      userPromptText = `Generate a comprehensive end-to-end frontend prompt to build an entire application.
-Application Category: ${category || 'SaaS Web App'}
-User Idea Description: ${query}
-Theme Style: ${theme ? theme.name : 'Sleek Modern Dark Mode'}
-
-The prompt should define the complete layout framework (collapsible navigation bar, stickies), state manager structure, mock pages to seed, and details on functional features. Incorporate the retrieved design terms.`;
-    } else if (mode === "page") {
-      userPromptText = `Generate a highly precise frontend prompt to build a complete page.
-Page Type: ${pageType}
-Components to Include: ${components.length > 0 ? components.join(', ') : 'Default Recommended components'}
-User Idea Description: ${query}
-Theme Style: ${theme ? theme.name : 'Sleek Modern Dark Mode'}
-
-The prompt should cover structural layout zones, responsive behaviors (mobile-first), bento-grid widgets, and detailed visual elements. Incorporate the retrieved design terms.`;
-    } else if (mode === "component") {
-      userPromptText = `Generate a precise, reusable component prompt.
-Component Name: ${componentName}
-User Idea Description: ${query}
-Theme Style: ${theme ? theme.name : 'Sleek Modern Dark Mode'}
-
-The prompt should cover component API properties, accessibility criteria (ARIA), validation transitions, focus states, and spring animations. Incorporate the retrieved design terms.`;
-    } else {
-      // Enhance mode
-      userPromptText = `Enhance the following raw user prompt:
-"${query}"
-Theme Style: ${theme ? theme.name : 'Sleek Modern Dark Mode'}
-
-Stitch in premium effects, UX characteristics, micro-interactions, responsive tags, and advanced animations. Make it structurally robust and highly detailed.`;
-    }
-
-    // 3. Assemble LangChain messages
-    const messages = [];
-
-    // Add System Instruction
-    messages.push(new SystemMessage(systemInstruction));
-
-    // Convert past history into LangChain messages
-    history.forEach(msg => {
-      if (msg.role === 'user') {
-        messages.push(new HumanMessage(msg.content));
-      } else {
-        messages.push(new AIMessage(msg.content));
-      }
+    const a11yBlock = resolveAccessibilitySpecs({ 
+      mode, 
+      componentName: selections.componentType, 
+      components: selections.components, 
+      pageType: selections.pageType, 
+      query 
     });
 
-    // Add the current user instruction
-    messages.push(new HumanMessage(userPromptText));
+    // 1. Generate Initial Draft Prompt
+    console.log("[agent] Generating initial draft prompt...");
+    let draft = await generateInitialDraft({ blueprint, context, a11yBlock });
 
-    // 4. Select and Invoke LLM model with fallback handling
-    let primaryProvider = modelProvider;
-    let secondaryProvider = modelProvider === 'gemini' ? 'groq' : 'gemini';
+    // 2. Perform Expert Reviews
+    console.log("[agent] Triggering multi-expert parallel reviews...");
+    const reviews = await runParallelExpertReview(draft, mode, blueprintJson);
 
-    let primaryModel = primaryProvider === 'gemini' ? geminiModel : groqModel;
-    let secondaryModel = secondaryProvider === 'gemini' ? geminiModel : groqModel;
+    // 3. Consolidate Draft & Reviews
+    console.log("[agent] Consolidating draft and reviews...");
+    let consolidated = await consolidatePrompt({ blueprint, draft, reviews, context });
 
-    // Default back to gemini if groq is missing or not configured
-    if (primaryProvider === 'groq' && !groqModel) {
-      primaryModel = geminiModel;
-      primaryProvider = 'gemini';
+    // 4. Prompt Quality Evaluation Loop
+    console.log("[agent] Evaluating consolidated prompt quality...");
+    let evalResult = await evaluatePromptQuality(consolidated);
+    console.log(`[agent] Quality Score: ${evalResult.score}/100. Missing elements: [${evalResult.missing.join(', ')}]`);
+
+    // If score is low, run a second patch-based repair pass
+    let patchTriggered = false;
+    if (evalResult.score < 80 && evalResult.missing.length > 0) {
+      console.log("[agent] Prompt quality below threshold. Executing patch-based repair...");
+      patchTriggered = true;
+      const patchInstruction = `You are a Senior Prompt Architect & Consolidator. 
+Your previous consolidated prompt was scored ${evalResult.score}/100 and is missing these items: ${evalResult.missing.join(', ')}.
+Analyze the draft, patch the missing items directly into the prompt without altering the other sections.
+Output the updated prompt inside a single \`\`\`prompt code block.`;
+      
+      consolidated = await callLlmWithFallback(patchInstruction, consolidated);
     }
 
-    const start = Date.now();
-    try {
-      telemetryService.recordRequest(primaryProvider);
-      const response = await primaryModel.invoke(messages);
-      telemetryService.recordSuccess(primaryProvider, Date.now() - start);
-      return response.content;
-    } catch (primaryError) {
-      console.warn(`[agent] Primary AI provider ${primaryProvider} failed (${primaryError.message}). Triggering failover to ${secondaryProvider}...`);
-      telemetryService.recordFailure(primaryProvider, primaryError.message);
-      telemetryService.recordFailover(secondaryProvider);
-
-      if (secondaryModel) {
-        const secondaryStart = Date.now();
-        try {
-          telemetryService.recordRequest(secondaryProvider);
-          const response = await secondaryModel.invoke(messages);
-          telemetryService.recordSuccess(secondaryProvider, Date.now() - secondaryStart);
-          return response.content;
-        } catch (secondaryError) {
-          telemetryService.recordFailure(secondaryProvider, secondaryError.message);
-          console.error(`[agent] Both AI providers failed. Fallback chains exhausted.`);
-          throw secondaryError;
-        }
-      } else {
-        console.error(`[agent] Failover model (${secondaryProvider}) is not initialized or configured.`);
-        throw primaryError;
-      }
-    }
-
+    return {
+      prompt: consolidated,
+      qualityScore: evalResult.score,
+      patchTriggered,
+      reviews
+    };
   } catch (error) {
     console.error(`[agent] LangChain execution error [${new Date().toISOString()}]: ${error.message}`);
     throw error;
   }
 }
-

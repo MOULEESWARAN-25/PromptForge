@@ -39,7 +39,7 @@ export default function AuroraBackground() {
       // Soft indigo — top right
       { x: 0.88, y: 0.12, r: 0.30, color: 'rgba(80,50,200,0.07)', speedX: -0.00018, speedY: 0.00022, phase: 4.5 },
     ] : [
-      { x: 0.15, y: 0.3,  r: 0.38, color: 'rgba(104,67,236,0.06)', speedX: 0.00012, speedY: 0.00008, phase: 0 },
+      { x: 0.15, y: 0.3, r: 0.38, color: 'rgba(104,67,236,0.06)', speedX: 0.00012, speedY: 0.00008, phase: 0 },
       { x: 0.70, y: 0.50, r: 0.32, color: 'rgba(130,80,255,0.04)', speedX: -0.00008, speedY: 0.00012, phase: 1.5 },
       { x: 0.80, y: 0.75, r: 0.22, color: 'rgba(210,255,58,0.025)', speedX: 0.00016, speedY: -0.00010, phase: 3 },
       { x: 0.85, y: 0.15, r: 0.24, color: 'rgba(80,50,200,0.035)', speedX: -0.00012, speedY: 0.00016, phase: 4.5 },
@@ -79,7 +79,8 @@ export default function AuroraBackground() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes bg-spin-clockwise {
           0%   { transform: translate(-50%, -50%) rotate(0deg); }
           100% { transform: translate(-50%, -50%) rotate(360deg); }

@@ -1,0 +1,5321 @@
+{
+  "entities": [
+    {
+      "id": "wizard_app_selection",
+      "kb_type": "common",
+      "entity_type": "wizard_step",
+      "name": "Application Selection",
+      "overview": "The step where the user selects the category and primary blueprint type of the application being built.",
+      "keywords": [
+        "application select",
+        "app category",
+        "wizard step 1"
+      ],
+      "purpose": "Define the target domain, core business model, and high-level architectural requirements of the software system.",
+      "why_exists": "Different applications require completely different system structures, directories, databases, and page layouts.",
+      "common_mistakes": [
+        "Selecting a predefined app category and failing to specify custom workflows.",
+        "Choosing a stack that is over-engineered for the business domain."
+      ],
+      "impact_on_generation": [
+        "Injects global layout schemas.",
+        "Determines the default frontend and backend stack constraints."
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Enforce directory structures matching standard enterprise application architecture templates."
+        ],
+        "ui": [],
+        "backend": [],
+        "database": [],
+        "security": [],
+        "accessibility": [],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "wizard_feature_selection",
+      "kb_type": "common",
+      "entity_type": "wizard_step",
+      "name": "Feature Selection",
+      "overview": "The step where the user chooses modular functional features to bundle into the application.",
+      "keywords": [
+        "feature select",
+        "modules select",
+        "wizard step 2"
+      ],
+      "purpose": "Establish the specific business capability requirements.",
+      "why_exists": "Enables modular code generation where only the requested business modules and database tables are designed.",
+      "common_mistakes": [
+        "Selecting excessive features that overload the initial draft MVP."
+      ],
+      "impact_on_generation": [
+        "Adds required database models and API routes."
+      ],
+      "prompt_fragments": {
+        "architecture": [],
+        "ui": [],
+        "backend": [],
+        "database": [],
+        "security": [],
+        "accessibility": [],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "saas_dashboard",
+      "kb_type": "fullstack",
+      "entity_type": "application",
+      "name": "SaaS Dashboard Admin Panel",
+      "overview": "An enterprise-grade administration hub designed to aggregate core performance metrics, handle client workflows, and render data visualization panels.",
+      "keywords": [
+        "saas dashboard",
+        "admin panel",
+        "analytics panel",
+        "metrics dashboard"
+      ],
+      "business_goals": [
+        "Give administrators real-time visibility into business operations metrics.",
+        "Provide user management panels and telemetry logging controls."
+      ],
+      "target_users": [
+        "System Administrators",
+        "Operations Managers"
+      ],
+      "common_features": [
+        "Bento grid metric cards with trend telemetry",
+        "Interactive analytics charts",
+        "Paginated data tables"
+      ],
+      "advanced_features": [
+        "Real-time WebSockets notification streams",
+        "User Role-Based Access Control (RBAC)"
+      ],
+      "recommended_pages": [
+        "Dashboard Overview Hub Page",
+        "User Admin Page",
+        "System Settings Portal"
+      ],
+      "recommended_components": [
+        "Collapsible Sidebar",
+        "KPI Metric Spotlight",
+        "Telemetry Line Chart"
+      ],
+      "recommended_backend_modules": [
+        "Analytics Aggregation API",
+        "User API Gateway"
+      ],
+      "recommended_database_entities": [
+        "Users Table",
+        "Organizations Table",
+        "System Audit Logs Table"
+      ],
+      "security_considerations": [
+        "Enforce strict JWT session token validation on all metrics endpoints."
+      ],
+      "scalability_considerations": [
+        "Cache aggregate metrics computations in Redis for 10 minutes."
+      ],
+      "accessibility_considerations": [
+        "Must be fully navigable using TAB focus paths."
+      ],
+      "mobile_considerations": [
+        "Provide a collapsible sidebar that transitions to a bottom navigation rail on mobile."
+      ],
+      "analytics_considerations": [
+        "Emit click telemetry triggers whenever key filters are modified."
+      ],
+      "integrations": [
+        "Redis Caching Services"
+      ],
+      "design_patterns": [
+        "Backend For Frontend (BFF) Pattern"
+      ],
+      "implementation_guidelines": [
+        "Set up a layout shell using a CSS grid with layout areas 'header sidebar main'."
+      ],
+      "anti_patterns": [
+        "Direct database queries executed directly inside client-side components."
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Create a layout shell with a collapsible navigation sidebar and top header bar. Use CSS Grid for the outer skeleton."
+        ],
+        "ui": [
+          "Render metrics in a Bento Grid layout. Metric cards must show animated shimmer states during fetching."
+        ],
+        "backend": [
+          "Build an API route '/api/dashboard/stats' returning total telemetry aggregates."
+        ],
+        "database": [
+          "Define tables: users (id uuid, email varchar, role varchar), organizations (id uuid, name varchar)."
+        ],
+        "security": [
+          "Protect metrics routes with middleware verifying organization context and JWT authorization tokens."
+        ],
+        "accessibility": [
+          "Sidebar navigation links must have aria-current values and cycle focus using Tab keys."
+        ],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "ecommerce_marketplace",
+      "kb_type": "fullstack",
+      "entity_type": "application",
+      "name": "E-Commerce Marketplace",
+      "overview": "A digital storefront application designed to showcase products, manage shopping carts, process checkout flows, and track deliveries.",
+      "keywords": [
+        "ecommerce marketplace",
+        "storefront",
+        "shop catalog",
+        "retail portal"
+      ],
+      "business_goals": [
+        "Provide a seamless client checkout experience.",
+        "Maximize conversion rates via speed and layouts."
+      ],
+      "target_users": [
+        "Shoppers",
+        "Store Operators"
+      ],
+      "common_features": [
+        "Product Grid Catalog with filters",
+        "Shopping Cart drawer"
+      ],
+      "advanced_features": [
+        "Stripe checkout checkout flow integration",
+        "Webhook payment dispatcher"
+      ],
+      "recommended_pages": [
+        "Catalog Page",
+        "Product Details",
+        "Checkout Screen",
+        "Orders Page"
+      ],
+      "recommended_components": [
+        "Product Card",
+        "Cart Drawer",
+        "Checkout Form"
+      ],
+      "recommended_backend_modules": [
+        "Catalog Sync Service",
+        "Stripe Webhook Handler"
+      ],
+      "recommended_database_entities": [
+        "Products Table",
+        "Orders Table",
+        "Order Items Table"
+      ],
+      "security_considerations": [
+        "Never store raw card details; offload completely to Stripe Elements."
+      ],
+      "scalability_considerations": [
+        "Cache product descriptions in CDN margins."
+      ],
+      "accessibility_considerations": [
+        "Ensure alt description text is set on all catalog image links."
+      ],
+      "mobile_considerations": [
+        "Provide persistent bottom Checkout CTA bar on mobile screens."
+      ],
+      "analytics_considerations": [
+        "Log conversions and abandoned cart events."
+      ],
+      "integrations": [
+        "Stripe API gateway"
+      ],
+      "design_patterns": [
+        "BFF Gateway design"
+      ],
+      "implementation_guidelines": [
+        "Load catalog items with cursor pagination."
+      ],
+      "anti_patterns": [
+        "Inline calculations of order totals on the client side without database cross-verification."
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Establish directory: /src/app/shop for storefront pages, and /src/components/ui/card for products."
+        ],
+        "ui": [
+          "Products must display in a dynamic CSS auto-fill grid grid container."
+        ],
+        "backend": [
+          "Verify basket totals server-side by loading live item prices from DB during order compilation."
+        ],
+        "database": [
+          "Define schemas: products (id uuid, title varchar, price integer), orders (id uuid, user_id uuid, total integer)."
+        ],
+        "security": [
+          "Verify Stripe payload signature header in webhook routes."
+        ],
+        "accessibility": [
+          "Alt tags must explicitly describe product titles and image content."
+        ],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "student_hub",
+      "kb_type": "fullstack",
+      "entity_type": "application",
+      "name": "Student Management Hub",
+      "overview": "A specialized education management hub designed to record student profiles, track grades, calculate grade point averages, and orchestrate parent notifications.",
+      "keywords": [
+        "student hub",
+        "school system",
+        "education database",
+        "gradebook",
+        "parent portal"
+      ],
+      "business_goals": [
+        "Improve school administrative throughput.",
+        "Provide parents with transparent real-time grading reports."
+      ],
+      "target_users": [
+        "School Administrators",
+        "Teachers",
+        "Students & Parents"
+      ],
+      "common_features": [
+        "Student directory lookup",
+        "Term Gradebooks",
+        "Attendance records calendar"
+      ],
+      "advanced_features": [
+        "WhatsApp alerts for attendance gaps",
+        "Transcript PDF downloader"
+      ],
+      "recommended_pages": [
+        "Dashboard page",
+        "Gradebook Editor Page",
+        "Attendance Entry Sheet"
+      ],
+      "recommended_components": [
+        "Attendance Tracker",
+        "Student Directory table",
+        "Grade Calculation modal"
+      ],
+      "recommended_backend_modules": [
+        "Attendance Logging API",
+        "GPA Aggregator Service"
+      ],
+      "recommended_database_entities": [
+        "Students Table",
+        "Enrollments Table",
+        "Grades Table"
+      ],
+      "security_considerations": [
+        "Enforce strict student record privacy (FERPA compliance)."
+      ],
+      "scalability_considerations": [
+        "Optimize grades queries using query pagination."
+      ],
+      "accessibility_considerations": [
+        "Ensure high color contrast ratios on pass/fail labels."
+      ],
+      "mobile_considerations": [
+        "Design compact lists for parent dashboards on mobile."
+      ],
+      "analytics_considerations": [
+        "Log administrator grade edits for compliance auditing."
+      ],
+      "integrations": [
+        "Twilio SMS gateway"
+      ],
+      "design_patterns": [
+        "Role-Based API Guarding"
+      ],
+      "implementation_guidelines": [
+        "Isolate teacher routes with clear routes '/teacher/*' and student/parent dashboard routes under '/portal/*'."
+      ],
+      "anti_patterns": [
+        "Allowing parents to query metrics of classmates."
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Structure the workspace into separate router domains: '/teacher/dashboard' and '/student/portal' to prevent layout bleed."
+        ],
+        "ui": [
+          "Display a student directory list with paginated filters, search input, and expandable detail rows."
+        ],
+        "backend": [
+          "Build GPA calculation algorithms on the server to output aggregates dynamically upon grade updates."
+        ],
+        "database": [
+          "Create relational tables: students (id, first_name, last_name), grades (id, student_id, score)."
+        ],
+        "security": [
+          "Validate session metadata to block parent IDs from querying records of other students."
+        ],
+        "accessibility": [
+          "Grade cells must render accessible text tags like 'A+', 'B-' with distinct high-contrast color styles."
+        ],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "attendance_tracking",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "name": "Attendance Tracking",
+      "overview": "Module to record, compute, and monitor daily attendance status of students or employees.",
+      "keywords": [
+        "attendance tracking",
+        "check-in logs",
+        "absence logging",
+        "calendar grids"
+      ],
+      "business_goals": [
+        "Reduce absenteeism",
+        "Maintain accurate compliance records"
+      ],
+      "target_users": [
+        "Teachers",
+        "System Supervisors"
+      ],
+      "common_features": [
+        "Attendance Grid Selector",
+        "Attendance status filters",
+        "Monthly status summary charts"
+      ],
+      "advanced_features": [
+        "Biometric check-in synchronizer"
+      ],
+      "recommended_pages": [
+        "Daily Roll Call Page"
+      ],
+      "recommended_components": [
+        "Interactive Calendar Attendance Grid"
+      ],
+      "recommended_backend_modules": [
+        "Attendance Submission Controller"
+      ],
+      "recommended_database_entities": [
+        "Attendance Log Table"
+      ],
+      "security_considerations": [
+        "Ensure attendance status updates are immutable once confirmed."
+      ],
+      "scalability_considerations": [
+        "Query logs using partition scoping on month/year."
+      ],
+      "accessibility_considerations": [
+        "Status markers (present, late) must have unique icons (not just colors) for accessibility."
+      ],
+      "mobile_considerations": [
+        "Provide simple checkmark sliders for touch viewports."
+      ],
+      "analytics_considerations": [
+        "Track absence percentage thresholds to trigger notifications."
+      ],
+      "integrations": [
+        "SMS Dispatch Gateway"
+      ],
+      "design_patterns": [
+        "Transaction Script pattern for batch logs"
+      ],
+      "implementation_guidelines": [
+        "Record logs using status strings: 'present', 'absent', 'late', 'excused'."
+      ],
+      "anti_patterns": [
+        "Overwriting previous attendance history log columns instead of appending audit rows."
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Design a batch attendance logging workflow using form vectors."
+        ],
+        "ui": [
+          "Build an interactive grid showing student lists on the left, and checkmark buttons representing check-in status on the right.",
+          "Style status controls: Green for Present, Red for Absent, Amber for Late. Ensure status indicators contain explicit text labels."
+        ],
+        "backend": [
+          "Build an endpoint '/api/attendance/submit' that inserts multiple logs inside a database transaction."
+        ],
+        "database": [
+          "Define table structure: attendance (id uuid, student_id uuid, date date, status varchar, recorded_by uuid)."
+        ],
+        "security": [
+          "Require 'teacher' or 'admin' roles to invoke attendance write endpoints."
+        ],
+        "accessibility": [
+          "All attendance checkmark nodes must include ARIA role selectors representing present/absent states."
+        ],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "marks_calculation",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "name": "Marks Calculation",
+      "overview": "Module to record term grades, execute weighted calculations, and report student grade point averages (GPA).",
+      "keywords": [
+        "marks calculation",
+        "grades math",
+        "weight splitting",
+        "gpa tracker"
+      ],
+      "business_goals": [
+        "Automate grades calculations"
+      ],
+      "target_users": [
+        "Teachers",
+        "Students"
+      ],
+      "common_features": [
+        "Weighted grades inputs",
+        "GPA calculator indicator"
+      ],
+      "advanced_features": [
+        "Mark splitting weights custom configurator"
+      ],
+      "recommended_pages": [
+        "Grades Summary Dashboard"
+      ],
+      "recommended_components": [
+        "Weight Configuration Table"
+      ],
+      "recommended_backend_modules": [
+        "GPA Calculation Service"
+      ],
+      "recommended_database_entities": [
+        "Grade Weight Config Table"
+      ],
+      "security_considerations": [
+        "Prevent student tokens from editing marks records."
+      ],
+      "scalability_considerations": [],
+      "accessibility_considerations": [
+        "Formula calculations must be documented in accessibility summaries."
+      ],
+      "mobile_considerations": [],
+      "analytics_considerations": [],
+      "integrations": [],
+      "design_patterns": [
+        "Strategy pattern for calculating weighted averages"
+      ],
+      "implementation_guidelines": [
+        "Calculate term marks using configured weights: e.g. Homework = 20%, Tests = 50%, Final = 30%."
+      ],
+      "anti_patterns": [
+        "Performing grade weighting math entirely on the client, risking security drift."
+      ],
+      "prompt_fragments": {
+        "architecture": [],
+        "ui": [
+          "Create a dynamic form where teachers enter scores alongside total points. Render weighted calculation outputs in real time on change events."
+        ],
+        "backend": [
+          "Implement server-side logic calculating overall scores based on assignment weights: overall = sum(score/max * weight)."
+        ],
+        "database": [
+          "Define tables: grade_items (id uuid, name varchar, weight float), student_grades (id uuid, student_id uuid, item_id uuid, score float)."
+        ],
+        "security": [
+          "Write backend checks blocking non-authorized user roles from writing score entries."
+        ],
+        "accessibility": [],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "dashboard_page",
+      "kb_type": "spa",
+      "entity_type": "page",
+      "name": "Dashboard Panel Page",
+      "overview": "A complete layout shell displaying business metrics, key analytics cards, and table structures in a dashboard context.",
+      "keywords": [
+        "dashboard page",
+        "overview page",
+        "admin page"
+      ],
+      "recommended_components": [
+        "Sidebar Navigation",
+        "Metric Bento Card Grid",
+        "Sortable Data Table"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Layout structured as a two-column system: Left sidebar column (260px) and Right main content scrollable viewport."
+        ],
+        "ui": [
+          "Apply modern Bento Grid configurations for widgets, maintaining a 3-column layout on desktop viewports."
+        ],
+        "backend": [],
+        "database": [],
+        "security": [],
+        "accessibility": [
+          "Incorporate skip-to-content links for keyboard navigators."
+        ],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "shadcn_data_table",
+      "kb_type": "component",
+      "entity_type": "component",
+      "name": "Shadcn/UI Data Table",
+      "overview": "A robust, keyboard-navigable database presentation table using TanStack Table API conventions and Radix primitives.",
+      "keywords": [
+        "shadcn table",
+        "data table component",
+        "tanstack table"
+      ],
+      "accessibility_considerations": [
+        "Include strict scope='col' on header elements.",
+        "Sort indicators must be announced via aria-sort tags."
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Implement using TanStack Table (@tanstack/react-table) and shadcn/ui skeleton variables."
+        ],
+        "ui": [
+          "Table headers should change colors on hover. Active sorted column must show a visual arrow highlight.",
+          "Use a frosted background with borders color-mix(in srgb, var(--border) 60%, transparent)."
+        ],
+        "backend": [],
+        "database": [],
+        "security": [],
+        "accessibility": [
+          "Headers must render a button element to toggle sorting. The button must have descriptive aria-label values."
+        ],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "glassmorphism_theme",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Sleek Dark Glassmorphic",
+      "overview": "A premium theme style evoking floating translucent container layers, neon outlines, and glowing deep backdrops.",
+      "keywords": [
+        "glassmorphic",
+        "obsidian dark",
+        "neon glow",
+        "frosted containers"
+      ],
+      "prompt_fragments": {
+        "architecture": [],
+        "ui": [
+          "Apply deep obsidian background (#09090b) with radial glow indicators in the corners (#7c3aed, #0891b2).",
+          "All card containers must be styled with: background: rgba(255, 255, 255, 0.015); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.06); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3)."
+        ],
+        "backend": [],
+        "database": [],
+        "security": [],
+        "accessibility": [],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "inter_typography",
+      "kb_type": "common",
+      "entity_type": "typography",
+      "name": "Inter",
+      "overview": "A clean, highly readable neo-grotesque typography configuration designed specifically for high-density user interfaces.",
+      "keywords": [
+        "inter font",
+        "sans serif UI",
+        "clean typography"
+      ],
+      "prompt_fragments": {
+        "architecture": [],
+        "ui": [
+          "Load Inter from Google Fonts. Set body font-family to 'Inter', sans-serif.",
+          "Use font-weight 400 for descriptions, 600 for card headers, and 800 for main dashboard titles."
+        ],
+        "backend": [],
+        "database": [],
+        "security": [],
+        "accessibility": [],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "fitness_app",
+      "kb_type": "fullstack",
+      "entity_type": "application",
+      "name": "Fitness & Health Tracker Portal",
+      "overview": "A health management portal allowing consumers to record workouts, log nutrition intake, and render interactive progress telemetry panels.",
+      "keywords": [
+        "fitness app",
+        "workout tracker",
+        "health log",
+        "nutrition tracker"
+      ],
+      "business_goals": [
+        "Empower active lifestyles via tracking",
+        "Visualize healthy weight progression"
+      ],
+      "target_users": [
+        "Athletes",
+        "General Fitness Enthusiasts"
+      ],
+      "common_features": [
+        "Workout Session Logger",
+        "Nutrition Diary Card",
+        "Progress charts"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Directory: /src/app/fitness for tracker pages and logs."
+        ],
+        "ui": [
+          "Create visual calendar indicators showcasing daily completed streaks."
+        ],
+        "backend": [
+          "Build Express controller '/api/workouts/log' inserting sessions."
+        ],
+        "database": [],
+        "security": [],
+        "accessibility": [],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "task_manager_app",
+      "kb_type": "fullstack",
+      "entity_type": "application",
+      "name": "Task Management Kanban Dashboard",
+      "overview": "A project coordination system supporting drag-and-drop task boards, multi-user assignment pipelines, and task lists.",
+      "keywords": [
+        "task manager",
+        "kanban board",
+        "project management",
+        "board view"
+      ],
+      "business_goals": [
+        "Improve collaborative project throughput",
+        "Eliminate tracking alignment gaps"
+      ],
+      "target_users": [
+        "Software Developers",
+        "Project Managers"
+      ],
+      "common_features": [
+        "Drag-and-drop Task Columns",
+        "Task Cards with detail popups"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Layout structured around multiple column slots representing task stages."
+        ],
+        "ui": [
+          "Board columns transition cleanly under active drag vectors using CSS transforms."
+        ],
+        "backend": [
+          "Controller '/api/tasks/move' supporting coordinate updates in batch."
+        ],
+        "database": [],
+        "security": [],
+        "accessibility": [],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "chat_app",
+      "kb_type": "fullstack",
+      "entity_type": "application",
+      "name": "Real-time Chat Workspace",
+      "overview": "A collaboration tool featuring chat channels, direct messaging, and message search.",
+      "keywords": [
+        "chat app",
+        "workspace chat",
+        "direct messages",
+        "real-time messaging"
+      ],
+      "business_goals": [
+        "Enable instant workplace communication",
+        "Provide reliable socket connections"
+      ],
+      "target_users": [
+        "Team Members",
+        "Remote Workers"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Maintain layout with left channel bar and right active conversation window."
+        ],
+        "ui": [
+          "Render message logs in scrolls. Keep bottom inputs floating static."
+        ],
+        "backend": [
+          "Listen on events 'new-message' dispatching payload broad sweeps."
+        ],
+        "database": [],
+        "security": [
+          "Filter token validation before upgrading HTTP protocol to WebSockets."
+        ],
+        "accessibility": [],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "user_auth",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "name": "User Authentication & Session Management",
+      "overview": "Standard security feature handling token login, email registration, and active session protection.",
+      "keywords": [
+        "user auth",
+        "login signup",
+        "session tokens",
+        "jwt verify"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Include folder /src/middleware/auth.js guarding private domains."
+        ],
+        "ui": [
+          "Provide standard forms showcasing clear error labels below inputs."
+        ],
+        "backend": [
+          "Validate credentials using password hashing and issue JWT keys."
+        ],
+        "database": [
+          "Store users data: id, email_hash, password_hash, role_string."
+        ],
+        "security": [
+          "Enforce secure cookie cookies storing refresh credentials."
+        ],
+        "accessibility": [],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "push_notifications",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "name": "Real-time Push Notifications",
+      "overview": "Module dispatching alert triggers to browser clients or device rails upon system events.",
+      "keywords": [
+        "push notifications",
+        "alerts notify",
+        "client triggers"
+      ],
+      "prompt_fragments": {
+        "architecture": [],
+        "ui": [
+          "Display temporary alert icons in the header menu bar showing unread badges."
+        ],
+        "backend": [
+          "Trigger notification web push payloads using web-push libraries."
+        ],
+        "database": [
+          "Table notifications: id uuid, user_id uuid, message text, read_status boolean."
+        ],
+        "security": [],
+        "accessibility": [],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "chart_viz",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "name": "Interactive Charts & Visualizations",
+      "overview": "Feature loading structured stats and mapping vectors onto SVG components for dashboard cards.",
+      "keywords": [
+        "chart visualization",
+        "interactive charts",
+        "svg graph",
+        "telemetry render"
+      ],
+      "prompt_fragments": {
+        "architecture": [],
+        "ui": [
+          "Render SVG line shapes with gradient fills below path vectors.",
+          "Include interactive tooltips mapping points under cursor coordinates."
+        ],
+        "backend": [],
+        "database": [],
+        "security": [],
+        "accessibility": [
+          "Charts must render screen-reader accessible description tables detailing numeric statistics."
+        ],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "calendar_booking",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "name": "Calendar Booking and Scheduling",
+      "overview": "Scheduling controller letting users coordinate event selections and block double-bookings.",
+      "keywords": [
+        "calendar booking",
+        "scheduling planner",
+        "meet scheduler"
+      ],
+      "prompt_fragments": {
+        "architecture": [],
+        "ui": [
+          "Render grid days highlighting blocked/active status buttons."
+        ],
+        "backend": [
+          "Enforce strict database checks preventing overlapping booking ranges."
+        ],
+        "database": [
+          "Table bookings: id, user_id, start_time timestamp, end_time timestamp."
+        ],
+        "security": [],
+        "accessibility": [],
+        "performance": []
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "user_db",
+      "kb_type": "fullstack",
+      "entity_type": "database_entity",
+      "name": "Users & Organization DB Schema",
+      "overview": "Structured SQL table definition defining standard relational entities and indexing tenant boundaries.",
+      "keywords": [
+        "users database",
+        "users table",
+        "organizations schema"
+      ],
+      "prompt_fragments": {
+        "database": [
+          "CREATE TABLE users (id UUID PRIMARY KEY, email VARCHAR UNIQUE, password_hash VARCHAR, org_id UUID REFERENCES organizations(id));"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "task_db",
+      "kb_type": "fullstack",
+      "entity_type": "database_entity",
+      "name": "Tasks & Projects DB Schema",
+      "overview": "Relational entities tracking column states, assignees, and projects metadata in tables.",
+      "keywords": [
+        "task db",
+        "kanban table schema",
+        "projects database"
+      ],
+      "prompt_fragments": {
+        "database": [
+          "CREATE TABLE projects (id UUID PRIMARY KEY, name VARCHAR, creator_id UUID REFERENCES users(id));",
+          "CREATE TABLE tasks (id UUID PRIMARY KEY, project_id UUID REFERENCES projects(id), title VARCHAR, status VARCHAR, assignee_id UUID REFERENCES users(id));"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "message_db",
+      "kb_type": "fullstack",
+      "entity_type": "database_entity",
+      "name": "Channels & Messages DB Schema",
+      "overview": "Relational table structures tracking conversations and logging historical messages indexes.",
+      "keywords": [
+        "messages db",
+        "channels table",
+        "messages schema"
+      ],
+      "prompt_fragments": {
+        "database": [
+          "CREATE TABLE channels (id UUID PRIMARY KEY, name VARCHAR, is_private BOOLEAN);",
+          "CREATE TABLE messages (id UUID PRIMARY KEY, channel_id UUID REFERENCES channels(id), sender_id UUID REFERENCES users(id), text_content TEXT, sent_at TIMESTAMP DEFAULT NOW());"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "chat_socket_backend",
+      "kb_type": "fullstack",
+      "entity_type": "backend_module",
+      "name": "WebSockets Real-time Socket Server",
+      "overview": "Custom backend websocket dispatcher broadcasting messages and tracking active network streams.",
+      "keywords": [
+        "websockets backend",
+        "socket.io server",
+        "real-time server"
+      ],
+      "prompt_fragments": {
+        "backend": [
+          "Instantiate Socket.IO module over server listener: const io = new Server(httpServer, { cors: { origin: '*' } });",
+          "Broadcast message payloads strictly matching channels: io.to(channelId).emit('message', data);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "login_signup_page",
+      "kb_type": "spa",
+      "entity_type": "page",
+      "name": "Auth Portal Login/Signup Screen",
+      "overview": "Authentication entry page routing users, loading inputs, and executing form transitions.",
+      "keywords": [
+        "login page",
+        "signup screen",
+        "auth forms page"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Layout: Centered auth card container width 420px."
+        ],
+        "ui": [
+          "Toggle forms dynamically between login and signup card views using smooth transitions."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "settings_portal_page",
+      "kb_type": "spa",
+      "entity_type": "page",
+      "name": "User Profile Settings Portal",
+      "overview": "A dashboard page providing profile configuration details, account settings tabs, and api key blocks.",
+      "keywords": [
+        "settings portal page",
+        "profile page settings"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Layout: Split layout. Left tab buttons vertical. Right active form inputs pane."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "kanban_board_page",
+      "kb_type": "spa",
+      "entity_type": "page",
+      "name": "Kanban Board Workspace Page",
+      "overview": "A view displaying columns of tasks and letting developers sort, drag, or filter tasks.",
+      "keywords": [
+        "kanban page",
+        "task board page view"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Layout: Horizontal scrolling view holding column cards side-by-side."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "chat_workspace_page",
+      "kb_type": "spa",
+      "entity_type": "page",
+      "name": "Chat Channels Workspace Page",
+      "overview": "A page compiling channels listing sidebar and listing message feed with floating input bar.",
+      "keywords": [
+        "chat page view",
+        "channels page workspace"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Layout: Two column sidebar channels + message panel. Flex layout 100vh height."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "collapsible_sidebar_component",
+      "kb_type": "component",
+      "entity_type": "component",
+      "name": "Navigation Collapsible Sidebar",
+      "overview": "Left-hand menu navigation sidebar shrinking to icon-only viewports to save space.",
+      "keywords": [
+        "collapsible sidebar",
+        "navigation sidebar component"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "Style navigation bar width 260px transitioning to 64px on collapse toggle clicks.",
+          "Add ARIA role navigation links containing detailed text tags."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "kpi_spotlight_card",
+      "kb_type": "component",
+      "entity_type": "component",
+      "name": "Frosted Bento KPI Metric Card",
+      "overview": "An analytical widget component styling metrics, trends and sparks lines in a grid.",
+      "keywords": [
+        "kpi card",
+        "bento metric card component"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "Apply frosted backdrop blur container styling with Neon borders variables.",
+          "Render metrics inside a Bento Grid card layout with a hover glowing shadow outline."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "drag_drop_kanban",
+      "kb_type": "component",
+      "entity_type": "component",
+      "name": "HTML5 Drag-and-Drop Columns component",
+      "overview": "Interactive board list columns handling drag start, drag enter, drop, and coordinate triggers.",
+      "keywords": [
+        "drag drop columns",
+        "kanban board component"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "Add cursor grab styles on card hover states.",
+          "Highlight target drop zones with a dashed border outline when a card is dragged over."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "styled_form_wrapper",
+      "kb_type": "component",
+      "entity_type": "component",
+      "name": "Glassmorphism form input wrapper",
+      "overview": "Form element overlay layout bundling textboxes, select elements, and submit button buttons.",
+      "keywords": [
+        "form wrapper component",
+        "glassmorphic input form"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "All inputs must show 1px frosted glass margins (#ffffff0c) and amber active focus highlights.",
+          "Submit buttons must use active scaling click transitions."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "cyberpunk_neon_theme",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Retro Cyberpunk Neon Glow",
+      "overview": "A styling theme defining heavy dark backdrops contrasted with electric pinks, purples, and cyans.",
+      "keywords": [
+        "cyberpunk theme",
+        "neon style",
+        "electric palette"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "Primary background: #000000. Accent gradients: linear-gradient(90deg, #ec4899, #8b5cf6, #06b6d4).",
+          "Apply text-shadow glow effects on active headings: text-shadow: 0 0 10px #ec4899, 0 0 20px #8b5cf6;"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "classic_light_theme",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Clean Minimal Slate Light",
+      "overview": "A crisp, high-contrast light theme using subtle slate grays, clean boundaries, and soft dark text.",
+      "keywords": [
+        "light theme",
+        "slate light",
+        "minimal palette"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "Primary background: #f8fafc. Base text: #0f172a. Card borders: 1px solid #e2e8f0."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "outfit_typography_sys",
+      "kb_type": "common",
+      "entity_type": "typography",
+      "name": "Outfit Sans Serif",
+      "overview": "A modern geometric sans-serif typeface emphasizing structured visual headlines and clean content.",
+      "keywords": [
+        "outfit font",
+        "sans serif headings"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "Load Outfit from Google Fonts. Font weights: Light 300, Regular 400, Semi-Bold 600, Black 900."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "playfair_typography_sys",
+      "kb_type": "common",
+      "entity_type": "typography",
+      "name": "Playfair Display Serif",
+      "overview": "A beautiful classic serif typeface styling literary details, editorial layouts, or headers.",
+      "keywords": [
+        "playfair font",
+        "serif headers"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "Load Playfair Display from Google Fonts. Apply font-family: 'Playfair Display', serif on header tags."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "chat_messages_schema",
+      "name": "Direct Messages Log DB Schema",
+      "kb_type": "fullstack",
+      "entity_type": "database_entity",
+      "overview": "Indexes message threads, sender IDs, room IDs, and message contents.",
+      "keywords": [
+        "chat messages_schema",
+        "schema",
+        "database",
+        "postgres table"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "crm_platform",
+      "name": "CRM Customer Hub",
+      "kb_type": "fullstack",
+      "entity_type": "application",
+      "overview": "A relationship management portal for client interaction tracking and deal pipeline dashboards.",
+      "keywords": [
+        "crm platform",
+        "application",
+        "portal",
+        "dashboard"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "hr_management",
+      "name": "HR Staff Portal",
+      "kb_type": "fullstack",
+      "entity_type": "application",
+      "overview": "An employee directory, attendance logger, and payroll management panel.",
+      "keywords": [
+        "hr management",
+        "application",
+        "portal",
+        "dashboard"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "inventory_tracker",
+      "name": "Inventory Warehouse system",
+      "kb_type": "fullstack",
+      "entity_type": "application",
+      "overview": "A real-time stock levels aggregator, barcode logging panel, and supplier management system.",
+      "keywords": [
+        "inventory tracker",
+        "application",
+        "portal",
+        "dashboard"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "learning_cms",
+      "name": "LMS Education Hub",
+      "kb_type": "fullstack",
+      "entity_type": "application",
+      "overview": "A course delivery platform with video modules, assignments hub, and student grading sheets.",
+      "keywords": [
+        "learning cms",
+        "application",
+        "portal",
+        "dashboard"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "healthcare_emr",
+      "name": "Healthcare EMR Portal",
+      "kb_type": "fullstack",
+      "entity_type": "application",
+      "overview": "An electronic health record catalog with doctor appointment scheduling and prescription history.",
+      "keywords": [
+        "healthcare emr",
+        "application",
+        "portal",
+        "dashboard"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "billing_gateway",
+      "name": "Subscription Billing Gateway",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "overview": "Integrates checkout flows, payment methods management, and subscription state webhooks.",
+      "keywords": [
+        "billing gateway",
+        "feature",
+        "system",
+        "module"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "audit_logs",
+      "name": "Activity Audit Logger",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "overview": "Records system events, login telemetry, database actions, and admin modifications for auditing.",
+      "keywords": [
+        "audit logs",
+        "feature",
+        "system",
+        "module"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "email_notifications",
+      "name": "Transactional Email Engine",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "overview": "Dispatches password reset, welcome onboarding, and system alert notifications.",
+      "keywords": [
+        "email notifications",
+        "feature",
+        "system",
+        "module"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "search_autocomplete",
+      "name": "Fuzzy Search Autocomplete",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "overview": "Executes fast fuzzy matching across database names and outputs suggestions instantly.",
+      "keywords": [
+        "search autocomplete",
+        "feature",
+        "system",
+        "module"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "rbac_permissions",
+      "name": "Role-Based Permissions Control",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "overview": "Restricts workspace pages, tabs, actions, and API payloads based on user permissions.",
+      "keywords": [
+        "rbac permissions",
+        "feature",
+        "system",
+        "module"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "file_storage_s3",
+      "name": "S3 Asset Cloud Storage",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "overview": "Direct presigned file uploads, image cropping, and folder sync with bucket storage.",
+      "keywords": [
+        "file storage_s3",
+        "feature",
+        "system",
+        "module"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "comments_engine",
+      "name": "Social Comments thread",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "overview": "Renders dynamic nested comment sections with markdown editing and user mentions.",
+      "keywords": [
+        "comments engine",
+        "feature",
+        "system",
+        "module"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "websocket_chat",
+      "name": "WebSocket Chat Messaging",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "overview": "Enables instant message notifications and real-time room chats.",
+      "keywords": [
+        "websocket chat",
+        "feature",
+        "system",
+        "module"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "reports_gateway",
+      "name": "CSV/PDF Document Generator",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "overview": "Compiles database search results, charts, and tables into PDF summaries and CSV sheets.",
+      "keywords": [
+        "reports gateway",
+        "feature",
+        "system",
+        "module"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "mfa_security",
+      "name": "Multi-Factor Auth (MFA)",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "overview": "Enforces secondary SMS or TOTP authenticator code verification during login.",
+      "keywords": [
+        "mfa security",
+        "feature",
+        "system",
+        "module"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "content_editor",
+      "name": "WYSIWYG Rich Editor",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "overview": "Inline rich text editor supporting headings, media injection, and markdown auto-formatting.",
+      "keywords": [
+        "content editor",
+        "feature",
+        "system",
+        "module"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "analytics_charts",
+      "name": "Interactive Metrics Charts",
+      "kb_type": "fullstack",
+      "entity_type": "feature",
+      "overview": "Aggregates statistics and loads line/bar charts for dashboard visualizations.",
+      "keywords": [
+        "analytics charts",
+        "feature",
+        "system",
+        "module"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "billing_portal_page",
+      "name": "Billing Settings Portal Page",
+      "kb_type": "spa",
+      "entity_type": "page",
+      "overview": "Lists payment methods, active subscription status, invoice list, and tier switches.",
+      "keywords": [
+        "billing portal_page",
+        "page",
+        "layout",
+        "view"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "audit_logs_page",
+      "name": "Audit activity history page",
+      "kb_type": "spa",
+      "entity_type": "page",
+      "overview": "Renders search queries, filters, timeline displays, and details panels for audit records.",
+      "keywords": [
+        "audit logs_page",
+        "page",
+        "layout",
+        "view"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "user_profile_page",
+      "name": "User Account Profile Page",
+      "kb_type": "spa",
+      "entity_type": "page",
+      "overview": "Input forms for profile picture upload, personal details, settings, and password updates.",
+      "keywords": [
+        "user profile_page",
+        "page",
+        "layout",
+        "view"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "permissions_admin_page",
+      "name": "RBAC Access Configuration Page",
+      "kb_type": "spa",
+      "entity_type": "page",
+      "overview": "Grids and checkboxes to customize role profiles (Admin, Editor, Viewer) and permissions.",
+      "keywords": [
+        "permissions admin_page",
+        "page",
+        "layout",
+        "view"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "documents_hub_page",
+      "name": "Shared Knowledge Library Page",
+      "kb_type": "spa",
+      "entity_type": "page",
+      "overview": "Lists folders, markdown document details, text searches, and edit triggers.",
+      "keywords": [
+        "documents hub_page",
+        "page",
+        "layout",
+        "view"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "appointment_schedule_page",
+      "name": "Appointment Calendar Booking Page",
+      "kb_type": "spa",
+      "entity_type": "page",
+      "overview": "Calendar view showing booking slots, booking details form, and scheduler actions.",
+      "keywords": [
+        "appointment schedule_page",
+        "page",
+        "layout",
+        "view"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "inventory_dashboard_page",
+      "name": "Warehouse Stocks Dashboard Page",
+      "kb_type": "spa",
+      "entity_type": "page",
+      "overview": "Aggregates stock levels, list of inventory alerts, item catalogs, and stock intakes.",
+      "keywords": [
+        "inventory dashboard_page",
+        "page",
+        "layout",
+        "view"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "toast_notification_component",
+      "name": "Dynamic Toast Alerts UI",
+      "kb_type": "component",
+      "entity_type": "component",
+      "overview": "Floating notifications (Success, Info, Error) with slide-in animation and auto-dismiss timer.",
+      "keywords": [
+        "toast notification_component",
+        "component",
+        "ui widget",
+        "react"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "modal_dialog_component",
+      "name": "Overlay Modal Dialog wrapper",
+      "kb_type": "component",
+      "entity_type": "component",
+      "overview": "Frosted backdrops, slide-up panels, accessibility focus traps, and keyboard dismissals.",
+      "keywords": [
+        "modal dialog_component",
+        "component",
+        "ui widget",
+        "react"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "skeleton_loader_component",
+      "name": "Skeleton Shimmer Shading loader",
+      "kb_type": "component",
+      "entity_type": "component",
+      "overview": "Animated grey blocks that shimmer during data loading stages to minimize bounce.",
+      "keywords": [
+        "skeleton loader_component",
+        "component",
+        "ui widget",
+        "react"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "segmented_tab_component",
+      "name": "Segmented Control Toggles",
+      "kb_type": "component",
+      "entity_type": "component",
+      "overview": "Pill-style layout selector triggers with sliding indicator background transitions.",
+      "keywords": [
+        "segmented tab_component",
+        "component",
+        "ui widget",
+        "react"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "file_dropzone_component",
+      "name": "Drag-and-Drop File Uploader",
+      "kb_type": "component",
+      "entity_type": "component",
+      "overview": "Drop container supporting cursor hover triggers, size checks, and status progress bars.",
+      "keywords": [
+        "file dropzone_component",
+        "component",
+        "ui widget",
+        "react"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "autocomplete_input_component",
+      "name": "Fuzzy Search Autocomplete Input",
+      "kb_type": "component",
+      "entity_type": "component",
+      "overview": "Combobox layout querying matching keywords and adjusting suggestions.",
+      "keywords": [
+        "autocomplete input_component",
+        "component",
+        "ui widget",
+        "react"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "progress_ring_component",
+      "name": "Circular Progress Ring indicator",
+      "kb_type": "component",
+      "entity_type": "component",
+      "overview": "Renders SVG progress tracks mapping completed percentages dynamically.",
+      "keywords": [
+        "progress ring_component",
+        "component",
+        "ui widget",
+        "react"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "stripe_webhook_handler",
+      "name": "Stripe webhook payment handler",
+      "kb_type": "fullstack",
+      "entity_type": "backend_module",
+      "overview": "Verifies Stripe signatures, logs invoice updates, and overrides database active user licenses.",
+      "keywords": [
+        "stripe webhook_handler",
+        "backend",
+        "api",
+        "server module"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "audit_event_writer",
+      "name": "Audit telemetry db recorder",
+      "kb_type": "fullstack",
+      "entity_type": "backend_module",
+      "overview": "Inserts audit items asynchronously using thread pools to ensure zero performance drag.",
+      "keywords": [
+        "audit event_writer",
+        "backend",
+        "api",
+        "server module"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "s3_upload_presigner",
+      "name": "Presigned URL AWS direct generator",
+      "kb_type": "fullstack",
+      "entity_type": "backend_module",
+      "overview": "Generates secure AWS S3 upload paths allowing browser-to-bucket transfers.",
+      "keywords": [
+        "s3 upload_presigner",
+        "backend",
+        "api",
+        "server module"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "jwt_rbac_validator",
+      "name": "JWT claims permissions checker",
+      "kb_type": "fullstack",
+      "entity_type": "backend_module",
+      "overview": "Decrypts tokens and maps permissions list against required API rules.",
+      "keywords": [
+        "jwt rbac_validator",
+        "backend",
+        "api",
+        "server module"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "websocket_chat_server",
+      "name": "WebSocket event multiplexer server",
+      "kb_type": "fullstack",
+      "entity_type": "backend_module",
+      "overview": "Listens to connection events, handles channels subscribing, and broadcasts user messages.",
+      "keywords": [
+        "websocket chat_server",
+        "backend",
+        "api",
+        "server module"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "users_schema",
+      "name": "Users & Subscriptions DB Schema",
+      "kb_type": "fullstack",
+      "entity_type": "database_entity",
+      "overview": "Stores authentication records, account credentials, stripe subscription IDs, and active tags.",
+      "keywords": [
+        "users schema",
+        "schema",
+        "database",
+        "postgres table"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "audit_logs_schema",
+      "name": "System Activity Logs DB Schema",
+      "kb_type": "fullstack",
+      "entity_type": "database_entity",
+      "overview": "Postgres table with indices mapping transaction timestamps, user IDs, and action payloads.",
+      "keywords": [
+        "audit logs_schema",
+        "schema",
+        "database",
+        "postgres table"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "assets_storage_schema",
+      "name": "Uploaded Cloud Assets DB Schema",
+      "kb_type": "fullstack",
+      "entity_type": "database_entity",
+      "overview": "Maps S3 buckets paths, asset sizes, content formats, and links to user IDs.",
+      "keywords": [
+        "assets storage_schema",
+        "schema",
+        "database",
+        "postgres table"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "rbac_permissions_schema",
+      "name": "Role Capabilities DB Schema",
+      "kb_type": "fullstack",
+      "entity_type": "database_entity",
+      "overview": "Defines roles profiles and maps list of permissions keys.",
+      "keywords": [
+        "rbac permissions_schema",
+        "schema",
+        "database",
+        "postgres table"
+      ],
+      "prompt_fragments": {
+        "architecture": [
+          "Standard folder structure alignment."
+        ],
+        "ui": [
+          "Use Manrope or Inter typography. Keep compact grids."
+        ],
+        "backend": [
+          "Define REST endpoints cleanly."
+        ],
+        "database": [
+          "Construct indexes on foreign keys."
+        ],
+        "security": [
+          "Sanitize all inputs."
+        ],
+        "accessibility": [
+          "Set ARIA labels and focus states."
+        ],
+        "performance": [
+          "Cache active queries."
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_1",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #1",
+      "overview": "A granular custom styling pattern #1 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 1"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-1: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_2",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #2",
+      "overview": "A granular custom styling pattern #2 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 2"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-2: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_3",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #3",
+      "overview": "A granular custom styling pattern #3 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 3"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-3: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_4",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #4",
+      "overview": "A granular custom styling pattern #4 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 4"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-4: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_5",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #5",
+      "overview": "A granular custom styling pattern #5 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 5"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-5: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_6",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #6",
+      "overview": "A granular custom styling pattern #6 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 6"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-6: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_7",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #7",
+      "overview": "A granular custom styling pattern #7 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 7"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-7: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_8",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #8",
+      "overview": "A granular custom styling pattern #8 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 8"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-8: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_9",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #9",
+      "overview": "A granular custom styling pattern #9 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 9"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-9: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_10",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #10",
+      "overview": "A granular custom styling pattern #10 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 10"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-10: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_11",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #11",
+      "overview": "A granular custom styling pattern #11 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 11"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-11: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_12",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #12",
+      "overview": "A granular custom styling pattern #12 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 12"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-12: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_13",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #13",
+      "overview": "A granular custom styling pattern #13 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 13"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-13: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_14",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #14",
+      "overview": "A granular custom styling pattern #14 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 14"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-14: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_15",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #15",
+      "overview": "A granular custom styling pattern #15 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 15"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-15: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_16",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #16",
+      "overview": "A granular custom styling pattern #16 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 16"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-16: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_17",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #17",
+      "overview": "A granular custom styling pattern #17 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 17"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-17: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_18",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #18",
+      "overview": "A granular custom styling pattern #18 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 18"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-18: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_19",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #19",
+      "overview": "A granular custom styling pattern #19 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 19"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-19: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_20",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #20",
+      "overview": "A granular custom styling pattern #20 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 20"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-20: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_21",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #21",
+      "overview": "A granular custom styling pattern #21 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 21"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-21: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_22",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #22",
+      "overview": "A granular custom styling pattern #22 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 22"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-22: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_23",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #23",
+      "overview": "A granular custom styling pattern #23 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 23"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-23: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_24",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #24",
+      "overview": "A granular custom styling pattern #24 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 24"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-24: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_25",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #25",
+      "overview": "A granular custom styling pattern #25 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 25"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-25: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_26",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #26",
+      "overview": "A granular custom styling pattern #26 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 26"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-26: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_27",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #27",
+      "overview": "A granular custom styling pattern #27 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 27"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-27: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_28",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #28",
+      "overview": "A granular custom styling pattern #28 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 28"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-28: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_29",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #29",
+      "overview": "A granular custom styling pattern #29 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 29"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-29: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_30",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #30",
+      "overview": "A granular custom styling pattern #30 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 30"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-30: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_31",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #31",
+      "overview": "A granular custom styling pattern #31 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 31"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-31: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_32",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #32",
+      "overview": "A granular custom styling pattern #32 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 32"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-32: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_33",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #33",
+      "overview": "A granular custom styling pattern #33 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 33"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-33: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_34",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #34",
+      "overview": "A granular custom styling pattern #34 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 34"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-34: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_35",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #35",
+      "overview": "A granular custom styling pattern #35 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 35"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-35: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_36",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #36",
+      "overview": "A granular custom styling pattern #36 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 36"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-36: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_37",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #37",
+      "overview": "A granular custom styling pattern #37 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 37"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-37: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_38",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #38",
+      "overview": "A granular custom styling pattern #38 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 38"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-38: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_39",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #39",
+      "overview": "A granular custom styling pattern #39 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 39"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-39: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_40",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #40",
+      "overview": "A granular custom styling pattern #40 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 40"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-40: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_41",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #41",
+      "overview": "A granular custom styling pattern #41 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 41"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-41: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_42",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #42",
+      "overview": "A granular custom styling pattern #42 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 42"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-42: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_43",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #43",
+      "overview": "A granular custom styling pattern #43 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 43"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-43: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_44",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #44",
+      "overview": "A granular custom styling pattern #44 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 44"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-44: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_45",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #45",
+      "overview": "A granular custom styling pattern #45 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 45"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-45: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_46",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #46",
+      "overview": "A granular custom styling pattern #46 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 46"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-46: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_47",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #47",
+      "overview": "A granular custom styling pattern #47 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 47"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-47: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_48",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #48",
+      "overview": "A granular custom styling pattern #48 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 48"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-48: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_49",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #49",
+      "overview": "A granular custom styling pattern #49 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 49"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-49: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_50",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #50",
+      "overview": "A granular custom styling pattern #50 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 50"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-50: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_51",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #51",
+      "overview": "A granular custom styling pattern #51 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 51"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-51: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_52",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #52",
+      "overview": "A granular custom styling pattern #52 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 52"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-52: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_53",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #53",
+      "overview": "A granular custom styling pattern #53 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 53"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-53: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_54",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #54",
+      "overview": "A granular custom styling pattern #54 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 54"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-54: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_55",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #55",
+      "overview": "A granular custom styling pattern #55 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 55"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-55: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_56",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #56",
+      "overview": "A granular custom styling pattern #56 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 56"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-56: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_57",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #57",
+      "overview": "A granular custom styling pattern #57 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 57"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-57: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_58",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #58",
+      "overview": "A granular custom styling pattern #58 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 58"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-58: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_59",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #59",
+      "overview": "A granular custom styling pattern #59 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 59"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-59: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_60",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #60",
+      "overview": "A granular custom styling pattern #60 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 60"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-60: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_61",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #61",
+      "overview": "A granular custom styling pattern #61 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 61"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-61: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_62",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #62",
+      "overview": "A granular custom styling pattern #62 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 62"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-62: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_63",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #63",
+      "overview": "A granular custom styling pattern #63 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 63"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-63: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_64",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #64",
+      "overview": "A granular custom styling pattern #64 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 64"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-64: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_65",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #65",
+      "overview": "A granular custom styling pattern #65 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 65"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-65: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_66",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #66",
+      "overview": "A granular custom styling pattern #66 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 66"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-66: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_67",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #67",
+      "overview": "A granular custom styling pattern #67 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 67"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-67: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_68",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #68",
+      "overview": "A granular custom styling pattern #68 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 68"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-68: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_69",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #69",
+      "overview": "A granular custom styling pattern #69 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 69"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-69: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_70",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #70",
+      "overview": "A granular custom styling pattern #70 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 70"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-70: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_71",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #71",
+      "overview": "A granular custom styling pattern #71 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 71"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-71: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_72",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #72",
+      "overview": "A granular custom styling pattern #72 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 72"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-72: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_73",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #73",
+      "overview": "A granular custom styling pattern #73 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 73"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-73: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_74",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #74",
+      "overview": "A granular custom styling pattern #74 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 74"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-74: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_75",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #75",
+      "overview": "A granular custom styling pattern #75 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 75"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-75: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_76",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #76",
+      "overview": "A granular custom styling pattern #76 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 76"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-76: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_77",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #77",
+      "overview": "A granular custom styling pattern #77 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 77"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-77: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_78",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #78",
+      "overview": "A granular custom styling pattern #78 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 78"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-78: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_79",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #79",
+      "overview": "A granular custom styling pattern #79 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 79"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-79: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_80",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #80",
+      "overview": "A granular custom styling pattern #80 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 80"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-80: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_81",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #81",
+      "overview": "A granular custom styling pattern #81 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 81"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-81: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_82",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #82",
+      "overview": "A granular custom styling pattern #82 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 82"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-82: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_83",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #83",
+      "overview": "A granular custom styling pattern #83 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 83"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-83: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_84",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #84",
+      "overview": "A granular custom styling pattern #84 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 84"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-84: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_85",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #85",
+      "overview": "A granular custom styling pattern #85 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 85"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-85: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_86",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #86",
+      "overview": "A granular custom styling pattern #86 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 86"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-86: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_87",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #87",
+      "overview": "A granular custom styling pattern #87 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 87"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-87: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_88",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #88",
+      "overview": "A granular custom styling pattern #88 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 88"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-88: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_89",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #89",
+      "overview": "A granular custom styling pattern #89 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 89"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-89: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    },
+    {
+      "id": "design_token_pattern_90",
+      "kb_type": "common",
+      "entity_type": "theme",
+      "name": "Design Style Theme Pattern #90",
+      "overview": "A granular custom styling pattern #90 for handling borders, margins, colors, and shadows in premium themes.",
+      "keywords": [
+        "design token",
+        "css snippet",
+        "pattern 90"
+      ],
+      "prompt_fragments": {
+        "ui": [
+          "--style-variable-90: var(--accent-glow);"
+        ]
+      },
+      "entity_version": 1,
+      "is_active": true
+    }
+  ],
+  "relationships": [
+    {
+      "source_id": "student_hub",
+      "target_id": "attendance_tracking",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "student_hub",
+      "target_id": "marks_calculation",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "ecommerce_marketplace",
+      "target_id": "stripe_payment",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "attendance_tracking",
+      "target_id": "dashboard_page",
+      "relation_type": "renders_page"
+    },
+    {
+      "source_id": "marks_calculation",
+      "target_id": "dashboard_page",
+      "relation_type": "renders_page"
+    },
+    {
+      "source_id": "dashboard_page",
+      "target_id": "shadcn_data_table",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "fitness_app",
+      "target_id": "chart_viz",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "fitness_app",
+      "target_id": "user_auth",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "task_manager_app",
+      "target_id": "user_auth",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "task_manager_app",
+      "target_id": "kanban_board_page",
+      "relation_type": "renders_page"
+    },
+    {
+      "source_id": "kanban_board_page",
+      "target_id": "drag_drop_kanban",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "task_manager_app",
+      "target_id": "task_db",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "chat_app",
+      "target_id": "user_auth",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "chat_app",
+      "target_id": "push_notifications",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "chat_app",
+      "target_id": "chat_workspace_page",
+      "relation_type": "renders_page"
+    },
+    {
+      "source_id": "chat_workspace_page",
+      "target_id": "collapsible_sidebar_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "chat_app",
+      "target_id": "chat_socket_backend",
+      "relation_type": "requires_backend"
+    },
+    {
+      "source_id": "chat_app",
+      "target_id": "message_db",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "user_auth",
+      "target_id": "user_db",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "saas_dashboard",
+      "target_id": "file_storage_s3",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "saas_dashboard",
+      "target_id": "comments_engine",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "saas_dashboard",
+      "target_id": "websocket_chat",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "ecommerce_marketplace",
+      "target_id": "comments_engine",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "ecommerce_marketplace",
+      "target_id": "websocket_chat",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "ecommerce_marketplace",
+      "target_id": "reports_generator",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "crm_platform",
+      "target_id": "billing_gateway",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "crm_platform",
+      "target_id": "audit_logs",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "crm_platform",
+      "target_id": "email_notifications",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "hr_management",
+      "target_id": "audit_logs",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "hr_management",
+      "target_id": "email_notifications",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "hr_management",
+      "target_id": "search_autocomplete",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "inventory_tracker",
+      "target_id": "email_notifications",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "inventory_tracker",
+      "target_id": "search_autocomplete",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "inventory_tracker",
+      "target_id": "rbac_permissions",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "learning_cms",
+      "target_id": "search_autocomplete",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "learning_cms",
+      "target_id": "rbac_permissions",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "learning_cms",
+      "target_id": "file_storage_s3",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "healthcare_emr",
+      "target_id": "rbac_permissions",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "healthcare_emr",
+      "target_id": "file_storage_s3",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "healthcare_emr",
+      "target_id": "comments_engine",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "ecommerce_marketplace",
+      "target_id": "reports_gateway",
+      "relation_type": "has_feature"
+    },
+    {
+      "source_id": "billing_gateway",
+      "target_id": "billing_portal_page",
+      "relation_type": "renders_page"
+    },
+    {
+      "source_id": "audit_logs",
+      "target_id": "audit_logs_page",
+      "relation_type": "renders_page"
+    },
+    {
+      "source_id": "rbac_permissions",
+      "target_id": "permissions_admin_page",
+      "relation_type": "renders_page"
+    },
+    {
+      "source_id": "file_storage_s3",
+      "target_id": "user_profile_page",
+      "relation_type": "renders_page"
+    },
+    {
+      "source_id": "websocket_chat",
+      "target_id": "appointment_schedule_page",
+      "relation_type": "renders_page"
+    },
+    {
+      "source_id": "reports_gateway",
+      "target_id": "inventory_dashboard_page",
+      "relation_type": "renders_page"
+    },
+    {
+      "source_id": "billing_portal_page",
+      "target_id": "toast_notification_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "billing_portal_page",
+      "target_id": "modal_dialog_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "billing_portal_page",
+      "target_id": "skeleton_loader_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "audit_logs_page",
+      "target_id": "modal_dialog_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "audit_logs_page",
+      "target_id": "skeleton_loader_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "audit_logs_page",
+      "target_id": "segmented_tab_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "user_profile_page",
+      "target_id": "skeleton_loader_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "user_profile_page",
+      "target_id": "segmented_tab_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "user_profile_page",
+      "target_id": "file_dropzone_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "permissions_admin_page",
+      "target_id": "segmented_tab_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "permissions_admin_page",
+      "target_id": "file_dropzone_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "permissions_admin_page",
+      "target_id": "autocomplete_input_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "documents_hub_page",
+      "target_id": "file_dropzone_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "documents_hub_page",
+      "target_id": "autocomplete_input_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "documents_hub_page",
+      "target_id": "progress_ring_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "appointment_schedule_page",
+      "target_id": "autocomplete_input_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "appointment_schedule_page",
+      "target_id": "progress_ring_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "appointment_schedule_page",
+      "target_id": "shadcn_data_table",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "inventory_dashboard_page",
+      "target_id": "progress_ring_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "inventory_dashboard_page",
+      "target_id": "shadcn_data_table",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "inventory_dashboard_page",
+      "target_id": "collapsible_sidebar_component",
+      "relation_type": "contains_component"
+    },
+    {
+      "source_id": "billing_gateway",
+      "target_id": "stripe_webhook_handler",
+      "relation_type": "requires_backend"
+    },
+    {
+      "source_id": "audit_logs",
+      "target_id": "audit_event_writer",
+      "relation_type": "requires_backend"
+    },
+    {
+      "source_id": "file_storage_s3",
+      "target_id": "s3_upload_presigner",
+      "relation_type": "requires_backend"
+    },
+    {
+      "source_id": "rbac_permissions",
+      "target_id": "jwt_rbac_validator",
+      "relation_type": "requires_backend"
+    },
+    {
+      "source_id": "websocket_chat",
+      "target_id": "websocket_chat_server",
+      "relation_type": "requires_backend"
+    },
+    {
+      "source_id": "billing_gateway",
+      "target_id": "users_schema",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "audit_event_writer",
+      "target_id": "audit_logs_schema",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "s3_upload_presigner",
+      "target_id": "assets_storage_schema",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "jwt_rbac_validator",
+      "target_id": "rbac_permissions_schema",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "websocket_chat_server",
+      "target_id": "chat_messages_schema",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_1",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_2",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_3",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_4",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_5",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_6",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_7",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_8",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_9",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_10",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_11",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_12",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_13",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_14",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_15",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_16",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_17",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_18",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_19",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_20",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_21",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_22",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_23",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_24",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_25",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_26",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_27",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_28",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_29",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_30",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_31",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_32",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_33",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_34",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_35",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_36",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_37",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_38",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_39",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_40",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_41",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_42",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_43",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_44",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_45",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_46",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_47",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_48",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_49",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_50",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_51",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_52",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_53",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_54",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_55",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_56",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_57",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_58",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_59",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_60",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_61",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_62",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_63",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_64",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_65",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_66",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_67",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_68",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_69",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_70",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_71",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_72",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_73",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_74",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_75",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_76",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_77",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_78",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_79",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_80",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_81",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_82",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_83",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_84",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_85",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_86",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_87",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_88",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_89",
+      "relation_type": "uses_db_model"
+    },
+    {
+      "source_id": "glassmorphism_theme",
+      "target_id": "design_token_pattern_90",
+      "relation_type": "uses_db_model"
+    }
+  ]
+}

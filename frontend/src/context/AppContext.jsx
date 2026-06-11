@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import {
   testDatabaseConnectivity,
   supabaseFetchHistory,
@@ -9,6 +9,7 @@ import {
 } from "../services/supabase";
 import { track, EVENTS } from "../lib/analytics";
 import { FREE_TIER_LIMITS } from "../styles/tokens";
+import { API_BASE_URL } from "../config/api";
 import { toast } from "sonner";
 import { auth, googleProvider } from "../lib/firebase";
 import {
@@ -24,6 +25,7 @@ const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
   const [user, setUser] = useState(null);
+  const isLoggingOutRef = useRef(false);
   const [apiKey, setApiKey] = useState("");
   const [history, setHistory] = useState([]);
   const [activeTheme, setActiveTheme] = useState("Sleek Dark Glassmorphic");
@@ -92,7 +94,7 @@ export function AppProvider({ children }) {
       const isDbLive = await testDatabaseConnectivity();
       setDbConnected(isDbLive);
 
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      const backendUrl = API_BASE_URL;
       
       // Fetch vocabulary dynamically
       try {
@@ -180,6 +182,10 @@ export function AppProvider({ children }) {
 
     // Bind Firebase state listener
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (isLoggingOutRef.current) {
+        console.log("Auth state change ignored during sign-out.");
+        return;
+      }
       if (firebaseUser) {
         if (firebaseUser.emailVerified) {
           let profileUser = { 
@@ -513,15 +519,18 @@ export function AppProvider({ children }) {
   };
 
   const logout = async () => {
+    isLoggingOutRef.current = true;
     try {
       await fetch("/api/auth/session", { method: "DELETE" });
       await signOut(auth);
     } catch (err) {
       console.error("Logout Error:", err);
+    } finally {
+      setUser(null);
+      localStorage.removeItem("promptforge_session");
+      localStorage.removeItem("promptforge_session_mock");
+      isLoggingOutRef.current = false;
     }
-    setUser(null);
-    localStorage.removeItem("promptforge_session");
-    localStorage.removeItem("promptforge_session_mock");
     track(EVENTS.USER_LOGGED_OUT);
   };
 
@@ -837,7 +846,7 @@ export function AppProvider({ children }) {
   };
 
   const reloadVocabulary = async () => {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+    const backendUrl = API_BASE_URL;
     try {
       setVocabLoading(true);
       setVocabError(false);

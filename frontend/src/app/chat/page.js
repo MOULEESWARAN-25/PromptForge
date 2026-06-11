@@ -22,6 +22,11 @@ import {
   CheckCircle2,
   Cloud,
   History,
+  Database,
+  Cpu,
+  Layers,
+  Compass,
+  Activity,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -354,12 +359,61 @@ function TermChip({ term }) {
 // ─── AI Transparency Panel & Design Tutor Sidebar ─────────────────
 function AITransparencyPanel({ ragDetails, theme, mode }) {
   const [open, setOpen] = useState(false);
+  const [expandedNode, setExpandedNode] = useState(null);
+
   if (!ragDetails) return null;
 
-  const technicalTerms = ragDetails.technicalTerms || [];
-  const designTokens = ragDetails.designTokens || [];
-  const frameworkRules = ragDetails.frameworkRules || [];
-  const promptPatterns = ragDetails.promptPatterns || [];
+  const results = ragDetails.results || [];
+  const anchor = ragDetails.anchor || {};
+  const expertReviews = ragDetails.expertReviews || [];
+
+  // Extract all entities in the blueprint
+  const blueprintEntities = [];
+  if (anchor.application) blueprintEntities.push({ ...anchor.application, type: 'application' });
+  if (Array.isArray(anchor.features)) {
+    anchor.features.forEach(f => blueprintEntities.push({ ...f, type: 'feature' }));
+  }
+  if (Array.isArray(anchor.pages)) {
+    anchor.pages.forEach(p => blueprintEntities.push({ ...p, type: 'page' }));
+  }
+  if (Array.isArray(anchor.components)) {
+    anchor.components.forEach(c => blueprintEntities.push({ ...c, type: 'component' }));
+  }
+  if (Array.isArray(anchor.backend_modules)) {
+    anchor.backend_modules.forEach(b => blueprintEntities.push({ ...b, type: 'backend_module' }));
+  }
+  if (Array.isArray(anchor.database_entities)) {
+    anchor.database_entities.forEach(d => blueprintEntities.push({ ...d, type: 'database_entity' }));
+  }
+
+  // Group entities for Blueprint Expansion Section
+  const retrievedDirectly = blueprintEntities.filter(e => e.source === 'graph' || e.source === 'user');
+  const closureAdded = blueprintEntities.filter(e => e.source === 'inference');
+  const recommendations = anchor.retrieval_metadata?.recommendations || [];
+  const expertsTriggered = expertReviews;
+
+  const retrievedDirectlyCount = retrievedDirectly.length;
+  const closureAddedCount = closureAdded.length;
+  const recommendedCount = recommendations.length;
+  const expertsTriggeredCount = expertsTriggered.length;
+
+  // Max score for relative similarity display
+  const maxScore = results.length > 0 ? Math.max(...results.map(r => r.score || 0)) : 1.0;
+
+  const getRelativeScore = (score) => {
+    if (!maxScore || maxScore <= 0) return 100;
+    const rel = (score / maxScore) * 100;
+    return Math.min(100, Math.round(rel));
+  };
+
+  // Humanize helper for recommended node names
+  const humanizeName = (id) => {
+    if (!id) return '';
+    return id
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
   return (
     <div style={ragPanel} className="animate-fade-up">
@@ -391,12 +445,12 @@ function AITransparencyPanel({ ragDetails, theme, mode }) {
               padding: "1px 6px",
             }}
           >
-            Confidence:{" "}
-            {Math.round((ragDetails.retrievalConfidence || 0.8) * 100)}%
+            Purity: {Math.round(ragDetails.telemetry_v2?.retrieval_purity_rate || 100)}%
           </span>
           {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
         </span>
       </button>
+
       <AnimatePresence>
         {open && (
           <motion.div
@@ -432,166 +486,293 @@ function AITransparencyPanel({ ragDetails, theme, mode }) {
                     fontWeight: "700",
                   }}
                 >
-                  {ragDetails.inferredIntent || "Custom Visual Page Segment"}
+                  {ragDetails.anchor?.application?.overview || ragDetails.inferredIntent || "Custom Visual Page Segment"}
                 </div>
               </div>
 
-              {/* Technical Designer Terms — Vocabulary Learning Drawer */}
-              {technicalTerms.length > 0 && (
-                <div style={{ marginBottom: "0.75rem" }}>
+              {/* 1. Quick Summary Stats Card */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.4rem', marginBottom: '0.75rem' }}>
+                <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.4rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Retrieved</div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--foreground)', marginTop: '0.1rem' }}>{retrievedDirectlyCount}</div>
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.4rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Closure</div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--accent)', marginTop: '0.1rem' }}>{closureAddedCount}</div>
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.4rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recommends</div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: '700', color: '#c084fc', marginTop: '0.1rem' }}>{recommendedCount}</div>
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.4rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Experts</div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: '700', color: '#38bdf8', marginTop: '0.1rem' }}>{expertsTriggeredCount}</div>
+                </div>
+              </div>
+
+              {/* 2. Retrieved Knowledge (Direct RAG Hits) */}
+              {results.length > 0 && (
+                <div style={{ marginBottom: "0.75rem", borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: "0.75rem" }}>
                   <div
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
+                      fontSize: "0.72rem",
+                      color: "var(--muted-foreground)",
+                      fontWeight: "500",
                       marginBottom: "0.5rem",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em"
                     }}
                   >
-                    <div
-                      style={{
-                        fontSize: "0.72rem",
-                        color: "var(--muted-foreground)",
-                        fontWeight: "500",
-                      }}
-                    >
-                      TECHNICAL TERMS INJECTED
+                    Direct RAG Knowledge Hits & Similarity
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                    {results.slice(0, 5).map((ent, idx) => {
+                      const relScore = getRelativeScore(ent.score);
+                      const isExpanded = expandedNode === ent.id;
+                      return (
+                        <div
+                          key={idx}
+                          style={{
+                            background: 'rgba(255,255,255,0.01)',
+                            border: '1px solid var(--border)',
+                            borderRadius: '6px',
+                            padding: '0.5rem',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => setExpandedNode(isExpanded ? null : ent.id)}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                              <span style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--foreground)' }}>{ent.name}</span>
+                              <span style={{
+                                fontSize: '0.58rem',
+                                color: 'var(--accent)',
+                                background: 'rgba(104,67,236,0.08)',
+                                border: '1px solid rgba(104,67,236,0.15)',
+                                borderRadius: '4px',
+                                padding: '1px 4px'
+                              }}>{ent.category}</span>
+                              {ent.kb_type && (
+                                <span style={{
+                                  fontSize: '0.58rem',
+                                  color: '#38bdf8',
+                                  background: 'rgba(56,189,248,0.08)',
+                                  border: '1px solid rgba(56,189,248,0.15)',
+                                  borderRadius: '4px',
+                                  padding: '1px 4px'
+                                }}>{ent.kb_type}</span>
+                              )}
+                            </div>
+                            <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--muted-foreground)' }}>
+                              Rel Match: {relScore}%
+                            </span>
+                          </div>
+                          {/* Similarity Score bar */}
+                          <div style={{ width: '100%', height: '3px', background: 'rgba(255,255,255,0.04)', borderRadius: '2px', overflow: 'hidden' }}>
+                            <div style={{ width: `${relScore}%`, height: '100%', background: 'linear-gradient(90deg, var(--accent) 0%, #c084fc 100%)' }} />
+                          </div>
+                          {isExpanded && (
+                            <div style={{ marginTop: '0.4rem', fontSize: '0.68rem', color: 'var(--muted-foreground)', lineHeight: '1.4' }} className="animate-fade-in">
+                              {ent.description || 'No overview description available.'}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* 3. Blueprint Expansion (Retrieved Directly, Closure Added, Recommended) */}
+              <div style={{ marginBottom: "0.75rem", borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: "0.75rem" }}>
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    color: "var(--muted-foreground)",
+                    fontWeight: "500",
+                    marginBottom: "0.5rem",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em"
+                  }}
+                >
+                  Blueprint Graph Closure Expansion
+                </div>
+                
+                {/* Retrieved Directly */}
+                <div style={{ marginBottom: '0.45rem' }}>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.2rem' }}>
+                    <Layers size={10} style={{ color: 'var(--accent)' }} />
+                    <span>Retrieved Directly ({retrievedDirectlyCount})</span>
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', paddingLeft: '0.75rem' }}>
+                    {retrievedDirectly.slice(0, 8).map((e, idx) => (
+                      <span key={idx} style={{
+                        fontSize: '0.6rem',
+                        color: 'var(--foreground)',
+                        background: 'rgba(255,255,255,0.02)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '4px',
+                        padding: '1px 4px'
+                      }}>{e.name}</span>
+                    ))}
+                    {retrievedDirectlyCount > 8 && (
+                      <span style={{ fontSize: '0.6rem', color: 'var(--muted-foreground)', alignSelf: 'center' }}>+{retrievedDirectlyCount - 8} more</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Closure Added */}
+                {closureAddedCount > 0 && (
+                  <div style={{ marginBottom: '0.45rem' }}>
+                    <div style={{ fontSize: '0.65rem', color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.2rem' }}>
+                      <Cpu size={10} style={{ color: 'var(--accent)' }} />
+                      <span>Closure Added via Dependencies ({closureAddedCount})</span>
                     </div>
-                    <div
-                      style={{
-                        fontSize: "0.62rem",
-                        color: "rgba(255,255,255,0.3)",
-                        fontStyle: "italic",
-                      }}
-                    >
-                      click any term to learn
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', paddingLeft: '0.75rem' }}>
+                      {closureAdded.slice(0, 8).map((e, idx) => (
+                        <span key={idx} style={{
+                          fontSize: '0.6rem',
+                          color: 'var(--accent)',
+                          background: 'rgba(104,67,236,0.03)',
+                          border: '1px solid rgba(104,67,236,0.12)',
+                          borderRadius: '4px',
+                          padding: '1px 4px'
+                        }}>{e.name}</span>
+                      ))}
+                      {closureAddedCount > 8 && (
+                        <span style={{ fontSize: '0.6rem', color: 'var(--muted-foreground)', alignSelf: 'center' }}>+{closureAddedCount - 8} more</span>
+                      )}
                     </div>
                   </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "0.4rem",
-                    }}
-                  >
-                    {technicalTerms.map((term, i) => (
-                      <TermChip key={i} term={term} />
-                    ))}
-                  </div>
-                </div>
-              )}
+                )}
 
-              {/* Tailwind CSS Styling Utility Tokens */}
-              {designTokens.length > 0 && (
-                <div style={{ marginBottom: "0.75rem" }}>
-                  <div
-                    style={{
-                      fontSize: "0.72rem",
-                      color: "var(--muted-foreground)",
-                      fontWeight: "500",
-                      marginBottom: "0.35rem",
-                    }}
-                  >
-                    COMPILED TAILWIND DESIGN TOKENS
+                {/* Recommended */}
+                {recommendedCount > 0 && (
+                  <div>
+                    <div style={{ fontSize: '0.65rem', color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.2rem' }}>
+                      <Compass size={10} style={{ color: '#c084fc' }} />
+                      <span>Recommended Modules ({recommendedCount})</span>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', paddingLeft: '0.75rem' }}>
+                      {recommendations.slice(0, 6).map((rel, idx) => (
+                        <span key={idx} style={{
+                          fontSize: '0.6rem',
+                          color: '#c084fc',
+                          background: 'rgba(192,132,252,0.03)',
+                          border: '1px dashed rgba(192,132,252,0.2)',
+                          borderRadius: '4px',
+                          padding: '1px 4px'
+                        }}>{humanizeName(rel.target_id)}</span>
+                      ))}
+                      {recommendedCount > 6 && (
+                        <span style={{ fontSize: '0.6rem', color: 'var(--muted-foreground)', alignSelf: 'center' }}>+{recommendedCount - 6} more</span>
+                      )}
+                    </div>
                   </div>
-                  <div
-                    style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}
-                  >
-                    {designTokens.map((token, i) => (
-                      <code
-                        key={i}
-                        style={{
-                          fontSize: "0.65rem",
-                          fontFamily: "var(--font-mono)",
-                          color: "#c084fc",
-                          background: "var(--card)",
-                          borderRadius: "4px",
-                          padding: "2px 6px",
-                          border: "1px solid rgba(255,255,255,0.04)",
-                        }}
-                      >
-                        {token}
-                      </code>
-                    ))}
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
 
-              {/* Active Framework Rules */}
-              {frameworkRules.length > 0 && (
-                <div style={{ marginBottom: "0.75rem" }}>
-                  <div
-                    style={{
-                      fontSize: "0.72rem",
-                      color: "var(--muted-foreground)",
-                      fontWeight: "500",
-                      marginBottom: "0.35rem",
-                    }}
-                  >
-                    ACTIVE FRAMEWORK CONVENTIONS
-                  </div>
-                  <ul
-                    style={{
-                      margin: 0,
-                      paddingLeft: "1rem",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "0.25rem",
-                    }}
-                  >
-                    {frameworkRules.slice(0, 3).map((rule, i) => (
-                      <li
-                        key={i}
-                        style={{
-                          fontSize: "0.7rem",
-                          color: "var(--muted-foreground)",
-                          lineHeight: "1.4",
-                        }}
-                      >
-                        {rule}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Skeletal Layout Skeletons */}
-              {promptPatterns.length > 0 && (
+              {/* 4. Triggered Expert Panel */}
+              {expertsTriggeredCount > 0 && (
                 <div>
                   <div
                     style={{
                       fontSize: "0.72rem",
                       color: "var(--muted-foreground)",
                       fontWeight: "500",
-                      marginBottom: "0.35rem",
+                      marginBottom: "0.5rem",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em"
                     }}
                   >
-                    UX & MOTION PHYSICS RESOLUTION
+                    Triggered Expert Panel Audits
                   </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "0.35rem",
-                    }}
-                  >
-                    {promptPatterns.slice(0, 2).map((pattern, i) => (
-                      <div
-                        key={i}
-                        style={{
-                          fontSize: "0.68rem",
-                          color: "var(--muted-foreground)",
-                          background: "rgba(255,255,255,0.01)",
-                          borderLeft: "2px solid var(--accent)",
-                          padding: "0.3rem 0.5rem",
-                          lineHeight: "1.45",
-                        }}
-                      >
-                        {pattern}
-                      </div>
-                    ))}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {expertReviews.map((rev, idx) => {
+                      const hasRisks = Array.isArray(rev.risks) && rev.risks.length > 0;
+                      const hasImprov = Array.isArray(rev.improvements) && rev.improvements.length > 0;
+                      const hasMissing = Array.isArray(rev.missing_items) && rev.missing_items.length > 0;
+                      
+                      return (
+                        <div
+                          key={idx}
+                          style={{
+                            background: 'rgba(255,255,255,0.01)',
+                            border: '1px solid var(--border)',
+                            borderRadius: '6px',
+                            padding: '0.5rem'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.35rem', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '0.2rem' }}>
+                            <Activity size={10} style={{ color: '#38bdf8' }} />
+                            <span style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--foreground)' }}>
+                              {rev.expert_role || 'Expert Reviewer'}
+                            </span>
+                          </div>
+
+                          {/* Risks */}
+                          {hasRisks && (
+                            <div style={{ marginBottom: '0.3rem' }}>
+                              <div style={{ fontSize: '0.6rem', fontWeight: '700', color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.2rem', marginBottom: '0.1rem' }}>
+                                <AlertCircle size={9} />
+                                <span>RISKS</span>
+                              </div>
+                              <ul style={{ margin: 0, paddingLeft: '0.75rem', listStyleType: 'disc' }}>
+                                {rev.risks.map((risk, i) => (
+                                  <li key={i} style={{ fontSize: '0.62rem', color: 'var(--muted-foreground)', lineHeight: '1.3' }}>
+                                    {risk}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* Improvements */}
+                          {hasImprov && (
+                            <div style={{ marginBottom: '0.3rem' }}>
+                              <div style={{ fontSize: '0.6rem', fontWeight: '700', color: '#4ade80', display: 'flex', alignItems: 'center', gap: '0.2rem', marginBottom: '0.1rem' }}>
+                                <CheckCircle2 size={9} />
+                                <span>IMPROVEMENTS</span>
+                              </div>
+                              <ul style={{ margin: 0, paddingLeft: '0.75rem', listStyleType: 'disc' }}>
+                                {rev.improvements.map((imp, i) => (
+                                  <li key={i} style={{ fontSize: '0.62rem', color: 'var(--muted-foreground)', lineHeight: '1.3' }}>
+                                    {imp}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* Missing Items */}
+                          {hasMissing && (
+                            <div>
+                              <div style={{ fontSize: '0.6rem', fontWeight: '700', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '0.2rem', marginBottom: '0.1rem' }}>
+                                <Sparkles size={9} style={{ color: '#fbbf24' }} />
+                                <span>MISSING DETAILS INJECTED</span>
+                              </div>
+                              <ul style={{ margin: 0, paddingLeft: '0.75rem', listStyleType: 'disc' }}>
+                                {rev.missing_items.map((miss, i) => (
+                                  <li key={i} style={{ fontSize: '0.62rem', color: 'var(--muted-foreground)', lineHeight: '1.3' }}>
+                                    {miss}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {!hasRisks && !hasImprov && !hasMissing && (
+                            <div style={{ fontSize: '0.62rem', color: 'var(--muted-foreground)', fontStyle: 'italic' }}>
+                              All structural integrity and domain requirements validated successfully.
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
+
             </div>
           </motion.div>
         )}

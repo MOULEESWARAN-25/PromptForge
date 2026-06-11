@@ -15,6 +15,7 @@ import {
   LayoutDashboard,
   Palette,
   Command,
+  Activity,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -32,6 +33,7 @@ const CommandPalette = dynamic(() => import("./CommandPalette"), {
 
 const PRIVATE_LINKS = [
   { href: "/dashboard", label: "Workspace", icon: LayoutDashboard },
+  { href: "/dashboard/observability", label: "Observability", icon: Activity },
   { href: "/vocabulary", label: "Design Tokens", icon: Palette },
 ];
 

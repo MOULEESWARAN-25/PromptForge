@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 import { track, EVENTS } from "../lib/analytics";
 import { toast } from "sonner";
 import { BRAND } from "../config/brand";
+import { API_BASE_URL } from "../config/api";
 
 const KEYBOARD_SHORTCUTS = [
   { keys: ["⌘", "K"], label: "Open command palette" },
@@ -64,7 +65,7 @@ export default function SettingsDrawer({ isOpen, onClose }) {
   useEffect(() => {
     if (isOpen) {
       setLoadingTelemetry(true);
-      fetch("http://localhost:8000/api/telemetry/stats")
+      fetch(`${API_BASE_URL}/api/telemetry/stats`)
         .then((res) => res.json())
         .then((data) => {
           setTelemetry(data);

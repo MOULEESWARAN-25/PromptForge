@@ -375,17 +375,7 @@ export async function POST(request) {
 }
 
 export async function DELETE() {
-  const isProduction = process.env.NODE_ENV === 'production';
   const response = NextResponse.json({ success: true });
-  
-  // Clear Cookie
-  response.cookies.set('promptforge_session', '', {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 0 // Expire instantly
-  });
-
+  response.cookies.delete('promptforge_session');
   return response;
 }

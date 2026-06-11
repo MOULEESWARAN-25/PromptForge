@@ -582,10 +582,10 @@ export default function VocabularyPage() {
                                   <Sparkles size={11} style={{ color: meta.color }} />
                                   <span style={promptTitleStyle}>Template AI Prompt</span>
                                 </div>
-                                <p style={promptTextStyle}>"{item.examplePrompt}"</p>
+                                <p style={promptTextStyle}>"{item.examplePrompt || item.example_prompt}"</p>
                                 <button
                                   style={copyPromptBtnStyle(meta, isDark)}
-                                  onClick={(e) => handleCopyPrompt(item.id, item.examplePrompt, e)}
+                                  onClick={(e) => handleCopyPrompt(item.id, item.examplePrompt || item.example_prompt, e)}
                                 >
                                   {isPromptCopied ? <Check size={13} /> : <Copy size={13} />}
                                   <span>{isPromptCopied ? 'Prompt Copied!' : 'Copy Prompt Template'}</span>
@@ -623,19 +623,19 @@ export default function VocabularyPage() {
                                       <div style={devNotesContentStyle(isDark)}>
                                         <div style={devNoteFieldStyle}>
                                           <span style={devNoteLabelStyle}>Colors:</span>
-                                          <code style={devNoteCodeStyle(meta.color)}>{item.designTokens.colors}</code>
+                                          <code style={devNoteCodeStyle(meta.color)}>{(item.designTokens || item.design_tokens || {}).colors}</code>
                                         </div>
                                         <div style={devNoteFieldStyle}>
                                           <span style={devNoteLabelStyle}>Spacing:</span>
-                                          <code style={devNoteCodeStyle(meta.color)}>{item.designTokens.spacing}</code>
+                                          <code style={devNoteCodeStyle(meta.color)}>{(item.designTokens || item.design_tokens || {}).spacing}</code>
                                         </div>
                                         <div style={devNoteFieldStyle}>
                                           <span style={devNoteLabelStyle}>Typography:</span>
-                                          <code style={devNoteCodeStyle(meta.color)}>{item.designTokens.typography}</code>
+                                          <code style={devNoteCodeStyle(meta.color)}>{(item.designTokens || item.design_tokens || {}).typography}</code>
                                         </div>
                                         <div style={devNoteFieldStyle}>
                                           <span style={devNoteLabelStyle}>Implementation Details:</span>
-                                          <p style={devNoteTextStyle}>{item.designTokens.developerNotes}</p>
+                                          <p style={devNoteTextStyle}>{(item.designTokens || item.design_tokens || {}).developerNotes}</p>
                                         </div>
                                       </div>
                                     </motion.div>

@@ -248,6 +248,13 @@ export default function DashboardPage() {
     }
   }, []);
 
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/auth');
+    }
+  }, [user, loading, router]);
+
   // Track + activity
   useEffect(() => {
     if (user) {

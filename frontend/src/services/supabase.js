@@ -120,7 +120,9 @@ export async function supabaseSavePrompt(username, record) {
       category: record.category || '',
       page_type: record.pageType || '',
       components: record.components || [],
-      component_name: record.componentName || ''
+      component_name: record.componentName || '',
+      engine_version: record.ragDetails?.engine_version || 'phase2',
+      telemetry_source: record.ragDetails?.telemetry_source || 'production'
     };
 
     const { error } = await supabase
