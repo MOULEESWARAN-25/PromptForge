@@ -140,12 +140,12 @@ export async function GET(request) {
 
     const sessionCookie = request.cookies.get('promptforge_session')?.value;
     if (!sessionCookie) {
-      return NextResponse.json({ error: 'No active session' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'No active session' });
     }
 
     const payload = verifySessionJwt(sessionCookie, JWT_SECRET);
     if (!payload) {
-      return NextResponse.json({ error: 'Invalid or expired session' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Invalid or expired session' });
     }
 
     let userProfile = { 

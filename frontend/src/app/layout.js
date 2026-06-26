@@ -5,24 +5,6 @@ import AuroraBackground from "@/components/AuroraBackground";
 import Navigation from "@/components/Navigation";
 import { Toaster } from "sonner";
 import OfflineBanner from "@/components/OfflineBanner";
-import { 
-  fontInter,
-  fontManrope,
-  fontDmSans,
-  fontOutfit,
-  fontPlusJakartaSans,
-  fontSpaceGrotesk,
-  fontSora,
-  fontPoppins,
-  fontNunito,
-  fontUrbanist,
-  fontIbmPlexSans,
-  fontJetBrainsMono,
-  fontRecursive,
-  fontSyne,
-  fontPlayfairDisplay,
-  fontLexend
-} from "@/lib/fonts";
 
 const workSans = Work_Sans({
   subsets: ["latin"],
@@ -71,7 +53,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${workSans.variable} ${darkerGrotesque.variable} ${fontInter.variable} ${fontManrope.variable} ${fontDmSans.variable} ${fontOutfit.variable} ${fontPlusJakartaSans.variable} ${fontSpaceGrotesk.variable} ${fontSora.variable} ${fontPoppins.variable} ${fontNunito.variable} ${fontUrbanist.variable} ${fontIbmPlexSans.variable} ${fontJetBrainsMono.variable} ${fontRecursive.variable} ${fontSyne.variable} ${fontPlayfairDisplay.variable} ${fontLexend.variable}`}
+      className={`${workSans.variable} ${darkerGrotesque.variable}`}
       suppressHydrationWarning
     >
       <head>

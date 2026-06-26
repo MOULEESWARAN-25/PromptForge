@@ -12,6 +12,7 @@ import { FREE_TIER_LIMITS } from "../styles/tokens";
 import { API_BASE_URL } from "../config/api";
 import { toast } from "sonner";
 import { auth, googleProvider } from "../lib/firebase";
+import { designVocabulary } from "../data/designVocabulary";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -105,11 +106,14 @@ export function AppProvider({ children }) {
           setVocabulary(data);
           setVocabError(false);
         } else {
-          setVocabError(true);
+          console.warn("Backend vocabulary offline, falling back to static vocabulary.");
+          setVocabulary(designVocabulary);
+          setVocabError(false);
         }
       } catch (e) {
-        console.error("Failed to fetch vocabulary from backend:", e);
-        setVocabError(true);
+        console.warn("Failed to fetch vocabulary from backend, falling back to static vocabulary. Error:", e.message);
+        setVocabulary(designVocabulary);
+        setVocabError(false);
       } finally {
         setVocabLoading(false);
       }
@@ -122,7 +126,7 @@ export function AppProvider({ children }) {
           setGlobalStats(data);
         }
       } catch (e) {
-        console.error("Failed to fetch global statistics:", e);
+        console.warn("Failed to fetch global statistics:", e.message);
       }
     }
     initDb();

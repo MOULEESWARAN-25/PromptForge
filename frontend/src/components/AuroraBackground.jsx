@@ -104,7 +104,6 @@ export default function AuroraBackground() {
           height: '100vh',
           zIndex: 0,
           pointerEvents: 'none',
-          willChange: 'transform',
         }}
       />
 
@@ -127,7 +126,6 @@ export default function AuroraBackground() {
           `,
           transform: 'translate(-50%, -50%)',
           opacity: 0.95,
-          willChange: 'transform',
         }}
       />
 
@@ -147,7 +145,6 @@ export default function AuroraBackground() {
           WebkitMaskImage: 'repeating-conic-gradient(black 0deg 3deg, transparent 3deg 9deg)',
           transform: 'translate(-50%, -50%)',
           opacity: 0.8,
-          willChange: 'transform',
         }}
       />
 

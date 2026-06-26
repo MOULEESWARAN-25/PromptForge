@@ -31,14 +31,7 @@ import {
 } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { toast } from "sonner";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { BRAND } from "@/config/brand";
-
-// Register GSAP ScrollTrigger client-side only
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 const getAccessibleColor = (color, isDark) => {
   if (isDark) {
@@ -243,99 +236,111 @@ export default function PremiumLandingPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // 1. Hero Reveal Timeline
-    const heroTl = gsap.timeline({ defaults: { ease: "power3.out" } });
-    heroTl
-      .fromTo(
-        ".hero-title-line",
-        { y: 50, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8, stagger: 0.15 },
-      )
-      .fromTo(
-        ".hero-subtitle",
-        { opacity: 0, y: 15 },
-        { opacity: 1, y: 0, duration: 0.6 },
-        "-=0.4",
-      )
-      .fromTo(
-        ".hero-stepper-item",
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.5, stagger: 0.08 },
-        "-=0.3",
-      )
-      .fromTo(
-        ".hero-stepper-line",
-        { scaleX: 0 },
-        { scaleX: 1, duration: 0.8, transformOrigin: "left center" },
-        "-=0.6",
-      )
-      .fromTo(
-        ".hero-cta-btn",
-        { opacity: 0, scale: 0.95 },
-        { opacity: 1, scale: 1, duration: 0.5, stagger: 0.1 },
-        "-=0.4",
-      )
-      .fromTo(
-        ".hero-visual-frame",
-        { opacity: 0, y: 30, scale: 0.98 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.8 },
-        "-=0.5",
-      );
-
-    // 2. Section Reveals
-    const sections = [
-      { ref: translationRef, selector: ".anim-translation" },
-      { ref: beforeAfterRef, selector: ".anim-beforeafter" },
-      { ref: proofRef, selector: ".anim-proof" },
-      { ref: moatRef, selector: ".anim-moat" },
-      { ref: workspaceRef, selector: ".anim-workspace" },
-      { ref: syncRef, selector: ".anim-sync" },
-      { ref: vocRef, selector: ".anim-voc" },
-      { ref: addsRef, selector: ".anim-adds" },
-      { ref: targetRef, selector: ".anim-target" },
-      { ref: ctaRef, selector: ".anim-cta" },
-    ];
-
-    sections.forEach(({ ref, selector }) => {
-      if (ref.current) {
-        gsap.fromTo(
-          ref.current.querySelectorAll(selector),
-          { y: 30, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.7,
-            stagger: 0.12,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: ref.current,
-              start: "top 82%",
-              toggleActions: "play none none none",
-            },
-          },
-        );
-      }
-    });
-
-    // 3. Translation Pipeline Conveyor Dot Animation
+    let ctx;
     let conveyorAnim = null;
-    if (translationRef.current) {
-      conveyorAnim = gsap.fromTo(
-        ".pipeline-flow-dot",
-        { left: "0%" },
-        {
-          left: "100%",
-          duration: 3,
-          repeat: -1,
-          ease: "none",
-        },
-      );
-    }
+
+    const initAnimations = async () => {
+      const { default: gsap } = await import("gsap");
+      const { ScrollTrigger } = await import("gsap/ScrollTrigger");
+
+      gsap.registerPlugin(ScrollTrigger);
+
+      ctx = gsap.context(() => {
+        // 1. Hero Reveal Timeline
+        const heroTl = gsap.timeline({ defaults: { ease: "power3.out" } });
+        heroTl
+          .fromTo(
+            ".hero-title-line",
+            { y: 50, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.8, stagger: 0.15 },
+          )
+          .fromTo(
+            ".hero-subtitle",
+            { opacity: 0, y: 15 },
+            { opacity: 1, y: 0, duration: 0.6 },
+            "-=0.4",
+          )
+          .fromTo(
+            ".hero-stepper-item",
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.5, stagger: 0.08 },
+            "-=0.3",
+          )
+          .fromTo(
+            ".hero-stepper-line",
+            { scaleX: 0 },
+            { scaleX: 1, duration: 0.8, transformOrigin: "left center" },
+            "-=0.6",
+          )
+          .fromTo(
+            ".hero-cta-btn",
+            { opacity: 0, scale: 0.95 },
+            { opacity: 1, scale: 1, duration: 0.5, stagger: 0.1 },
+            "-=0.4",
+          )
+          .fromTo(
+            ".hero-visual-frame",
+            { opacity: 0, y: 30, scale: 0.98 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.8 },
+            "-=0.5",
+          );
+
+        // 2. Section Reveals
+        const sections = [
+          { ref: translationRef, selector: ".anim-translation" },
+          { ref: beforeAfterRef, selector: ".anim-beforeafter" },
+          { ref: proofRef, selector: ".anim-proof" },
+          { ref: moatRef, selector: ".anim-moat" },
+          { ref: workspaceRef, selector: ".anim-workspace" },
+          { ref: syncRef, selector: ".anim-sync" },
+          { ref: vocRef, selector: ".anim-voc" },
+          { ref: addsRef, selector: ".anim-adds" },
+          { ref: targetRef, selector: ".anim-target" },
+          { ref: ctaRef, selector: ".anim-cta" },
+        ];
+
+        sections.forEach(({ ref, selector }) => {
+          if (ref.current) {
+            gsap.fromTo(
+              ref.current.querySelectorAll(selector),
+              { y: 30, opacity: 0 },
+              {
+                y: 0,
+                opacity: 1,
+                duration: 0.7,
+                stagger: 0.12,
+                ease: "power2.out",
+                scrollTrigger: {
+                  trigger: ref.current,
+                  start: "top 82%",
+                  toggleActions: "play none none none",
+                },
+              },
+            );
+          }
+        });
+
+        // 3. Translation Pipeline Conveyor Dot Animation
+        if (translationRef.current) {
+          conveyorAnim = gsap.fromTo(
+            ".pipeline-flow-dot",
+            { x: 0 },
+            {
+              x: 80,
+              duration: 3,
+              repeat: -1,
+              ease: "none",
+            },
+          );
+        }
+      });
+    };
+
+    initAnimations();
 
     return () => {
-      heroTl.kill();
+      if (ctx) ctx.revert();
       if (conveyorAnim) conveyorAnim.kill();
-      ScrollTrigger.getAll().forEach((t) => t.kill());
     };
   }, []);
 
@@ -443,8 +448,9 @@ export default function PremiumLandingPage() {
             height: 50px !important;
           }
           .pipeline-flow-dot {
-            top: 0% !important;
+            top: 0px !important;
             left: -3px !important;
+            transform: translateY(0);
             animation: pipelineVerticalDot 3s infinite linear !important;
           }
           .audience-grid-style {
@@ -471,8 +477,8 @@ export default function PremiumLandingPage() {
         }
 
         @keyframes pipelineVerticalDot {
-          0% { top: 0%; }
-          100% { top: 100%; }
+          0% { transform: translateY(0); }
+          100% { transform: translateY(50px); }
         }
       `,
         }}
@@ -1111,7 +1117,7 @@ export default function PremiumLandingPage() {
                 <div style={addsCardIconBox(resolvedColor, isDark)}>
                   <CardIcon size={16} style={{ color: resolvedColor }} />
                 </div>
-                <h4 style={addsCardTitleText}>{card.title}</h4>
+                <h3 style={addsCardTitleText}>{card.title}</h3>
                 <p style={addsCardDescText}>{card.desc}</p>
               </div>
             );
@@ -1134,9 +1140,9 @@ export default function PremiumLandingPage() {
               <Layers size={11} className="text-purple-400" />
               <span>Framework Synchronization</span>
             </div>
-            <h3 style={syncTitleText}>
+            <h2 style={syncTitleText}>
               Sync frames directly with existing repositories.
-            </h3>
+            </h2>
             <p style={syncParagraph}>
               Do not build in a silo. {BRAND.name} reads active Git branches,
               extracts existing visual tokens from your source files, and builds
@@ -1414,9 +1420,9 @@ export default function PremiumLandingPage() {
                     <span style={drawerBadge(isDark)}>
                       {selectedToken.category}
                     </span>
-                    <h4 id="drawer-token-title" style={drawerTitleText}>
+                    <h3 id="drawer-token-title" style={drawerTitleText}>
                       {selectedToken.name}
-                    </h4>
+                    </h3>
                   </div>
                   <button
                     onClick={() => setDrawerOpen(false)}
@@ -1514,7 +1520,7 @@ export default function PremiumLandingPage() {
                 <div style={checkDot}>
                   <Check size={11} style={{ color: "var(--accent)" }} />
                 </div>
-                <h4 style={audienceTitleText}>{aud.title}</h4>
+                <h3 style={audienceTitleText}>{aud.title}</h3>
               </div>
               <p style={audienceDescText}>{aud.desc}</p>
             </div>
@@ -1906,6 +1912,7 @@ const pipelineFlowTrack = {
 const pipelineFlowDot = {
   position: "absolute",
   top: "-3px",
+  left: "0px",
   width: "8px",
   height: "8px",
   borderRadius: "50%",
