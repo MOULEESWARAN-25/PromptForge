@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Layers, Check, Shield, Zap, RefreshCw, Monitor, BookOpen, CheckCircle2, ChevronRight } from "lucide-react";
+import { ArrowRight, Layers, Check, Shield, Zap, RefreshCw, Monitor, BookOpen, CheckCircle2 } from "lucide-react";
 import { BRAND } from "@/config/brand";
 import { gsap } from "gsap";
 
