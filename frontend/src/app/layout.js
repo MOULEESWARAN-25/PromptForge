@@ -1,4 +1,4 @@
-import { Work_Sans, Darker_Grotesque } from "next/font/google";
+import { Inter, Darker_Grotesque, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
 import AuroraBackground from "@/components/AuroraBackground";
@@ -6,17 +6,34 @@ import Navigation from "@/components/Navigation";
 import { Toaster } from "sonner";
 import OfflineBanner from "@/components/OfflineBanner";
 
-const workSans = Work_Sans({
+/**
+ * Inter — Primary application font for all authenticated views.
+ * Applied globally to body, inputs, buttons, labels, and navigation.
+ */
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
   weight: ["300", "400", "500", "600", "700", "800"],
   display: "swap",
 });
 
+/**
+ * Darker Grotesque — Display font for the Landing page only.
+ * Applied via the .landing-page CSS class, NOT applied to body globally.
+ */
 const darkerGrotesque = Darker_Grotesque({
   subsets: ["latin"],
   variable: "--font-display",
   weight: ["400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
+
+/**
+ * Geist Mono — Monospaced font for code elements and configuration blocks.
+ */
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -53,10 +70,11 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${workSans.variable} ${darkerGrotesque.variable}`}
+      className={`${inter.variable} ${darkerGrotesque.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
       <head>
+        {/* Theme initializer: reads localStorage before first paint to prevent FOUC */}
         <script
           id="theme-initializer"
           suppressHydrationWarning
@@ -65,7 +83,7 @@ export default function RootLayout({ children }) {
               try {
                 var savedTheme = localStorage.getItem('promptforge_theme') || 'dark';
                 if (savedTheme === 'dark') {
-                  document.documentElement.classList.add('dark');                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+                  document.documentElement.classList.add('dark');
                 } else {
                   document.documentElement.classList.remove('dark');
                 }
@@ -73,17 +91,6 @@ export default function RootLayout({ children }) {
             })();
           ` }}
         />
-        <style dangerouslySetInnerHTML={{ __html: `
-          body, button, input, textarea, select, label, p, span, li, a {
-            font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-            font-feature-settings: 'ss01', 'cv01';
-          }
-          h1, h2, h3, h4, h5, h6, .display-font, .hero-headline, .display-xl, .display-lg, .display-md {
-            font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
-            letter-spacing: -0.02em;
-            font-weight: 800;
-          }
-        ` }} />
       </head>
       <body>
         {/* Skip-to-content link for keyboard/screen reader accessibility */}
@@ -94,7 +101,10 @@ export default function RootLayout({ children }) {
           <OfflineBanner />
           <AuroraBackground />
           <Navigation />
-          <main id="main-content" style={mainWrapper}>
+          <main
+            id="main-content"
+            className="w-full flex flex-col min-h-[calc(100dvh-var(--nav-height,64px))]"
+          >
             {children}
           </main>
 
@@ -102,7 +112,7 @@ export default function RootLayout({ children }) {
             position="bottom-right"
             toastOptions={{
               style: {
-                borderRadius: '12px',
+                borderRadius: 'var(--radius-lg)',
                 fontFamily: 'var(--font-sans)',
                 fontSize: '0.875rem',
               },
@@ -115,12 +125,5 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
-
-const mainWrapper = {
-  width: '100%',
-  minHeight: 'calc(100dvh - 100px)',
-  display: 'flex',
-  flexDirection: 'column',
-};
 
 

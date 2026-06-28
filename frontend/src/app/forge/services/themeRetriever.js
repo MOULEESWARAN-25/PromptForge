@@ -6,7 +6,6 @@ import themes from '@/data/knowledge/themes.json';
  * glassmorphic elevations, border-radius tokens, and typographic scale tokens.
  */
 export async function retrieveThemeStyleGuide(themeName) {
-  console.log(`[Theme Retriever] Resolving rules for visual style guide: "${themeName}"`);
   
   // Find curated theme details
   const theme = themes.find(

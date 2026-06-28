@@ -64,7 +64,7 @@ export function ClarificationLayer({
         <span style={stepNum}>??</span>
         <div>
           <h3 style={stepTitle}>Requirement Clarification Layer</h3>
-          <p style={stepDesc}>Your prompt description is brief or vague. Let's align your high-level visual vision before invoking RAG compilation.</p>
+          <p style={stepDesc}>Your prompt description is brief or vague. Let&apos;s align your high-level visual vision before invoking RAG compilation.</p>
         </div>
       </div>
 

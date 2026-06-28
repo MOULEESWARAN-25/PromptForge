@@ -79,20 +79,7 @@ export default function AuroraBackground() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @keyframes bg-spin-clockwise {
-          0%   { transform: translate(-50%, -50%) rotate(0deg); }
-          100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-        @keyframes bg-spin-counter {
-          0%   { transform: translate(-50%, -50%) rotate(360deg); }
-          100% { transform: translate(-50%, -50%) rotate(0deg); }
-        }
-        @keyframes flow-dash {
-          to { stroke-dashoffset: -40; }
-        }
-      ` }} />
+
 
       {/* 1. Animated Purple Aurora Canvas */}
       <canvas

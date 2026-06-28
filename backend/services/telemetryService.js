@@ -34,6 +34,10 @@ const stats = {
     status: "Active",
   },
   uptimeStart: Date.now(),
+  cacheHits: 0,
+  retries: 0,
+  promptSizes: [],
+  responseSizes: [],
 };
 
 // Helper to update moving average latency
@@ -82,6 +86,53 @@ export const telemetryService = {
     }
   },
 
+  recordCacheHit() {
+    stats.cacheHits++;
+  },
+
+  recordRetry() {
+    stats.retries++;
+  },
+
+  recordPromptSize(size) {
+    if (typeof size === 'number') {
+      stats.promptSizes.push(size);
+    }
+  },
+
+  recordResponseSize(size) {
+    if (typeof size === 'number') {
+      stats.responseSizes.push(size);
+    }
+  },
+
+  getDerivedMetrics() {
+    const totalRuns = stats.gemini.requests + stats.groq.requests;
+    const totalGenerations = totalRuns + stats.cacheHits;
+
+    const cacheHitPct = totalGenerations > 0 ? Math.round((stats.cacheHits / totalGenerations) * 100) : 0;
+    const retryPct = totalRuns > 0 ? Math.round((stats.retries / totalRuns) * 100) : 0;
+    
+    const avgPromptSize = stats.promptSizes.length > 0
+      ? Math.round(stats.promptSizes.reduce((acc, v) => acc + v, 0) / stats.promptSizes.length)
+      : 0;
+
+    const avgResponseSize = stats.responseSizes.length > 0
+      ? Math.round(stats.responseSizes.reduce((acc, v) => acc + v, 0) / stats.responseSizes.length)
+      : 0;
+
+    return {
+      avgLatencyGeminiMs: stats.gemini.avgLatencyMs,
+      avgLatencyGroqMs: stats.groq.avgLatencyMs,
+      cacheHitPercentage: cacheHitPct,
+      retryPercentage: retryPct,
+      averagePromptSizeCharacters: avgPromptSize,
+      averageResponseSizeCharacters: avgResponseSize,
+      totalCacheHits: stats.cacheHits,
+      totalRetries: stats.retries
+    };
+  },
+
   async getStats() {
     // Dynamically verify Supabase latency
     const start = Date.now();
@@ -105,6 +156,7 @@ export const telemetryService = {
 
     return {
       ...stats,
+      derived: this.getDerivedMetrics(),
       uptimeSeconds: Math.round((Date.now() - stats.uptimeStart) / 1000),
       timestamp: new Date(),
     };

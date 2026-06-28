@@ -18,7 +18,7 @@ const NAV_ACTIONS = [
   { id: 'nav-forge-app', label: 'New Full-Stack Forge', icon: Monitor, href: '/forge?mode=application', group: 'Quick Action' },
   { id: 'nav-forge-page', label: 'New Web Page Design', icon: Layout, href: '/forge?mode=page', group: 'Quick Action' },
   { id: 'nav-forge-enhance', label: 'Quick Prompt Enhance', icon: Wand2, href: '/forge?mode=enhance', group: 'Quick Action' },
-  { id: 'nav-components', label: 'Component Catalog', icon: Code2, href: '/component-forge', group: 'Quick Action' },
+  { id: 'nav-components', label: 'Component Catalog', icon: Code2, href: '/forge?mode=component', group: 'Quick Action' },
   { id: 'nav-settings', label: 'Open Settings', icon: Settings, action: 'settings', group: 'Settings' },
   { id: 'nav-theme', label: 'Toggle Theme', icon: Moon, action: 'theme', group: 'Settings' },
 ];
@@ -149,7 +149,7 @@ export default function CommandPalette({ onSettingsOpen }) {
                 {items.length === 0 ? (
                   <div style={emptyResult}>
                     <Sparkles size={18} style={{ color: 'var(--muted-foreground)', opacity: 0.5 }} />
-                    <span>No results for "{query}"</span>
+                    <span>No results for &ldquo;{query}&rdquo;</span>
                   </div>
                 ) : (
                   Object.entries(grouped).map(([group, groupItems]) => (

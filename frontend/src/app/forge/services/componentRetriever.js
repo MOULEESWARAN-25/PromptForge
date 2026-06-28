@@ -6,7 +6,6 @@ import components from '@/data/knowledge/components.json';
  * standard ARIA parameters, and responsive flex grid layouts.
  */
 export async function retrieveComponentSpecs(componentName) {
-  console.log(`[Component Retriever] Querying structural parameters for widget: "${componentName}"`);
   
   if (!componentName) {
     return null;

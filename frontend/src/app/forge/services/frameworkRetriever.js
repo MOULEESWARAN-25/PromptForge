@@ -5,7 +5,6 @@ import frameworks from '@/data/knowledge/frameworks.json';
  * Resolves boilerplate syntax rules, required npm packages, and configurations for target UI libraries.
  */
 export async function retrieveFrameworkBoilerplate(frameworkName) {
-  console.log(`[Framework Retriever] Querying structural boilerplate for: "${frameworkName}"`);
   
   // Find framework matching selected stack
   const matchedFramework = frameworks.find(

@@ -6,7 +6,6 @@ import pagePatterns from '@/data/knowledge/pagePatterns.json';
  * UX hierarchical guides, and critical structural sections.
  */
 export async function retrievePagePatternSpecs(pageType) {
-  console.log(`[Page Pattern Retriever] Querying structural layout rules for: "${pageType}"`);
   
   if (!pageType) {
     return null;

@@ -5,11 +5,13 @@ import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { cn } from '@/lib/cn';
 import {
-  Search, Copy, Check, Code, BookOpen, Filter,
+  Search, Copy, Check, BookOpen,
   Compass, Palette, Code2, Server, Cpu, Layers,
-  ChevronDown, ChevronUp, Sparkles, X, ArrowRight, Info
+  ChevronDown, Sparkles, X, ArrowRight, Info
 } from 'lucide-react';
+import { CONTENT } from '@/config/contentRegistry';
 
 // ─── Constants & Configuration ────────────────────────────────
 const ACTIVE_CATEGORIES = [
@@ -73,6 +75,58 @@ const getCatMeta = (cat, isDark) => {
     border: `color-mix(in srgb, ${resolvedColor} 20%, transparent)`,
   };
 };
+
+// ─── Vocabulary Search Engine ─────────────────────────────────
+// Normalizes queries, handles plurals/whitespace, and returns relevance-scored results.
+function normalize(str) {
+  return str.toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+function depluralize(word) {
+  if (word.endsWith('ies')) return word.slice(0, -3) + 'y';
+  if (word.endsWith('ses') || word.endsWith('zes') || word.endsWith('xes') || word.endsWith('ches') || word.endsWith('shes')) return word.slice(0, -2);
+  if (word.endsWith('s') && !word.endsWith('ss')) return word.slice(0, -1);
+  return word;
+}
+
+function scoreItem(item, query) {
+  const q = normalize(query);
+  if (!q) return 1; // no query = include everything
+  const qDeplural = depluralize(q);
+  const tokens = q.split(' ').filter(Boolean);
+  const name = normalize(item.name);
+  const desc = normalize(item.description);
+  const kws = (item.keywords || []).map(k => normalize(k));
+  const tags = (item.tags || []).map(t => normalize(t));
+  let score = 0;
+
+  // Exact name match (highest relevance)
+  if (name === q || name === qDeplural) score += 100;
+  // Name starts with query
+  else if (name.startsWith(q) || name.startsWith(qDeplural)) score += 60;
+  // Name contains query
+  else if (name.includes(q) || name.includes(qDeplural)) score += 40;
+
+  // Keyword exact match
+  if (kws.some(k => k === q || k === qDeplural)) score += 30;
+  // Keyword partial match
+  else if (kws.some(k => k.includes(q) || k.includes(qDeplural))) score += 15;
+
+  // Tag match
+  if (tags.some(t => t === q || t === qDeplural || t.includes(q))) score += 10;
+
+  // Description match
+  if (desc.includes(q) || desc.includes(qDeplural)) score += 5;
+
+  // Multi-token: check if ALL tokens appear somewhere
+  if (tokens.length > 1) {
+    const allText = `${name} ${desc} ${kws.join(' ')} ${tags.join(' ')}`;
+    const allMatch = tokens.every(t => allText.includes(t) || allText.includes(depluralize(t)));
+    if (allMatch) score += 20;
+  }
+
+  return score;
+}
 
 export default function VocabularyPage() {
   const { user, theme, vocabulary, vocabLoading, vocabError, reloadVocabulary } = useApp();
@@ -144,12 +198,7 @@ export default function VocabularyPage() {
       ACTIVE_CATEGORIES.forEach(cat => {
         const hasMatch = (vocabulary || []).some(item => {
           if (item.category !== cat) return false;
-          const q = debouncedSearchQuery.toLowerCase().trim();
-          return (
-            item.name.toLowerCase().includes(q) ||
-            item.description.toLowerCase().includes(q) ||
-            item.keywords.some(k => k.toLowerCase().includes(q))
-          );
+          return scoreItem(item, debouncedSearchQuery) > 0;
         });
         if (hasMatch) {
           matchingCategories.push(cat);
@@ -169,7 +218,8 @@ export default function VocabularyPage() {
         preSearchExpandedSections.current = null;
       }
     }
-  }, [debouncedSearchQuery, vocabulary]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchQuery, vocabulary]); // Intentional: only snapshot expandedSections when search transitions from empty to non-empty
 
   // 5. URL Deep Linking: Read hash on mount/hash change
   useEffect(() => {
@@ -211,19 +261,18 @@ export default function VocabularyPage() {
 
   if (!user) return null;
 
-  // 6. Filter & prepare vocabulary items (Display ONLY the 6 specified categories)
+  // 6. Filter & prepare vocabulary items with relevance scoring
   const vocabList = vocabulary || [];
   const vocabularyData = vocabList.filter(item => ACTIVE_CATEGORIES.includes(item.category));
   
-  const filteredData = vocabularyData.filter(item => {
-    const q = debouncedSearchQuery.toLowerCase().trim();
-    if (!q) return true;
-    return (
-      item.name.toLowerCase().includes(q) ||
-      item.description.toLowerCase().includes(q) ||
-      item.keywords.some(k => k.toLowerCase().includes(q))
-    );
-  });
+  const scoredData = vocabularyData.map(item => ({
+    ...item,
+    _score: scoreItem(item, debouncedSearchQuery)
+  }));
+
+  const filteredData = debouncedSearchQuery.trim()
+    ? scoredData.filter(item => item._score > 0).sort((a, b) => b._score - a._score)
+    : scoredData;
 
   // Group filtered results by category
   const grouped = {};
@@ -277,7 +326,7 @@ export default function VocabularyPage() {
   const handlePillClick = (category) => {
     const slug = CATEGORY_SLUGS[category];
     if (slug) {
-      window.location.hash = slug; // Triggers deep link logic (expanding + scrolling + flashing)
+      router.push('#' + slug);
     }
   };
 
@@ -286,84 +335,48 @@ export default function VocabularyPage() {
   };
 
   return (
-    <div style={{ position: 'relative', zIndex: 2, width: '95%', maxWidth: '1600px', margin: '0 auto', padding: '1rem 1.5rem 3rem 1.5rem' }}>
+    <div className="relative z-10 w-[95%] max-w-[1600px] mx-auto py-4 px-6 pb-12">
       
       {/* Unified Header Row */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "180px 1fr 180px",
-          alignItems: "center",
-          width: "100%",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
-          paddingBottom: "1rem",
-          marginBottom: "0.5rem",
-        }}
-        className="vocabulary-header-row"
-      >
+      <div className="grid grid-cols-[180px_1fr_180px] items-center w-full border-b border-white/5 pb-4 mb-2 vocabulary-header-row">
         {/* Left: Back Button */}
-        <div style={{ display: "flex", justifyContent: "flex-start" }}>
+        <div className="flex justify-start">
           <button 
             onClick={() => router.back()} 
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.55rem',
-              padding: '0.55rem 1rem',
-              borderRadius: '10px',
-              fontSize: '0.8rem',
-              fontWeight: '600',
-              color: 'var(--muted-foreground)',
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
-              cursor: 'pointer',
-              transition: 'all 0.25s ease',
-              fontFamily: 'var(--font-sans)',
-            }}
-            className="glass-panel active-scale-95 glow-card-spotlight"
+            className="glass-panel active-scale-95 glow-card-spotlight inline-flex items-center gap-[0.55rem] px-4 py-[0.55rem] rounded-[10px] text-[0.8rem] font-semibold text-muted-foreground bg-card border border-border cursor-pointer transition-all duration-250 ease-out font-sans"
             aria-label="Back"
           >
-            <ArrowRight size={15} style={{ transform: 'rotate(180deg)' }} />
+            <ArrowRight size={15} className="rotate-180" strokeWidth={1.75} />
             <span>Back</span>
           </button>
         </div>
 
         {/* Center: Welcome Title & Subtitle */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem" }}>
-          <div style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '10px',
-            background: 'color-mix(in srgb, #a855f7 8%, transparent)',
-            border: '1px solid color-mix(in srgb, #a855f7 15%, transparent)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}>
-            <BookOpen size={18} style={{ color: '#a855f7' }} />
+        <div className="flex items-center justify-center gap-3">
+          <div className="w-[38px] h-[38px] rounded-[10px] bg-[color-mix(in_srgb,#a855f7_8%,transparent)] border border-[color-mix(in_srgb,#a855f7_15%,transparent)] flex items-center justify-center shrink-0">
+            <BookOpen size={18} className="text-[#a855f7]" strokeWidth={1.75} />
           </div>
-          <div style={{ textAlign: "left" }}>
-            <h1 style={{ fontSize: '1.25rem', fontWeight: '800', letterSpacing: '-0.02em', color: 'var(--foreground)', fontFamily: 'var(--font-display)', margin: 0, lineHeight: '1.2' }}>
+          <div className="text-left">
+            <h1 className="text-[1.25rem] font-extrabold tracking-tight text-foreground font-display m-0 leading-snug">
               Terminology Library
             </h1>
-            <p style={{ fontSize: '0.82rem', color: 'var(--muted-foreground)', margin: '0.15rem 0 0 0', lineHeight: '1.2' }}>
+            <p className="text-[0.82rem] text-muted-foreground mt-[0.15rem] mb-0 leading-snug">
               A compact library of design tokens, architectural paradigms, and strategy concepts.
             </p>
           </div>
         </div>
 
         {/* Right spacer */}
-        <div style={{ display: "flex", justifyContent: "flex-end" }} />
+        <div className="flex justify-end" />
       </div>
 
       {/* ── Sticky Toolbar ────────────────────────────────────── */}
       <div className="terminology-toolbar">
-        <div style={toolbarContentStyle}>
+        <div className="flex flex-row items-center justify-between gap-5 flex-wrap w-full">
           
           {/* Search Console */}
-          <div style={searchConsoleStyle(searchFocused)} className="glass-panel">
-            <Search size={16} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
+          <div className={cn("flex-1 min-w-[240px] h-[38px] flex items-center gap-2 px-3 bg-input border rounded-[10px] transition-all duration-200 glass-panel", searchFocused ? "border-accent" : "border-border")}>
+            <Search size={16} className="text-muted-foreground shrink-0" strokeWidth={1.75} />
             <input
               type="text"
               placeholder="Search design systems, plg, caching, docker..."
@@ -371,18 +384,22 @@ export default function VocabularyPage() {
               onChange={e => setSearchQuery(e.target.value)}
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
-              style={searchInputStyle}
+              className="flex-1 bg-transparent border-none outline-none text-[0.82rem] text-foreground font-sans"
               autoComplete="off"
             />
             {searchQuery && (
-              <button style={clearSearchBtn} onClick={() => setSearchQuery('')}>
-                <X size={13} />
+              <button 
+                className="bg-transparent border-none cursor-pointer text-muted-foreground flex items-center justify-center" 
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear search query"
+              >
+                <X size={13} strokeWidth={1.75} />
               </button>
             )}
           </div>
 
           {/* Navigation Pills */}
-          <div style={pillRowStyle}>
+          <div className="flex flex-wrap gap-[0.35rem] items-center">
             {ACTIVE_CATEGORIES.map(cat => {
               const meta = getCatMeta(cat, isDark);
               const Icon = meta.icon;
@@ -393,21 +410,36 @@ export default function VocabularyPage() {
                 <motion.button
                   key={cat}
                   onClick={() => handlePillClick(cat)}
-                  style={pillStyle(isSectionExpanded, meta.color)}
+                  className={cn(
+                    "flex items-center gap-[0.35rem] px-3 py-[0.35rem] text-[0.74rem] font-semibold rounded-full cursor-pointer transition-all duration-150",
+                    isSectionExpanded 
+                      ? "bg-[color-mix(in_srgb,var(--pcolor)_12%,transparent)] border border-[color-mix(in_srgb,var(--pcolor)_35%,transparent)] text-(--pcolor)"
+                      : "bg-card border border-border text-muted-foreground"
+                  )}
+                  style={{
+                    "--pcolor": meta.color
+                  }}
                   whileHover={{ scale: 1.03, y: -0.5 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <Icon size={12} />
+                  <Icon size={12} strokeWidth={1.75} />
                   <span>{cat}</span>
-                  <span style={pillCountStyle(isSectionExpanded, meta.color)}>{matches}</span>
+                  <span className={cn(
+                    "text-[0.68rem] font-bold px-1.5 py-px rounded-[8px] ml-[0.2rem] opacity-90",
+                    isSectionExpanded
+                      ? "bg-[color-mix(in_srgb,var(--pcolor)_18%,transparent)] text-(--pcolor)"
+                      : "bg-input text-muted-foreground"
+                  )}>
+                    {matches}
+                  </span>
                 </motion.button>
               );
             })}
           </div>
 
           {/* Dynamic Match Metrics */}
-          <div style={resultsCountStyle}>
-            <Info size={13} className="text-muted-foreground" />
+          <div className="flex items-center gap-[0.35rem] text-[0.78rem] text-muted-foreground font-medium whitespace-nowrap">
+            <Info size={13} className="text-muted-foreground" strokeWidth={1.75} />
             <span>
               {isFiltered ? `Showing ${matchCount} of ${totalCount} terms` : `Showing ${totalCount} terms`}
             </span>
@@ -418,58 +450,35 @@ export default function VocabularyPage() {
 
       {/* ── Sections & Cards Container ───────────────────────── */}
       <div>
-        <style dangerouslySetInnerHTML={{ __html: `
-          @keyframes pulse {
-            0%, 100% { opacity: 0.35; }
-            50% { opacity: 0.75; }
-          }
-          .pulse-loader {
-            animation: pulse 1.5s infinite ease-in-out;
-            background: rgba(255, 255, 255, 0.04);
-          }
-        `}} />
-
         {vocabLoading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+          <div className="flex flex-col gap-10">
             {[1, 2, 3].map(sec => (
-              <div key={sec} style={{ opacity: 0.7 }}>
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '1.25rem' }}>
-                  <div className="pulse-loader" style={{ width: 28, height: 28, borderRadius: '8px' }} />
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <div className="pulse-loader" style={{ width: 140, height: 14, borderRadius: '4px' }} />
-                    <div className="pulse-loader" style={{ width: 65, height: 9, borderRadius: '4px' }} />
+              <div key={sec} className="opacity-70">
+                <div className="flex gap-3 items-center mb-5">
+                  <div className="animate-pulse bg-[color-mix(in_srgb,var(--foreground)_5%,transparent)] w-7 h-7 rounded-[8px]" />
+                  <div className="flex flex-col gap-1">
+                    <div className="animate-pulse bg-[color-mix(in_srgb,var(--foreground)_5%,transparent)] w-36 h-3.5 rounded-[4px]" />
+                    <div className="animate-pulse bg-[color-mix(in_srgb,var(--foreground)_5%,transparent)] w-16 h-2.5 rounded-[4px]" />
                   </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
                   {[1, 2, 3].map(card => (
-                    <div key={card} className="card-glass pulse-loader" style={{ height: 180, borderRadius: '16px', border: '1px solid var(--border)' }} />
+                    <div key={card} className="card-glass animate-pulse h-[180px] rounded-[16px] border border-border" />
                   ))}
                 </div>
               </div>
             ))}
           </div>
         ) : vocabError ? (
-          <div style={emptyWrap}>
-            <div style={{ ...emptyIconWrap, borderColor: 'var(--warning)', background: 'color-mix(in srgb, var(--warning) 8%, transparent)' }} className="glass-panel">
-              <X size={24} style={{ color: 'var(--warning)' }} />
+          <div className="flex flex-col items-center gap-3 py-16 px-6 text-center">
+            <div className="w-12 h-12 rounded-[12px] bg-card flex items-center justify-center border border-(--warning) glass-panel">
+              <X size={24} className="text-(--warning)" strokeWidth={1.75} />
             </div>
-            <p style={emptyTitle}>Database Connection Offline</p>
-            <p style={emptyDesc}>We were unable to load design terminology from the database. Please verify your connection status and retry.</p>
+            <p className="text-[0.95rem] font-bold text-foreground mt-0 mb-1">Database Connection Offline</p>
+            <p className="text-[0.8rem] text-muted-foreground max-w-[320px] m-0">We were unable to load design terminology from the database. Please verify your connection status and retry.</p>
             <motion.button
               onClick={reloadVocabulary}
-              style={{
-                marginTop: '1.5rem',
-                padding: '0.6rem 1.4rem',
-                borderRadius: '8px',
-                fontSize: '0.8rem',
-                fontWeight: '700',
-                color: '#fff',
-                background: 'var(--accent)',
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(104, 67, 236, 0.3)',
-                transition: 'opacity 0.2s ease',
-              }}
+              className="mt-6 px-5 py-2 rounded-[8px] text-[0.8rem] font-bold text-white bg-accent border-none cursor-pointer shadow-[0_4px_12px_var(--accent-glow)] transition-opacity duration-200 hover:opacity-90"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -477,12 +486,23 @@ export default function VocabularyPage() {
             </motion.button>
           </div>
         ) : filteredData.length === 0 ? (
-          <div style={emptyWrap}>
-            <div style={emptyIconWrap} className="glass-panel">
-              <Search size={24} style={{ color: 'var(--accent)' }} />
+          <div className="flex flex-col items-center gap-3 py-16 px-6 text-center">
+            <div className="w-12 h-12 rounded-[12px] bg-card flex items-center justify-center border border-border glass-panel">
+              <Search size={24} className="text-accent" strokeWidth={1.75} />
             </div>
-            <p style={emptyTitle}>No matching terms found</p>
-            <p style={emptyDesc}>Try adjusting your search criteria or clearing the input.</p>
+            <p className="text-[0.95rem] font-bold text-foreground mt-0 mb-1">No results for &ldquo;{debouncedSearchQuery}&rdquo;</p>
+            <p className="text-[0.8rem] text-muted-foreground max-w-[380px] m-0">Try a different term, check your spelling, or use a related keyword. Plurals and partial matches are supported.</p>
+            <div className="flex flex-wrap gap-2 mt-3 justify-center">
+              {['design system', 'caching', 'microservices', 'PLG'].map(suggestion => (
+                <button
+                  key={suggestion}
+                  className="px-3 py-1.5 text-[0.74rem] font-semibold rounded-full bg-card border border-border text-muted-foreground cursor-pointer transition-all duration-150 hover:border-accent hover:text-accent"
+                  onClick={() => setSearchQuery(suggestion)}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
           ACTIVE_CATEGORIES.map(category => {
@@ -498,30 +518,28 @@ export default function VocabularyPage() {
                 key={category}
                 id={CATEGORY_SLUGS[category]}
                 ref={el => sectionRefs.current[category] = el}
-                className="terminology-section"
-                style={sectionContainerStyle(isDark)}
+                className="terminology-section mb-6 rounded-[16px] border border-border bg-[color-mix(in_srgb,var(--card)_60%,transparent)] overflow-hidden transition-all duration-300"
               >
                 {/* Collapsible Section Header */}
                 <button
                   onClick={() => toggleSection(category)}
-                  style={sectionHeaderStyle(isDark)}
-                  className="w-full flex items-center justify-between text-left"
+                  className="p-[1.25rem_1.5rem] w-full flex items-center justify-between text-left bg-transparent border-none cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
-                    <div style={sectionIconWrap(meta)}>
-                      <CatIcon size={16} style={{ color: meta.color }} />
+                    <div className="w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0" style={{ background: meta.bg, border: `1px solid ${meta.border}` }}>
+                      <CatIcon size={16} style={{ color: meta.color }} strokeWidth={1.75} />
                     </div>
                     <div>
-                      <h2 style={sectionTitleStyle}>{category}</h2>
-                      <p style={sectionCountStyle}>{items.length} {items.length === 1 ? 'item' : 'items'}</p>
+                      <h2 className="text-[1rem] font-bold text-foreground font-display tracking-tight m-0">{category}</h2>
+                      <p className="text-[0.72rem] text-muted-foreground mt-[0.05rem] mb-0">{items.length} {items.length === 1 ? 'item' : 'items'}</p>
                     </div>
                   </div>
                   <motion.div
                     animate={{ rotate: isExpanded ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
-                    style={chevronWrapStyle}
+                    className="w-7 h-7 flex items-center justify-center text-muted-foreground"
                   >
-                    <ChevronDown size={18} />
+                    <ChevronDown size={18} strokeWidth={1.75} />
                   </motion.div>
                 </button>
 
@@ -533,81 +551,105 @@ export default function VocabularyPage() {
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                      style={{ overflow: 'hidden' }}
+                      className="overflow-hidden"
                     >
-                      <div style={gridStyle}>
+                      <div className="grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-4 px-6 pb-6 pt-0">
                         {items.map(item => {
                           const isNameCopied = copiedId === item.id && copiedType === 'name';
                           const isPromptCopied = copiedId === item.id && copiedType === 'prompt';
                           const isDevNotesExpanded = !!expandedDevNotes[item.id];
 
+                          let difficultyColor = '#38bdf8'; // Beginner (blue)
+                          if (item.difficulty === 'Intermediate') difficultyColor = '#fbbf24'; // amber
+                          if (item.difficulty === 'Advanced') difficultyColor = '#f87171'; // red
+
                           return (
                             <div
                               key={item.id}
-                              style={cardStyle(isDark)}
-                              className="glass-panel hover:border-slate-700/50 transition-all"
+                              className="p-5 rounded-[12px] bg-card border border-border flex flex-col gap-3 relative glass-panel hover:border-slate-700/50 transition-all duration-200"
                             >
                               {/* Card Title & Copy Title button */}
-                              <div style={cardHeaderStyle}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                  <h3 style={cardTitleStyle}>{item.name}</h3>
+                              <div className="flex justify-between items-start gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h3 className="text-[0.96rem] font-bold text-foreground font-display tracking-tight m-0">{item.name}</h3>
                                   <button
-                                    style={smallCopyBtnStyle(isNameCopied)}
+                                    className={cn(
+                                      "bg-transparent border-none cursor-pointer flex items-center justify-center p-[2px] rounded-[4px] transition-colors duration-200",
+                                      isNameCopied ? "text-(--success)" : "text-muted-foreground"
+                                    )}
                                     onClick={(e) => handleCopyName(item.id, item.name, e)}
                                     title="Copy Term Name"
                                   >
-                                    {isNameCopied ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+                                    {isNameCopied ? <Check size={11} className="text-(--success)" strokeWidth={1.75} /> : <Copy size={11} strokeWidth={1.75} />}
                                   </button>
                                 </div>
-                                <span style={difficultyBadgeStyle(item.difficulty, isDark)}>
+                                <span 
+                                  className="text-[0.64rem] font-bold px-[6px] py-px rounded-[4px] uppercase tracking-wider"
+                                  style={{
+                                    color: difficultyColor,
+                                    background: `color-mix(in srgb, ${difficultyColor} 10%, transparent)`,
+                                    border: `1px solid color-mix(in srgb, ${difficultyColor} 20%, transparent)`
+                                  }}
+                                >
                                   {item.difficulty}
                                 </span>
                               </div>
 
                               {/* Term Definition */}
-                              <p style={cardDescStyle}>{item.description}</p>
+                              <p className="text-[0.8rem] text-muted-foreground leading-relaxed m-0">{item.description}</p>
 
                               {/* Keywords / Tags Row */}
-                              <div style={tagsRowStyle}>
+                              <div className="flex flex-wrap gap-1">
                                 {item.tags && item.tags.map(tag => (
-                                  <span key={tag} style={tagChipStyle(isDark)}>
+                                  <span key={tag} className="text-[0.64rem] font-semibold text-muted-foreground bg-input border border-border px-[5px] py-px rounded-[4px] font-mono">
                                     #{tag}
                                   </span>
                                 ))}
                               </div>
 
                               {/* Prompt Box */}
-                              <div style={promptBoxStyle(meta, isDark)}>
-                                <div style={promptHeaderStyle}>
-                                  <Sparkles size={11} style={{ color: meta.color }} />
-                                  <span style={promptTitleStyle}>Template AI Prompt</span>
+                              <div 
+                                className="rounded-[8px] p-3 flex flex-col gap-2 mt-1"
+                                style={{
+                                  background: `color-mix(in srgb, ${meta.color} 5%, var(--card))`,
+                                  border: `1px solid color-mix(in srgb, ${meta.color} 15%, var(--border))`
+                                }}
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  <Sparkles size={11} style={{ color: meta.color }} strokeWidth={1.75} />
+                                  <span className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground">Template AI Prompt</span>
                                 </div>
-                                <p style={promptTextStyle}>"{item.examplePrompt || item.example_prompt}"</p>
+                                <p className="text-[0.78rem] italic text-foreground leading-relaxed opacity-90 m-0">&ldquo;{item.examplePrompt || item.example_prompt}&rdquo;</p>
                                 <button
-                                  style={copyPromptBtnStyle(meta, isDark)}
+                                  className="self-start flex items-center gap-[0.35rem] px-[0.65rem] py-[0.35rem] text-[0.72rem] font-semibold rounded-[6px] cursor-pointer font-sans transition-all duration-150"
+                                  style={{
+                                    background: `color-mix(in srgb, ${meta.color} 10%, transparent)`,
+                                    border: `1px solid color-mix(in srgb, ${meta.color} 20%, transparent)`,
+                                    color: meta.color
+                                  }}
                                   onClick={(e) => handleCopyPrompt(item.id, item.examplePrompt || item.example_prompt, e)}
                                 >
-                                  {isPromptCopied ? <Check size={13} /> : <Copy size={13} />}
+                                  {isPromptCopied ? <Check size={13} strokeWidth={1.75} /> : <Copy size={13} strokeWidth={1.75} />}
                                   <span>{isPromptCopied ? 'Prompt Copied!' : 'Copy Prompt Template'}</span>
                                 </button>
                               </div>
 
                               {/* Collapsible Developer Notes */}
-                              <div style={devNotesWrapperStyle(isDark)}>
+                              <div className="border-t border-border pt-2 mt-1">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setExpandedDevNotes(prev => ({ ...prev, [item.id]: !prev[item.id] }));
                                   }}
-                                  style={devNotesToggleStyle(isDark)}
+                                  className="flex justify-between items-center w-full bg-transparent border-none cursor-pointer text-[0.72rem] font-bold text-muted-foreground py-1 uppercase tracking-wider text-left"
                                 >
                                   <span>Developer Notes</span>
                                   <motion.div
                                     animate={{ rotate: isDevNotesExpanded ? 180 : 0 }}
                                     transition={{ duration: 0.2 }}
-                                    style={{ display: 'flex', alignItems: 'center' }}
+                                    className="flex items-center"
                                   >
-                                    <ChevronDown size={14} />
+                                    <ChevronDown size={14} strokeWidth={1.75} />
                                   </motion.div>
                                 </button>
 
@@ -618,24 +660,32 @@ export default function VocabularyPage() {
                                       animate={{ height: 'auto', opacity: 1 }}
                                       exit={{ height: 0, opacity: 0 }}
                                       transition={{ duration: 0.2 }}
-                                      style={{ overflow: 'hidden' }}
+                                      className="overflow-hidden"
                                     >
-                                      <div style={devNotesContentStyle(isDark)}>
-                                        <div style={devNoteFieldStyle}>
-                                          <span style={devNoteLabelStyle}>Colors:</span>
-                                          <code style={devNoteCodeStyle(meta.color)}>{(item.designTokens || item.design_tokens || {}).colors}</code>
+                                      <div className="pt-2 flex flex-col gap-2">
+                                        <div className="flex flex-col gap-0.5">
+                                          <span className="text-[0.64rem] font-semibold text-muted-foreground">Colors:</span>
+                                          <code className="font-mono text-[0.72rem] px-1.5 py-[2px] rounded-[4px] border border-border bg-input break-all" style={{ color: meta.color }}>
+                                            {(item.designTokens || item.design_tokens || {}).colors}
+                                          </code>
                                         </div>
-                                        <div style={devNoteFieldStyle}>
-                                          <span style={devNoteLabelStyle}>Spacing:</span>
-                                          <code style={devNoteCodeStyle(meta.color)}>{(item.designTokens || item.design_tokens || {}).spacing}</code>
+                                        <div className="flex flex-col gap-0.5">
+                                          <span className="text-[0.64rem] font-semibold text-muted-foreground">Spacing:</span>
+                                          <code className="font-mono text-[0.72rem] px-1.5 py-[2px] rounded-[4px] border border-border bg-input break-all" style={{ color: meta.color }}>
+                                            {(item.designTokens || item.design_tokens || {}).spacing}
+                                          </code>
                                         </div>
-                                        <div style={devNoteFieldStyle}>
-                                          <span style={devNoteLabelStyle}>Typography:</span>
-                                          <code style={devNoteCodeStyle(meta.color)}>{(item.designTokens || item.design_tokens || {}).typography}</code>
+                                        <div className="flex flex-col gap-0.5">
+                                          <span className="text-[0.64rem] font-semibold text-muted-foreground">Typography:</span>
+                                          <code className="font-mono text-[0.72rem] px-1.5 py-[2px] rounded-[4px] border border-border bg-input break-all" style={{ color: meta.color }}>
+                                            {(item.designTokens || item.design_tokens || {}).typography}
+                                          </code>
                                         </div>
-                                        <div style={devNoteFieldStyle}>
-                                          <span style={devNoteLabelStyle}>Implementation Details:</span>
-                                          <p style={devNoteTextStyle}>{(item.designTokens || item.design_tokens || {}).developerNotes}</p>
+                                        <div className="flex flex-col gap-0.5">
+                                          <span className="text-[0.64rem] font-semibold text-muted-foreground">Implementation Details:</span>
+                                          <p className="text-[0.74rem] text-foreground leading-relaxed opacity-90 m-0">
+                                            {(item.designTokens || item.design_tokens || {}).developerNotes}
+                                          </p>
                                         </div>
                                       </div>
                                     </motion.div>
@@ -655,407 +705,6 @@ export default function VocabularyPage() {
           })
         )}
       </div>
-
-      <style>{`
-        @media (max-width: 900px) {
-          .vocabulary-header-row {
-            grid-template-columns: 1fr !important;
-            gap: 1rem;
-            text-align: center;
-          }
-          .vocabulary-header-row > div {
-            justify-content: center !important;
-          }
-          .vocabulary-header-row div {
-            text-align: center !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }
-
-// ─── Inline Styles ────────────────────────────────────────────
-const compactHeaderStyle = {
-  paddingTop: '3.5rem',
-  paddingBottom: '2.5rem',
-  textAlign: 'center',
-  maxWidth: '720px',
-  margin: '0 auto',
-};
-
-const compactSubtitleStyle = {
-  fontSize: '0.92rem',
-  color: 'var(--muted-foreground)',
-  lineHeight: '1.5',
-};
-
-const toolbarContentStyle = {
-  display: 'flex',
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: '1.25rem',
-  flexWrap: 'wrap',
-  width: '100%',
-};
-
-const searchConsoleStyle = (focused) => ({
-  flex: '1 1 280px',
-  minWidth: '240px',
-  height: '38px',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.5rem',
-  padding: '0 0.75rem',
-  background: 'var(--input)',
-  border: `1px solid ${focused ? 'var(--accent)' : 'var(--border)'}`,
-  borderRadius: '10px',
-  transition: 'all 0.2s ease',
-});
-
-const searchInputStyle = {
-  flex: 1,
-  background: 'transparent',
-  border: 'none',
-  outline: 'none',
-  fontSize: '0.82rem',
-  color: 'var(--foreground)',
-  fontFamily: 'var(--font-sans)',
-};
-
-const clearSearchBtn = {
-  background: 'transparent',
-  border: 'none',
-  cursor: 'pointer',
-  color: 'var(--muted-foreground)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};
-
-const pillRowStyle = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '0.35rem',
-  alignItems: 'center',
-};
-
-const pillStyle = (active, color) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.35rem',
-  padding: '0.35rem 0.75rem',
-  fontSize: '0.74rem',
-  fontWeight: '600',
-  borderRadius: '999px',
-  cursor: 'pointer',
-  background: active ? `color-mix(in srgb, ${color} 12%, transparent)` : 'var(--card)',
-  border: `1px solid ${active ? `color-mix(in srgb, ${color} 35%, transparent)` : 'var(--border)'}`,
-  color: active ? color : 'var(--muted-foreground)',
-  transition: 'all 0.15s ease',
-});
-
-const pillCountStyle = (active, color) => ({
-  fontSize: '0.68rem',
-  fontWeight: '700',
-  padding: '1px 6px',
-  borderRadius: '8px',
-  marginLeft: '0.2rem',
-  background: active ? `color-mix(in srgb, ${color} 18%, transparent)` : 'var(--input)',
-  color: active ? color : 'var(--muted-foreground)',
-  opacity: 0.9,
-});
-
-const resultsCountStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.35rem',
-  fontSize: '0.78rem',
-  color: 'var(--muted-foreground)',
-  fontWeight: '500',
-  whiteSpace: 'nowrap',
-};
-
-const sectionContainerStyle = (isDark) => ({
-  marginBottom: '1.5rem',
-  borderRadius: '16px',
-  border: '1px solid var(--border)',
-  background: 'color-mix(in srgb, var(--card) 60%, transparent)',
-  overflow: 'hidden',
-  transition: 'all 0.3s ease',
-});
-
-const sectionHeaderStyle = (isDark) => ({
-  padding: '1.25rem 1.5rem',
-  width: '100%',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  background: 'transparent',
-  border: 'none',
-  cursor: 'pointer',
-});
-
-const sectionIconWrap = (meta) => ({
-  width: '32px',
-  height: '32px',
-  borderRadius: '8px',
-  background: meta.bg,
-  border: `1px solid ${meta.border}`,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  flexShrink: 0,
-});
-
-const sectionTitleStyle = {
-  fontSize: '1rem',
-  fontWeight: '700',
-  color: 'var(--foreground)',
-  fontFamily: 'var(--font-display)',
-  letterSpacing: '-0.01em',
-};
-
-const sectionCountStyle = {
-  fontSize: '0.72rem',
-  color: 'var(--muted-foreground)',
-  marginTop: '0.05rem',
-};
-
-const chevronWrapStyle = {
-  width: '28px',
-  height: '28px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  color: 'var(--muted-foreground)',
-};
-
-const gridStyle = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-  gap: '1rem',
-  padding: '0 1.5rem 1.5rem 1.5rem',
-};
-
-const cardStyle = (isDark) => ({
-  padding: '1.25rem',
-  borderRadius: '12px',
-  background: 'var(--card)',
-  border: '1px solid var(--border)',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.75rem',
-  position: 'relative',
-});
-
-const cardHeaderStyle = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'flex-start',
-  gap: '0.5rem',
-};
-
-const cardTitleStyle = {
-  fontSize: '0.96rem',
-  fontWeight: '700',
-  color: 'var(--foreground)',
-  fontFamily: 'var(--font-display)',
-  letterSpacing: '-0.01em',
-};
-
-const smallCopyBtnStyle = (copied) => ({
-  background: 'transparent',
-  border: 'none',
-  cursor: 'pointer',
-  color: copied ? 'var(--success)' : 'var(--muted-foreground)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '2px',
-  borderRadius: '4px',
-  transition: 'color 0.2s',
-});
-
-const difficultyBadgeStyle = (difficulty, isDark) => {
-  let color = '#38bdf8'; // Beginner (blue)
-  if (difficulty === 'Intermediate') color = '#fbbf24'; // amber
-  if (difficulty === 'Advanced') color = '#f87171'; // red
-
-  return {
-    fontSize: '0.64rem',
-    fontWeight: '700',
-    color: color,
-    background: `color-mix(in srgb, ${color} 10%, transparent)`,
-    border: `1px solid color-mix(in srgb, ${color} 20%, transparent)`,
-    padding: '1px 6px',
-    borderRadius: '4px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-  };
-};
-
-const cardDescStyle = {
-  fontSize: '0.8rem',
-  color: 'var(--muted-foreground)',
-  lineHeight: '1.5',
-};
-
-const tagsRowStyle = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '0.25rem',
-};
-
-const tagChipStyle = (isDark) => ({
-  fontSize: '0.64rem',
-  fontWeight: '600',
-  color: 'var(--muted-foreground)',
-  background: 'var(--input)',
-  border: '1px solid var(--border)',
-  padding: '1px 5px',
-  borderRadius: '4px',
-  fontFamily: 'var(--font-mono)',
-});
-
-const promptBoxStyle = (meta, isDark) => ({
-  background: `color-mix(in srgb, ${meta.color} 5%, var(--card))`,
-  border: `1px solid color-mix(in srgb, ${meta.color} 15%, var(--border))`,
-  borderRadius: '8px',
-  padding: '0.75rem',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.5rem',
-  marginTop: '0.25rem',
-});
-
-const promptHeaderStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.35rem',
-};
-
-const promptTitleStyle = {
-  fontSize: '0.65rem',
-  fontWeight: '700',
-  textTransform: 'uppercase',
-  letterSpacing: '0.05em',
-  color: 'var(--muted-foreground)',
-};
-
-const promptTextStyle = {
-  fontSize: '0.78rem',
-  fontStyle: 'italic',
-  color: 'var(--foreground)',
-  lineHeight: '1.45',
-  opacity: 0.9,
-};
-
-const copyPromptBtnStyle = (meta, isDark) => ({
-  alignSelf: 'flex-start',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.35rem',
-  padding: '0.35rem 0.65rem',
-  fontSize: '0.72rem',
-  fontWeight: '600',
-  borderRadius: '6px',
-  cursor: 'pointer',
-  background: `color-mix(in srgb, ${meta.color} 10%, transparent)`,
-  border: `1px solid color-mix(in srgb, ${meta.color} 20%, transparent)`,
-  color: meta.color,
-  fontFamily: 'var(--font-sans)',
-  transition: 'all 0.15s ease',
-});
-
-const devNotesWrapperStyle = (isDark) => ({
-  borderTop: '1px solid var(--border)',
-  paddingTop: '0.5rem',
-  marginTop: '0.25rem',
-});
-
-const devNotesToggleStyle = (isDark) => ({
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  width: '100%',
-  background: 'transparent',
-  border: 'none',
-  cursor: 'pointer',
-  fontSize: '0.72rem',
-  fontWeight: '700',
-  color: 'var(--muted-foreground)',
-  padding: '4px 0',
-  textTransform: 'uppercase',
-  letterSpacing: '0.04em',
-});
-
-const devNotesContentStyle = (isDark) => ({
-  paddingTop: '0.5rem',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.5rem',
-});
-
-const devNoteFieldStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.15rem',
-};
-
-const devNoteLabelStyle = {
-  fontSize: '0.64rem',
-  fontWeight: '600',
-  color: 'var(--muted-foreground)',
-};
-
-const devNoteCodeStyle = (color) => ({
-  fontFamily: 'var(--font-mono)',
-  fontSize: '0.72rem',
-  color: color,
-  background: 'var(--input)',
-  padding: '2px 6px',
-  borderRadius: '4px',
-  border: '1px solid var(--border)',
-  wordBreak: 'break-all',
-});
-
-const devNoteTextStyle = {
-  fontSize: '0.74rem',
-  color: 'var(--foreground)',
-  lineHeight: '1.4',
-  opacity: 0.9,
-};
-
-const emptyWrap = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: '0.75rem',
-  padding: '4rem 1.5rem',
-  textAlign: 'center',
-};
-
-const emptyIconWrap = {
-  width: '48px',
-  height: '48px',
-  borderRadius: '12px',
-  background: 'var(--card)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  border: '1px solid var(--border)',
-};
-
-const emptyTitle = {
-  fontSize: '0.95rem',
-  fontWeight: '700',
-  color: 'var(--foreground)',
-};
-
-const emptyDesc = {
-  fontSize: '0.8rem',
-  color: 'var(--muted-foreground)',
-  maxWidth: '320px',
-};

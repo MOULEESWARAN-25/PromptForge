@@ -62,11 +62,26 @@
   --shadow-glow: 0 0 0 1px var(--accent), 0 0 20px var(--accent-glow);
 
   /* Typography */
-  --font-display: 'Darker Grotesque', system-ui, sans-serif;
-  --font-sans: 'Work Sans', system-ui, sans-serif;
-  --font-mono: 'Geist Mono', 'Fira Code', ui-monospace, monospace;
+  /* --font-sans is set to Inter via next/font CSS variable (--font-sans) */
+  /* --font-display is Darker Grotesque, applied ONLY inside .landing-page */
+  /* --font-mono is Geist Mono, applied to code/config blocks */
+  --font-display: var(--font-display, 'Darker Grotesque', system-ui, sans-serif);
+  --font-sans: var(--font-sans, 'Inter', system-ui, sans-serif);
+  --font-mono: var(--font-mono, 'Geist Mono', 'Fira Code', ui-monospace, monospace);
 
-  /* Spacing */
+  /* Layout */
+  --nav-height: 64px;
+  --max-content-width: 1440px;
+
+  /* Spacing Scale (aligned with spec) */
+  --space-xs:  4px;   /* Labels, tag gaps */
+  --space-sm:  8px;   /* Inside inputs, buttons */
+  --space-md:  12px;  /* Inside small cards, headers */
+  --space-lg:  16px;  /* Standard card padding, component gaps */
+  --space-xl:  24px;  /* Section gaps, main layout paddings */
+  --space-2xl: 32px;  /* Hero/marketing sections */
+
+  /* Legacy numeric spacing aliases (kept for backward compat) */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -77,22 +92,6 @@
   --space-10: 40px;
   --space-12: 48px;
   --space-16: 64px;
-
-  /* Golden Ratio Spacing Scale (Base unit 16px / 1rem) */
-  --space-xs: 0.375rem;
-  /* ~6px */
-  --space-sm: 0.625rem;
-  /* ~10px */
-  --space-md: 1.000rem;
-  /* 16px (Base) */
-  --space-lg: 1.625rem;
-  /* ~26px (1.618x) */
-  --space-xl: 2.625rem;
-  /* ~42px (1.618x^2) */
-  --space-2xl: 4.250rem;
-  /* ~68px (1.618x^3) */
-  --space-3xl: 6.875rem;
-  /* ~110px (1.618x^4) */
 
   /* Radius */
   --radius-sm: 6px;
@@ -207,6 +206,14 @@
 }
 
 @layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
   * {
     @apply border-border;
   }
@@ -214,15 +221,6 @@
   body {
     @apply bg-background text-foreground;
   }
-}
-
-/* ─── RESET & BASE ──────────────────────────────────────────── */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 html {
@@ -616,11 +614,12 @@ select::placeholder {
   opacity: 1;
 }
 
+/* Light mode: no dot grid — removed per spec (application views should not use dot grids) */
 .theme-dot-grid {
-  background-image: radial-gradient(rgba(0, 0, 0, 0.035) 1px, transparent 1px);
-  background-size: 24px 24px;
+  /* intentionally empty in light mode */
 }
 
+/* Dark mode only: subtle dot grid retained */
 .dark .theme-dot-grid {
   background-image: radial-gradient(rgba(160, 140, 255, 0.06) 1px, transparent 1px);
   background-size: 24px 24px;
@@ -1549,3 +1548,377 @@ select:focus-visible,
     scroll-margin-top: 190px;
   }
 }
+
+/* ─── LANDING PAGE FONT SCOPE ───────────────────────────────────
+   Darker Grotesque is applied ONLY within .landing-page wrapper.
+   All other authenticated application views use Inter (--font-sans).
+   ─────────────────────────────────────────────────────────────── */
+.landing-page h1,
+.landing-page h2,
+.landing-page h3,
+.landing-page h4,
+.landing-page h5,
+.landing-page h6,
+.landing-page .display-xl,
+.landing-page .display-lg,
+.landing-page .display-md,
+.landing-page .hero-headline {
+  font-family: var(--font-display), system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Application views: Inter for all text elements */
+body,
+button,
+input,
+textarea,
+select,
+label,
+p,
+span,
+li,
+a,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* ─── CONTAINER UTILITY ─────────────────────────────────────────
+   Centered, max-width-capped container for all main page layouts.
+   Prevents excessive whitespace on ultra-wide viewports.
+   ─────────────────────────────────────────────────────────────── */
+.page-container {
+  width: 100%;
+  max-width: var(--max-content-width, 1440px);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-lg);
+  padding-right: var(--space-lg);
+}
+
+@media (min-width: 1024px) {
+  .page-container {
+    padding-left: var(--space-xl);
+    padding-right: var(--space-xl);
+  }
+}
+
+/* ─── DASHBOARD ANIMATIONS ──────────────────────────────────────
+   Moved from dashboard page.js inline <style> tag.
+   ─────────────────────────────────────────────────────────────── */
+
+/* SVG Compiler Illustration */
+@keyframes dashFlow {
+  to { stroke-dashoffset: -100; }
+}
+@keyframes nodePulsing {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; filter: drop-shadow(0 0 5px var(--accent)); }
+}
+.flow-path-fast  { animation: dashFlow 12s linear infinite; }
+.flow-path-slow  { animation: dashFlow 20s linear infinite reverse; }
+.illus-node-pulse         { animation: nodePulsing 2s infinite ease-in-out; transform-origin: center; }
+.illus-node-pulse-delayed { animation: nodePulsing 2.5s infinite ease-in-out 0.6s; transform-origin: center; }
+
+/* Sparklines */
+@keyframes pathReveal {
+  from { stroke-dasharray: 100; stroke-dashoffset: 100; }
+  to   { stroke-dasharray: 100; stroke-dashoffset: 0; }
+}
+.sparkline-path { animation: pathReveal 2s ease-out forwards; }
+
+@keyframes barGrow {
+  from { transform: scaleY(0); transform-origin: bottom; }
+  to   { transform: scaleY(1); transform-origin: bottom; }
+}
+.sparkbar-1 { animation: barGrow 0.5s ease-out 0.1s both; }
+.sparkbar-2 { animation: barGrow 0.5s ease-out 0.2s both; }
+.sparkbar-3 { animation: barGrow 0.5s ease-out 0.3s both; }
+.sparkbar-4 { animation: barGrow 0.5s ease-out 0.4s both; }
+.sparkbar-5 { animation: barGrow 0.5s ease-out 0.5s both; }
+.sparkbar-6 { animation: barGrow 0.5s ease-out 0.6s both; }
+
+/* Terminal cursor */
+@keyframes blinkCursor {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.terminal-cursor { animation: blinkCursor 1s infinite; }
+
+/* Sparkline dot pulse */
+@keyframes dotPulse {
+  0%, 100% { r: 2.5; opacity: 1; }
+  50%       { r: 4;   opacity: 0.6; }
+}
+.sparkline-dot { animation: dotPulse 2s ease-in-out infinite; }
+
+/* Continue-Working row micro-interactions */
+.continue-row-item {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+.continue-row-item:hover {
+  transform: translateX(4px);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 3%, var(--card)) !important;
+}
+.delete-row-btn {
+  opacity: 0;
+  width: 0;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  background: color-mix(in srgb, var(--destructive) 8%, transparent);
+  color: var(--destructive);
+  border: 1px solid color-mix(in srgb, var(--destructive) 15%, transparent);
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  overflow: hidden;
+  padding: 0;
+}
+.continue-row-item:hover .delete-row-btn {
+  opacity: 1;
+  width: 26px;
+  margin-left: 0.35rem;
+}
+.delete-row-btn:hover {
+  background: var(--destructive) !important;
+  color: white !important;
+}
+
+/* Starter card micro-interactions */
+.starter-item-card {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+}
+.starter-item-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+.starter-hint {
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.2s ease;
+}
+.starter-item-card:hover .starter-hint {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Heatmap dot */
+.heatmap-dot:hover {
+  transform: scale(1.3);
+  box-shadow: 0 0 8px var(--accent);
+  z-index: 5;
+}
+
+/* Compiler illustration hide on narrow viewports */
+@media (max-width: 1140px) {
+  .compiler-illus { display: none; }
+}
+
+/* ─── OBSERVABILITY PAGE ─────────────────────────────────────────
+   Moved from observability/page.js inline <style> tag.
+   ─────────────────────────────────────────────────────────────── */
+@keyframes rotateCw {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.spin-animation { animation: rotateCw 1s linear infinite; }
+
+.gaps-table-row { transition: background 0.15s ease; }
+.gaps-table-row:hover { background: color-mix(in srgb, var(--foreground) 3%, transparent); }
+
+.glow-bar-succ:hover { filter: drop-shadow(0 0 8px var(--success));     opacity: 1; }
+.glow-bar-dest:hover { filter: drop-shadow(0 0 8px var(--destructive)); opacity: 1; }
+
+/* ─── FORGE PAGE ─────────────────────────────────────────────────
+   Moved from forge/page.js inline <style> tag.
+   ─────────────────────────────────────────────────────────────── */
+.forge-main-container {
+  width: 95%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 3rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 100vh;
+  position: relative;
+}
+@media (min-width: 1920px) {
+  .forge-main-container { max-width: 1800px; }
+}
+@media (max-width: 900px) {
+  .forge-intelligence-rail { grid-template-columns: 1fr !important; }
+  .forge-header-row {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+    text-align: center;
+  }
+  .forge-header-row > div { justify-content: center !important; }
+}
+
+/* ─── AUTH PAGE ────────────────────────────────────────────────── */
+.auth-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-size: 44px 44px;
+  pointer-events: none;
+  background-image: linear-gradient(var(--auth-grid-line) 1px, transparent 1px),
+                    linear-gradient(90deg, var(--auth-grid-line) 1px, transparent 1px);
+}
+
+/* ─── VOCABULARY PAGE ───────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .vocabulary-header-row {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+    text-align: center;
+  }
+  .vocabulary-header-row > div {
+    justify-content: center !important;
+  }
+  .vocabulary-header-row div {
+    text-align: center !important;
+  }
+}
+
+/* ─── LANDING PAGE OVERRIDES & KEYFRAMES ───────────────────────── */
+.btn-focus:focus-visible, .chip-focus:focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px !important;
+}
+
+/* prefers-reduced-motion Support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-delay: 0s !important;
+    animation-duration: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0s !important;
+    scroll-behavior: auto !important;
+    transform: none !important;
+  }
+  .pipeline-flow-dot {
+    display: none !important;
+  }
+  .hero-visual-frame {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* Responsive Viewport Adjustments (Mobile, Tablet, Desktop) */
+@media (max-width: 1140px) {
+  .hero-mockup-split-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .comparison-split-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .moat-flow-wrapper {
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+  }
+  .moat-flow-arrow-wrap {
+    transform: rotate(90deg) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .adds-bento-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .sync-split-layout {
+    grid-template-columns: 1fr !important;
+    padding: 2rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .workflow-stepper-box {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+    padding: 0 1rem !important;
+  }
+  .hero-stepper-line {
+    display: none !important;
+  }
+  .hero-stepper-line-segment {
+    display: none !important;
+  }
+  .pipeline-wrapper {
+    flex-direction: column !important;
+    gap: 2rem !important;
+  }
+  .pipeline-flow-track {
+    width: 2px !important;
+    height: 50px !important;
+  }
+  .pipeline-flow-dot {
+    top: 0px !important;
+    left: -3px !important;
+    transform: translateY(0);
+    animation: pipelineVerticalDot 3s infinite linear !important;
+  }
+  .audience-grid-style {
+    grid-template-columns: 1fr !important;
+  }
+  .tab-meta-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .adds-bento-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .chips-wrap-grid {
+    justify-content: flex-start !important;
+    padding: 0 1rem !important;
+  }
+  .drawer-content-box {
+    padding: 1.5rem 1rem !important;
+    max-width: 100% !important;
+  }
+}
+
+@keyframes pipelineVerticalDot {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(50px); }
+}
+
+/* ─── AURORABACKGROUND KEYFRAMES ──────────────────────────────── */
+@keyframes bg-spin-clockwise {
+  0%   { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes bg-spin-counter {
+  0%   { transform: translate(-50%, -50%) rotate(360deg); }
+  100% { transform: translate(-50%, -50%) rotate(0deg); }
+}
+@keyframes flow-dash {
+  to { stroke-dashoffset: -40; }
+}
+
+/* ─── ACCESSIBILITY: REDUCED MOTION ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

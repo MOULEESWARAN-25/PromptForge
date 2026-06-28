@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useWizardAutoScroll } from '../hooks/useWizardAutoScroll';
 
 import { CheckCircle2, Sliders, Sparkles, Info, ArrowRight, ArrowLeft, Code2, Search } from 'lucide-react';
-import { COMPONENT_TYPES } from '../constants/components';
+import { useApp } from '../../../context/AppContext';
 import ShadcnDropdown from '@/components/ShadcnDropdown';
 import { ThemeSelector } from './ThemeSelector';
 import { TypographyPicker } from './TypographyPicker';
@@ -86,6 +86,8 @@ const connectorStyle = (isPassed) => ({
 });
 
 export function ComponentWizard({ forgeState, promptGeneration, apiKey, isAdvanced = false }) {
+  const { components } = useApp();
+  const { COMPONENT_TYPES } = components;
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [componentSearch, setComponentSearch] = useState('');

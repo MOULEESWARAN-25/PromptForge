@@ -369,7 +369,7 @@ function ForgeIntelligenceRail({ forgeState, history, isGenerating }) {
 }
 
 function ForgeWizardContent() {
-  const { user, savePromptRecord, apiKey, history, vocabulary } = useApp();
+  const { user, savePromptRecord, apiKey, history, vocabulary, categories, templates, generationMode } = useApp();
   const router = useRouter();
 
   // Force scroll to top on initial page load to prevent scroll position carryover
@@ -381,7 +381,7 @@ function ForgeWizardContent() {
   }, []);
 
   // State Manager Custom Hook
-  const forgeState = useForgeState(user, router);
+  const forgeState = useForgeState(user, router, categories, templates);
   const {
     activeMode,
     setActiveMode,
@@ -398,6 +398,7 @@ function ForgeWizardContent() {
     router,
     forgeState,
     vocabulary,
+    generationMode
   });
 
   // Advanced settings are now visible to all users by default
@@ -423,277 +424,32 @@ function ForgeWizardContent() {
           ? ["Type", "Theme", "Generate"]
           : ["Input", "Analyze", "Enhance", "Generate"];
 
-  // Visual layouts styles
-  const backBtn = {
-    alignSelf: "auto",
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    background: "rgba(255, 255, 255, 0.01)",
-    border: "1px solid rgba(255, 255, 255, 0.06)",
-    padding: "0.45rem 0.9rem",
-    borderRadius: "10px",
-    fontSize: "0.8rem",
-    fontWeight: "700",
-    color: "var(--muted-foreground)",
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-    margin: 0,
-  };
 
-  const draftBannerStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "1rem",
-    padding: "0.75rem 1.25rem",
-    background: "rgba(124, 58, 237, 0.06)",
-    border: "1px solid rgba(124, 58, 237, 0.15)",
-    borderRadius: "14px",
-    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.15)",
-    animation: "fade-in 0.3s ease",
-  };
-
-  const draftYesBtn = {
-    padding: "4px 12px",
-    background: "#7c3aed",
-    color: "var(--foreground)",
-    border: "none",
-    borderRadius: "6px",
-    fontSize: "0.78rem",
-    fontWeight: "700",
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-  };
-
-  const draftNoBtn = {
-    background: "transparent",
-    border: "none",
-    color: "var(--muted-foreground)",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  };
-
-  const wizardIconWrap = {
-    width: "44px",
-    height: "44px",
-    borderRadius: "12px",
-    background: "var(--card)",
-    border: "1px solid rgba(255, 255, 255, 0.06)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  };
-
-  const mainTitle = {
-    fontSize: "1.75rem",
-    fontWeight: "800",
-    fontFamily: "var(--font-display)",
-    color: "var(--foreground)",
-    letterSpacing: "-0.02em",
-    margin: 0,
-  };
-
-  const mainSub = {
-    fontSize: "0.9rem",
-    color: "var(--muted-foreground)",
-    lineHeight: "1.4",
-    margin: "0.25rem 0 0 0",
-  };
-
-  const wizardContentBody = {
-    display: "flex",
-    flexDirection: "column",
-    gap: "1.5rem",
-    marginTop: "0.5rem",
-  };
-
-  const intelligenceRailWrap = {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-    gap: "0.85rem",
-    width: "100%",
-  };
-
-  const intelligenceCard = {
-    padding: "1rem 1rem 0.95rem",
-    borderRadius: "16px",
-    border: "1px solid var(--border)",
-    background: "var(--card)",
-    boxShadow: "var(--shadow-sm)",
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.85rem",
-  };
-
-  const intelligenceCardHeader = {
-    display: "flex",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: "0.75rem",
-  };
-
-  const intelligenceKicker = {
-    fontSize: "0.64rem",
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-    fontWeight: "800",
-    color: "var(--muted-foreground)",
-    marginBottom: "0.15rem",
-  };
-
-  const intelligenceTitle = {
-    fontSize: "0.92rem",
-    fontWeight: "800",
-    color: "var(--foreground)",
-  };
-
-  const intelligenceBadge = (active) => ({
-    display: "inline-flex",
-    alignItems: "center",
-    padding: "0.3rem 0.55rem",
-    borderRadius: "999px",
-    fontSize: "0.68rem",
-    fontWeight: "700",
-    color: active ? "var(--success)" : "var(--muted-foreground)",
-    background: active
-      ? "color-mix(in srgb, var(--success) 8%, transparent)"
-      : "var(--muted)",
-    border: "1px solid var(--border)",
-  });
-
-  const statusList = {
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.45rem",
-  };
-
-  const statusRow = {
-    display: "grid",
-    gridTemplateColumns: "10px minmax(0, 1fr) auto",
-    gap: "0.55rem",
-    alignItems: "center",
-    fontSize: "0.76rem",
-    color: "var(--foreground)",
-  };
-
-  const statusDot = {
-    width: "8px",
-    height: "8px",
-    borderRadius: "999px",
-    boxShadow:
-      "0 0 0 3px color-mix(in srgb, var(--foreground) 4%, transparent)",
-  };
-
-  const statusText = {
-    fontWeight: "600",
-  };
-
-  const statusState = {
-    fontWeight: "800",
-    color: "var(--muted-foreground)",
-  };
-
-  const qualityRow = {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: "0.5rem",
-  };
-
-  const qualityChip = {
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.08rem",
-    padding: "0.55rem 0.65rem",
-    borderRadius: "12px",
-    background: "var(--muted)",
-    border: "1px solid var(--border)",
-  };
-
-  const qualityChipValue = {
-    fontSize: "0.88rem",
-    fontWeight: "800",
-    color: "var(--foreground)",
-  };
-
-  const qualityChipLabel = {
-    fontSize: "0.66rem",
-    color: "var(--muted-foreground)",
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: "0.06em",
-  };
-
-  const contextList = {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: "0.4rem 0.7rem",
-    fontSize: "0.76rem",
-    color: "var(--foreground)",
-    lineHeight: "1.45",
-  };
-
-  const lastCompilationList = {
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.35rem",
-    fontSize: "0.76rem",
-    color: "var(--foreground)",
-    lineHeight: "1.5",
-  };
-
-  const emptyRailText = {
-    fontSize: "0.8rem",
-    color: "var(--muted-foreground)",
-    lineHeight: "1.55",
-    margin: 0,
-  };
 
   return (
     <div className="forge-main-container">
       {/* Unified Header Row */}
       {activeMode && (
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "200px 1fr 200px",
-            alignItems: "center",
-            width: "100%",
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
-            paddingBottom: "1rem",
-            marginBottom: "0.5rem",
-          }}
-          className="forge-header-row"
+          className="forge-header-row grid items-center w-full border-b border-white/6 pb-4 mb-2"
+          style={{ gridTemplateColumns: '200px 1fr 200px' }}
         >
-          {/* Left: Empty Spacer for Grid */}
-          <div style={{ display: "flex", justifyContent: "flex-start" }} />
-
-          {/* Center: Title & Description */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem" }}>
-            <div style={{ ...wizardIconWrap, width: "38px", height: "38px" }}>
-              {activeMode === "application" && (
-                <Monitor size={18} style={{ color: "#7c3aed" }} />
-              )}
-              {activeMode === "page" && (
-                <Layout size={18} style={{ color: "#0891b2" }} />
-              )}
-              {activeMode === "component" && (
-                <Code2 size={18} style={{ color: "#6843EC" }} />
-              )}
-              {activeMode === "enhance" && (
-                <Wand2 size={18} style={{ color: "#059669" }} />
-              )}
+          <div />
+          <div className="flex items-center justify-center gap-3">
+            <div className="w-[38px] h-[38px] rounded-[12px] bg-card border border-white/6 flex items-center justify-center shrink-0">
+              {activeMode === "application" && <Monitor size={18} strokeWidth={1.75} style={{ color: "#7c3aed" }} />}
+              {activeMode === "page" && <Layout size={18} strokeWidth={1.75} style={{ color: "#0891b2" }} />}
+              {activeMode === "component" && <Code2 size={18} strokeWidth={1.75} style={{ color: "#6843EC" }} />}
+              {activeMode === "enhance" && <Wand2 size={18} strokeWidth={1.75} style={{ color: "#059669" }} />}
             </div>
-            <div style={{ textAlign: "left" }}>
-              <h1 style={{ ...mainTitle, fontSize: "1.25rem", lineHeight: "1.2" }}>
+            <div className="text-left">
+              <h1 className="text-[1.25rem] font-(--font-display) text-foreground tracking-[-0.02em] m-0 leading-[1.2]">
                 {activeMode === "application" && "Full-Stack Application Architect"}
                 {activeMode === "page" && "Web Page Design"}
                 {activeMode === "component" && "Modular Component Architect"}
                 {activeMode === "enhance" && "Technical Design Specification Enhancer"}
               </h1>
-              <p style={{ ...mainSub, fontSize: "0.82rem", marginTop: "0.15rem" }}>
+              <p className="text-[0.82rem] text-muted-foreground leading-[1.4] mt-[0.15rem] m-0">
                 {activeMode === "application" && "Build a full multi-page application blueprint."}
                 {activeMode === "page" && "Design custom web pages with themes & components."}
                 {activeMode === "component" && "Configure premium modular interface controls."}
@@ -701,43 +457,34 @@ function ForgeWizardContent() {
               </p>
             </div>
           </div>
-
-          {/* Right spacer to balance grid centering */}
-          <div style={{ display: "flex", justifyContent: "flex-end" }} />
+          <div />
         </div>
       )}
 
       {/* Draft Recovery Banner */}
       {showDraftBanner && (
-        <div style={draftBannerStyle}>
-          <RotateCcw
-            size={14}
-            style={{ color: "var(--accent)", flexShrink: 0 }}
-          />
-          <span
-            style={{ fontSize: "0.8rem", color: "var(--foreground)", flex: 1 }}
-          >
+        <div className="flex items-center gap-4 px-5 py-3 rounded-[14px] border border-[rgba(124,58,237,0.15)] bg-[rgba(124,58,237,0.06)] shadow-[0_8px_32px_rgba(0,0,0,0.15)] animate-[fade-in_0.3s_ease]">
+          <RotateCcw size={14} strokeWidth={1.75} className="text-accent shrink-0" />
+          <span className="text-[0.8rem] text-foreground flex-1">
             You have an unfinished forge saved.{" "}
             <strong>Continue where you left off?</strong>
           </span>
           <button
             onClick={applyDraft}
-            style={draftYesBtn}
-            className="active-scale-95"
+            className="active-scale-95 px-3 py-[4px] bg-[#7c3aed] text-white border-none rounded-[6px] text-[0.78rem] font-bold cursor-pointer transition-all duration-200 hover:opacity-90"
           >
             Restore Draft
           </button>
           <button
             onClick={discardDraft}
-            style={draftNoBtn}
-            className="active-scale-95"
+            className="active-scale-95 bg-transparent border-none text-muted-foreground cursor-pointer flex items-center justify-center"
           >
-            <X size={14} />
+            <X size={14} strokeWidth={1.75} />
           </button>
         </div>
       )}
 
-      <div style={wizardContentBody}>
+      <div className="flex flex-col gap-6 mt-2">
         {/* Wizard Pipeline Views */}
         {activeMode === "application" && (
           <ApplicationWizard
@@ -773,37 +520,7 @@ function ForgeWizardContent() {
         )}
       </div>
 
-      <style>{`
-        .forge-main-container {
-          width: 95%;
-          max-width: 1600px;
-          margin: 0 auto;
-          padding: 1.5rem 1.5rem 3rem 1.5rem;
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-          min-height: 100vh;
-          position: relative;
-        }
-        @media (min-width: 1920px) {
-          .forge-main-container {
-            max-width: 1800px;
-          }
-        }
-        @media (max-width: 900px) {
-          .forge-intelligence-rail {
-            grid-template-columns: 1fr !important;
-          }
-          .forge-header-row {
-            grid-template-columns: 1fr !important;
-            gap: 1rem;
-            text-align: center;
-          }
-          .forge-header-row > div {
-            justify-content: center !important;
-          }
-        }
-      `}</style>
+
     </div>
   );
 }
@@ -812,33 +529,9 @@ export default function ForgePage() {
   return (
     <Suspense
       fallback={
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: "100vh",
-            gap: "1rem",
-            flexDirection: "column",
-          }}
-        >
-          <div
-            style={{
-              width: "48px",
-              height: "48px",
-              borderRadius: "50%",
-              border: "3px solid rgba(255,255,255,0.06)",
-              borderTopColor: "var(--accent)",
-              animation: "spin-slow 1s linear infinite",
-            }}
-          />
-          <span
-            style={{
-              fontSize: "0.9rem",
-              color: "var(--muted-foreground)",
-              fontWeight: 600,
-            }}
-          >
+        <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+          <div className="w-12 h-12 rounded-full border-[3px] border-white/6 border-t-accent animate-spin" />
+          <span className="text-[0.9rem] text-muted-foreground font-semibold">
             Loading {BRAND.name} studio...
           </span>
         </div>

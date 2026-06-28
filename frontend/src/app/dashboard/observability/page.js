@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,16 +12,17 @@ import {
   ListTodo, Layers3, Flame, Play, Eye
 } from 'lucide-react';
 import { track } from '@/lib/analytics';
-import { API_BASE_URL } from '@/config/api';
+import { apiUrl } from '@/config/api';
+import { FEATURE_FLAGS } from '@/config/featureFlags';
 
-export default function ObservabilityPage() {
+export default function WorkspaceQualityPanel() {
   const { user, loading } = useApp();
   const router = useRouter();
 
-  // Active Dashboard tab: 'coverage', 'gaps', 'trends', 'integrity', 'ab_test'
+  // Active Panel Tab: 'coverage', 'gaps', 'trends', 'integrity', 'ab_test'
   const [activeTab, setActiveTab] = useState('coverage');
 
-  // Stats Data
+  // Stats and Metrics Data
   const [summary, setSummary] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [gaps, setGaps] = useState([]);
@@ -30,59 +31,16 @@ export default function ObservabilityPage() {
   const [abComparison, setAbComparison] = useState(null);
   const [fetching, setFetching] = useState(true);
 
-  // Gaps Table Filters
+  // Backlog Gap Filters
   const [gapTypeFilter, setGapTypeFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
-  // Integrity details modals/toggles
+  // Quality details view toggles
   const [showOrphansList, setShowOrphansList] = useState(false);
   const [showCyclesList, setShowCyclesList] = useState(false);
 
-  // Fetch all dashboard data
-  const fetchData = async () => {
-    setFetching(true);
-    try {
-      const backendUrl = `${API_BASE_URL}/api/observability`;
-
-      // 1. Fetch Summary
-      const resSummary = await fetch(`${backendUrl}/summary`);
-      if (!resSummary.ok) throw new Error(`Summary API returned status ${resSummary.status}`);
-      setSummary(await resSummary.json());
-
-      // 2. Fetch Analytics
-      const resAnalytics = await fetch(`${backendUrl}/analytics`);
-      if (!resAnalytics.ok) throw new Error(`Analytics API returned status ${resAnalytics.status}`);
-      setAnalytics(await resAnalytics.json());
-
-      // 3. Fetch Trends
-      const resTrends = await fetch(`${backendUrl}/trends`);
-      if (!resTrends.ok) throw new Error(`Trends API returned status ${resTrends.status}`);
-      setTrends(await resTrends.json());
-
-      // 4. Fetch Integrity
-      const resIntegrity = await fetch(`${backendUrl}/integrity`);
-      if (!resIntegrity.ok) throw new Error(`Integrity API returned status ${resIntegrity.status}`);
-      setIntegrity(await resIntegrity.json());
-
-      // 5. Fetch A/B Comparison
-      const resAb = await fetch(`${backendUrl}/ab_comparison`);
-      if (!resAb.ok) throw new Error(`A/B Comparison API returned status ${resAb.status}`);
-      setAbComparison(await resAb.json());
-
-      // 6. Fetch Gaps list (initially unfiltered)
-      await fetchGaps();
-
-    } catch (err) {
-      console.error("Failed to load observability data:", err);
-      toast.error("Failed to sync metrics from RAG Server");
-    } finally {
-      setFetching(false);
-    }
-  };
-
-  // Fetch gaps dynamically with filter parameters
-  const fetchGaps = async () => {
+  const fetchGaps = useCallback(async () => {
     try {
       const params = new URLSearchParams();
       if (gapTypeFilter) params.append('type', gapTypeFilter);
@@ -90,40 +48,91 @@ export default function ObservabilityPage() {
       if (statusFilter) params.append('status', statusFilter);
       params.append('limit', '50');
 
-      const resGaps = await fetch(`${API_BASE_URL}/api/observability/gaps?${params.toString()}`);
-      if (resGaps.ok) setGaps(await resGaps.json());
+      const resGaps = await fetch(apiUrl(`/observability/gaps?${params.toString()}`));
+      if (resGaps.ok) {
+        const gapsEnvelope = await resGaps.json();
+        setGaps(gapsEnvelope?.data ?? gapsEnvelope);
+      }
     } catch (err) {
       console.error("Gaps fetch error:", err);
     }
-  };
+  }, [gapTypeFilter, priorityFilter, statusFilter]);
+
+  const fetchData = useCallback(async () => {
+    setFetching(true);
+    try {
+      // 1. Fetch Summary
+      const resSummary = await fetch(apiUrl('/observability/summary'));
+      if (!resSummary.ok) throw new Error(`Summary API returned status ${resSummary.status}`);
+      const summaryEnvelope = await resSummary.json();
+      setSummary(summaryEnvelope?.data ?? summaryEnvelope);
+
+      // 2. Fetch Analytics
+      const resAnalytics = await fetch(apiUrl('/observability/analytics'));
+      if (!resAnalytics.ok) throw new Error(`Analytics API returned status ${resAnalytics.status}`);
+      const analyticsEnvelope = await resAnalytics.json();
+      setAnalytics(analyticsEnvelope?.data ?? analyticsEnvelope);
+
+      // 3. Fetch Trends
+      const resTrends = await fetch(apiUrl('/observability/trends'));
+      if (!resTrends.ok) throw new Error(`Trends API returned status ${resTrends.status}`);
+      const trendsEnvelope = await resTrends.json();
+      setTrends(trendsEnvelope?.data ?? trendsEnvelope);
+
+      // 4. Fetch Integrity Validation
+      const resIntegrity = await fetch(apiUrl('/observability/integrity'));
+      if (!resIntegrity.ok) throw new Error(`Integrity API returned status ${resIntegrity.status}`);
+      const integrityEnvelope = await resIntegrity.json();
+      setIntegrity(integrityEnvelope?.data ?? integrityEnvelope);
+
+      // 5. Fetch A/B Benchmark Comparison
+      const resAb = await fetch(apiUrl('/observability/ab_comparison'));
+      if (!resAb.ok) throw new Error(`A/B Comparison API returned status ${resAb.status}`);
+      const abEnvelope = await resAb.json();
+      setAbComparison(abEnvelope?.data ?? abEnvelope);
+
+      // 6. Fetch Gaps list (initially unfiltered)
+      await fetchGaps();
+
+    } catch (err) {
+      console.error("Failed to load quality metrics:", err);
+      toast.error("Failed to sync workspace health metrics");
+    } finally {
+      setFetching(false);
+    }
+  }, [fetchGaps]);
 
   // Trigger gaps fetch whenever filters change
   useEffect(() => {
     if (user) {
       fetchGaps();
     }
-  }, [gapTypeFilter, priorityFilter, statusFilter]);
+  }, [fetchGaps, user]);
 
   // Initial load
   useEffect(() => {
     if (!loading && !user) {
       router.push('/auth');
     } else if (user) {
+      if (!FEATURE_FLAGS.QUALITY_PANEL_ENABLED) {
+        router.replace('/dashboard');
+        return;
+      }
       fetchData();
-      track('observability_dashboard_viewed');
+      track('quality_panel_viewed');
     }
-  }, [user, loading]);
+  }, [user, loading, router, fetchData]);
 
   if (loading || !user || !summary) {
     return (
-      <div style={S.loadingSkel}>
-        <div style={S.skelLine('240px', '24px')} />
-        <div style={S.skelLine('60%', '48px')} />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginTop: '2rem' }}>
-          <div style={S.skelLine('100%', '120px')} />
-          <div style={S.skelLine('100%', '120px')} />
-          <div style={S.skelLine('100%', '120px')} />
-          <div style={S.skelLine('100%', '120px')} />
+      <div className="w-full max-w-[1600px] mx-auto px-8 py-16 flex flex-col gap-6">
+        <div className="w-[240px] h-[24px] rounded-lg bg-foreground/5 animate-pulse" />
+        <div className="w-[60%] h-[48px] rounded-lg bg-foreground/5 animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mt-8">
+          <div className="w-full h-[120px] rounded-lg bg-foreground/5 animate-pulse" />
+          <div className="w-full h-[120px] rounded-lg bg-foreground/5 animate-pulse" />
+          <div className="w-full h-[120px] rounded-lg bg-foreground/5 animate-pulse" />
+          <div className="w-full h-[120px] rounded-lg bg-foreground/5 animate-pulse" />
         </div>
       </div>
     );
@@ -132,10 +141,10 @@ export default function ObservabilityPage() {
   // Priority and Gap type colors
   const getPriorityStyle = (p) => {
     switch (p) {
-      case 'critical': return { bg: 'color-mix(in srgb, var(--destructive) 12%, transparent)', color: 'var(--destructive)', label: 'critical' };
-      case 'high': return { bg: 'color-mix(in srgb, #f59e0b 12%, transparent)', color: '#f59e0b', label: 'high' };
-      case 'medium': return { bg: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)', label: 'medium' };
-      default: return { bg: 'color-mix(in srgb, var(--muted-foreground) 15%, transparent)', color: 'var(--muted-foreground)', label: 'low' };
+      case 'critical': return { bg: 'bg-destructive/10', color: 'text-destructive', label: 'critical' };
+      case 'high': return { bg: 'bg-amber-500/10', color: 'text-amber-500', label: 'high' };
+      case 'medium': return { bg: 'bg-primary/10', color: 'text-primary', label: 'medium' };
+      default: return { bg: 'bg-muted-foreground/15', color: 'text-muted-foreground', label: 'low' };
     }
   };
 
@@ -143,131 +152,149 @@ export default function ObservabilityPage() {
     switch (t) {
       case 'LOW_COVERAGE': return 'Low Coverage';
       case 'INCOMPLETE_ENTITY': return 'Incomplete Profile';
-      case 'INVALID_RELATIONSHIP': return 'Broken Relationship';
+      case 'INVALID_RELATIONSHIP': return 'Dangling Link';
       case 'STALE_ENTITY': return 'Stale Entity';
       default: return t;
     }
   };
 
+  const integrityLabels = integrity?.labels || {
+    orphans: "Independent Design Elements",
+    duplicate_slugs_count: "Duplicate Identifiers",
+    broken_relationships_count: "Dangling References",
+    circular_relationships: "Recursive Reference Loops",
+    invalid_relationship_types_count: "Invalid Reference Types"
+  };
+
   return (
-    <div style={S.pageContainer}>
+    <div className="w-full max-w-[1600px] mx-auto px-8 pb-16 flex flex-col gap-10 font-sans">
+      
       {/* ─── PAGE HEADER ────────────────────────────────────────── */}
-      <div style={S.headerWrapper}>
-        <div style={S.headerSplit}>
-          <div style={S.greetingArea}>
-            <div style={S.breadcrumbs}>
-              <span>{user?.username || 'Developer'}&apos;s Workspace</span>
-              <ChevronRight size={12} style={{ opacity: 0.4 }} />
-              <span style={{ color: 'var(--accent)', fontWeight: 600 }}>Observability</span>
+      <div className="flex flex-col gap-4 mt-6">
+        <div className="flex items-center justify-between gap-8 w-full">
+          <div className="flex flex-col gap-1 flex-1">
+            <div className="flex items-center gap-1.5 text-[0.78rem] text-muted-foreground uppercase tracking-wider font-semibold mb-1.5">
+              <span>{user?.username || 'User'}&apos;s Workspace</span>
+              <ChevronRight size={12} className="opacity-40" />
+              <span className="text-primary font-semibold">Workspace Health</span>
             </div>
 
-            <h1 style={S.pageTitle}>
-              Graph <span style={S.titleGradient}>Observability</span> Panel
+            <h1 className="text-3xl lg:text-4xl font-extrabold m-0 tracking-tight leading-none text-foreground">
+              Workspace <span className="bg-linear-to-r from-foreground to-primary bg-clip-text text-transparent">Health</span>
             </h1>
-            <p style={S.pageSubtitle}>
-              Monitor complete RAG semantic coverage metrics, gap logs, and real-time database integrity checks.
+            <p className="text-sm lg:text-base text-muted-foreground m-0 font-normal">
+              Track content coverage, identify knowledge gaps, and verify workspace consistency at a glance.
             </p>
           </div>
 
-          <button style={S.refreshBtn} onClick={fetchData} disabled={fetching} title="Refresh Metrics">
-            <RefreshCw size={14} className={fetching ? "spin-animation" : ""} />
+          <button 
+            className="flex items-center gap-2 bg-input text-foreground border border-border rounded-lg px-4 py-2 text-xs font-semibold cursor-pointer hover:bg-muted/80 transition-all duration-200"
+            onClick={fetchData} 
+            disabled={fetching} 
+            title="Refresh Metrics"
+          >
+            <RefreshCw size={14} className={fetching ? "animate-spin" : ""} />
             <span>{fetching ? 'Syncing...' : 'Sync Metrics'}</span>
           </button>
         </div>
       </div>
 
       {/* ─── OVERVIEW CARDS (Bento Grid) ────────────────────────── */}
-      <div style={S.overviewGrid}>
-        <div style={S.statCard} className="card-glass">
-          <div style={S.statHeader}>
-            <span style={S.statLabel}>Total Entities</span>
-            <div style={{ ...S.statIconWrap, color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 10%, transparent)' }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-5 w-full">
+        <div className="p-5 rounded-xl flex flex-col gap-1 relative card-glass bg-muted/10 border border-border">
+          <div className="flex justify-between items-center w-full">
+            <span className="text-[0.72rem] font-bold uppercase text-muted-foreground tracking-wider">Total Elements</span>
+            <div className="w-6.5 h-6.5 rounded-md flex items-center justify-center text-primary bg-primary/10">
               <Layers size={13} />
             </div>
           </div>
-          <div style={S.statValue}>{summary.totalEntities}</div>
-          <span style={S.statSubText}>Active nodes in Vector DB</span>
+          <div className="text-2xl font-extrabold text-foreground tracking-tight leading-none mt-1">{summary.totalEntities}</div>
+          <span className="text-[0.68rem] text-muted-foreground font-medium mt-1">Active design structures</span>
         </div>
 
-        <div style={S.statCard} className="card-glass">
-          <div style={S.statHeader}>
-            <span style={S.statLabel}>Total Relationships</span>
-            <div style={{ ...S.statIconWrap, color: 'var(--success)', background: 'color-mix(in srgb, var(--success) 10%, transparent)' }}>
+        <div className="p-5 rounded-xl flex flex-col gap-1 relative card-glass bg-muted/10 border border-border">
+          <div className="flex justify-between items-center w-full">
+            <span className="text-[0.72rem] font-bold uppercase text-muted-foreground tracking-wider">Total Links</span>
+            <div className="w-6.5 h-6.5 rounded-md flex items-center justify-center text-emerald-500 bg-emerald-500/10">
               <Database size={13} />
             </div>
           </div>
-          <div style={S.statValue}>{summary.totalRelationships}</div>
-          <span style={S.statSubText}>Inter-entity directional links</span>
+          <div className="text-2xl font-extrabold text-foreground tracking-tight leading-none mt-1">{summary.totalRelationships}</div>
+          <span className="text-[0.68rem] text-muted-foreground font-medium mt-1">Inter-element connections</span>
         </div>
 
-        <div style={S.statCard} className="card-glass">
-          <div style={S.statHeader}>
-            <span style={S.statLabel}>Active Applications</span>
-            <div style={{ ...S.statIconWrap, color: '#f59e0b', background: 'color-mix(in srgb, #f59e0b 10%, transparent)' }}>
+        <div className="p-5 rounded-xl flex flex-col gap-1 relative card-glass bg-muted/10 border border-border">
+          <div className="flex justify-between items-center w-full">
+            <span className="text-[0.72rem] font-bold uppercase text-muted-foreground tracking-wider">Active Apps</span>
+            <div className="w-6.5 h-6.5 rounded-md flex items-center justify-center text-amber-500 bg-amber-500/10">
               <Activity size={13} />
             </div>
           </div>
-          <div style={S.statValue}>{summary.activeApplications}</div>
-          <span style={S.statSubText}>Scoped RAG root targets</span>
+          <div className="text-2xl font-extrabold text-foreground tracking-tight leading-none mt-1">{summary.activeApplications}</div>
+          <span className="text-[0.68rem] text-muted-foreground font-medium mt-1">Configured app targets</span>
         </div>
 
-        <div style={S.statCard} className="card-glass">
-          <div style={S.statHeader}>
-            <span style={S.statLabel}>Structural Coverage</span>
-            <div style={{ ...S.statIconWrap, color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 10%, transparent)' }}>
+        <div className="p-5 rounded-xl flex flex-col gap-1 relative card-glass bg-muted/10 border border-border">
+          <div className="flex justify-between items-center w-full">
+            <span className="text-[0.72rem] font-bold uppercase text-muted-foreground tracking-wider">App Layout Coverage</span>
+            <div className="w-6.5 h-6.5 rounded-md flex items-center justify-center text-primary bg-primary/10">
               <Layers3 size={13} />
             </div>
           </div>
-          <div style={S.statValue}>{summary.avgStructuralCoverage}%</div>
-          <span style={S.statSubText}>Apps, Features, Pages & Models</span>
+          <div className="text-2xl font-extrabold text-foreground tracking-tight leading-none mt-1">{summary.avgStructuralCoverage}%</div>
+          <span className="text-[0.68rem] text-muted-foreground font-medium mt-1">Pages, features & modules</span>
         </div>
 
-        <div style={S.statCard} className="card-glass">
-          <div style={S.statHeader}>
-            <span style={S.statLabel}>Leaf Coverage</span>
-            <div style={{ ...S.statIconWrap, color: '#f43f5e', background: 'color-mix(in srgb, #f43f5e 10%, transparent)' }}>
+        <div className="p-5 rounded-xl flex flex-col gap-1 relative card-glass bg-muted/10 border border-border">
+          <div className="flex justify-between items-center w-full">
+            <span className="text-[0.72rem] font-bold uppercase text-muted-foreground tracking-wider">Style Coverage</span>
+            <div className="w-6.5 h-6.5 rounded-md flex items-center justify-center text-rose-500 bg-rose-500/10">
               <CheckCircle2 size={13} />
             </div>
           </div>
-          <div style={S.statValue}>{summary.avgLeafCoverage}%</div>
-          <span style={S.statSubText}>Components, Themes & Tokens</span>
+          <div className="text-2xl font-extrabold text-foreground tracking-tight leading-none mt-1">{summary.avgLeafCoverage}%</div>
+          <span className="text-[0.68rem] text-muted-foreground font-medium mt-1">Components & tokens</span>
         </div>
 
-        <div style={S.statCard} className="card-glass">
-          <div style={S.statHeader}>
-            <span style={S.statLabel}>Telemetry Validity</span>
-            <div style={{ ...S.statIconWrap, color: 'var(--success)', background: 'color-mix(in srgb, var(--success) 10%, transparent)' }}>
+        <div className="p-5 rounded-xl flex flex-col gap-1 relative card-glass bg-muted/10 border border-border">
+          <div className="flex justify-between items-center w-full">
+            <span className="text-[0.72rem] font-bold uppercase text-muted-foreground tracking-wider">Sync Validity</span>
+            <div className="w-6.5 h-6.5 rounded-md flex items-center justify-center text-emerald-500 bg-emerald-500/10">
               <ShieldAlert size={13} />
             </div>
           </div>
-          <div style={S.statValue}>{summary.telemetryValidityRate}%</div>
-          <span style={S.statSubText}>RAG data processing SLA</span>
+          <div className="text-2xl font-extrabold text-foreground tracking-tight leading-none mt-1">{summary.telemetryValidityRate}%</div>
+          <span className="text-[0.68rem] text-muted-foreground font-medium mt-1">Workspace SLA index</span>
         </div>
 
-        <div style={S.statCard} className="card-glass">
-          <div style={S.statHeader}>
-            <span style={S.statLabel}>Open Knowledge Gaps</span>
-            <div style={{ ...S.statIconWrap, color: '#ef4444', background: 'color-mix(in srgb, #ef4444 10%, transparent)' }}>
+        <div className="p-5 rounded-xl flex flex-col gap-1 relative card-glass bg-muted/10 border border-border">
+          <div className="flex justify-between items-center w-full">
+            <span className="text-[0.72rem] font-bold uppercase text-muted-foreground tracking-wider">Identified Gaps</span>
+            <div className="w-6.5 h-6.5 rounded-md flex items-center justify-center text-red-500 bg-red-500/10">
               <AlertTriangle size={13} />
             </div>
           </div>
-          <div style={S.statValue}>{summary.openGapsCount}</div>
-          <span style={S.statSubText}>Actionable backlog tickets</span>
+          <div className="text-2xl font-extrabold text-foreground tracking-tight leading-none mt-1">{summary.openGapsCount}</div>
+          <span className="text-[0.68rem] text-muted-foreground font-medium mt-1">Pending design enhancements</span>
         </div>
       </div>
 
       {/* ─── TAB NAVIGATION ────────────────────────────────────── */}
-      <div style={S.tabsContainer} className="card-glass">
+      <div className="flex gap-2 p-1.5 rounded-xl w-fit card-glass bg-muted/20 border border-border">
         <button
-          style={S.tabBtn(activeTab === 'coverage')}
+          className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg border-none cursor-pointer transition-all duration-150 ${
+            activeTab === 'coverage' ? 'bg-input text-primary font-bold' : 'bg-transparent text-muted-foreground hover:text-foreground'
+          }`}
           onClick={() => setActiveTab('coverage')}
         >
           <Layers size={14} />
-          <span>Coverage Analytics</span>
+          <span>Content Coverage</span>
         </button>
 
         <button
-          style={S.tabBtn(activeTab === 'gaps')}
+          className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg border-none cursor-pointer transition-all duration-150 ${
+            activeTab === 'gaps' ? 'bg-input text-primary font-bold' : 'bg-transparent text-muted-foreground hover:text-foreground'
+          }`}
           onClick={() => setActiveTab('gaps')}
         >
           <ListTodo size={14} />
@@ -275,32 +302,38 @@ export default function ObservabilityPage() {
         </button>
 
         <button
-          style={S.tabBtn(activeTab === 'trends')}
+          className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg border-none cursor-pointer transition-all duration-150 ${
+            activeTab === 'trends' ? 'bg-input text-primary font-bold' : 'bg-transparent text-muted-foreground hover:text-foreground'
+          }`}
           onClick={() => setActiveTab('trends')}
         >
           <TrendingUp size={14} />
-          <span>Historical Trends</span>
+          <span>Health Trends</span>
         </button>
 
         <button
-          style={S.tabBtn(activeTab === 'integrity')}
+          className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg border-none cursor-pointer transition-all duration-150 ${
+            activeTab === 'integrity' ? 'bg-input text-primary font-bold' : 'bg-transparent text-muted-foreground hover:text-foreground'
+          }`}
           onClick={() => setActiveTab('integrity')}
         >
           <ShieldAlert size={14} />
-          <span>Graph Integrity</span>
+          <span>Consistency Audits</span>
         </button>
 
         <button
-          style={S.tabBtn(activeTab === 'ab_test')}
+          className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg border-none cursor-pointer transition-all duration-150 ${
+            activeTab === 'ab_test' ? 'bg-input text-primary font-bold' : 'bg-transparent text-muted-foreground hover:text-foreground'
+          }`}
           onClick={() => setActiveTab('ab_test')}
         >
           <Activity size={14} />
-          <span>A/B Evaluation</span>
+          <span>Benchmark Comparison</span>
         </button>
       </div>
 
       {/* ─── TAB CONTENTS ──────────────────────────────────────── */}
-      <div style={S.tabContentArea}>
+      <div className="w-full">
         <AnimatePresence mode="wait">
           {/* 1. COVERAGE ANALYTICS */}
           {activeTab === 'coverage' && analytics && (
@@ -310,23 +343,21 @@ export default function ObservabilityPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              style={S.tabPaneGrid}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full"
             >
               {/* Distribution SVG Chart */}
-              <div style={S.paneCard} className="card-glass">
-                <h3 style={S.cardTitle}>Entity Coverage Distribution</h3>
-                <p style={S.cardSubTitle}>Count of knowledge graph entities grouped by coverage score</p>
+              <div className="p-6 rounded-2xl flex flex-col w-full card-glass bg-card/40 border border-border">
+                <h3 className="text-base font-extrabold m-0">Element Coverage Distribution</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Count of workspace design elements grouped by coverage score</p>
                 
-                <div style={S.chartWrapper}>
-                  {/* SVG Bar Chart */}
+                <div className="flex justify-center items-center mt-6 w-full">
                   <svg width="100%" height="220" viewBox="0 0 500 220" style={{ overflow: 'visible' }}>
                     <line x1="40" y1="180" x2="480" y2="180" stroke="var(--border)" strokeWidth="1" />
-                    {/* Y-Axis Grid Lines */}
                     <line x1="40" y1="40" x2="480" y2="40" stroke="var(--border)" strokeWidth="0.5" strokeDasharray="3 3" opacity="0.3" />
                     <line x1="40" y1="110" x2="480" y2="110" stroke="var(--border)" strokeWidth="0.5" strokeDasharray="3 3" opacity="0.3" />
 
                     {/* Bar 1: <20% */}
-                    <rect x="75" y={180 - (analytics.coverageDistribution.under20 * 1.2)} width="40" height={analytics.coverageDistribution.under20 * 1.2} rx="4" fill="var(--destructive)" opacity="0.85" className="glow-bar-dest" />
+                    <rect x="75" y={180 - (analytics.coverageDistribution.under20 * 1.2)} width="40" height={analytics.coverageDistribution.under20 * 1.2} rx="4" fill="var(--destructive)" opacity="0.85" />
                     <text x="95" y="196" fill="var(--muted-foreground)" fontSize="10" textAnchor="middle">&lt; 20%</text>
                     <text x="95" y={172 - (analytics.coverageDistribution.under20 * 1.2)} fill="var(--foreground)" fontSize="11" fontWeight="700" textAnchor="middle">{analytics.coverageDistribution.under20}</text>
 
@@ -346,7 +377,7 @@ export default function ObservabilityPage() {
                     <text x="335" y={172 - (analytics.coverageDistribution.under80 * 1.2)} fill="var(--foreground)" fontSize="11" fontWeight="700" textAnchor="middle">{analytics.coverageDistribution.under80}</text>
 
                     {/* Bar 5: >80% */}
-                    <rect x="395" y={180 - (analytics.coverageDistribution.over80 * 1.2)} width="40" height={analytics.coverageDistribution.over80 * 1.2} rx="4" fill="var(--success)" opacity="0.85" className="glow-bar-succ" />
+                    <rect x="395" y={180 - (analytics.coverageDistribution.over80 * 1.2)} width="40" height={analytics.coverageDistribution.over80 * 1.2} rx="4" fill="var(--success)" opacity="0.85" />
                     <text x="415" y="196" fill="var(--muted-foreground)" fontSize="10" textAnchor="middle">&gt; 80%</text>
                     <text x="415" y={172 - (analytics.coverageDistribution.over80 * 1.2)} fill="var(--foreground)" fontSize="11" fontWeight="700" textAnchor="middle">{analytics.coverageDistribution.over80}</text>
                   </svg>
@@ -354,26 +385,23 @@ export default function ObservabilityPage() {
               </div>
 
               {/* Layer-by-layer bars */}
-              <div style={S.paneCard} className="card-glass">
-                <h3 style={S.cardTitle}>Coverage Score by Layer</h3>
-                <p style={S.cardSubTitle}>Average performance across RAG query constraints</p>
+              <div className="p-6 rounded-2xl flex flex-col w-full card-glass bg-card/40 border border-border">
+                <h3 className="text-base font-extrabold m-0">Coverage Score by Layer</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Average completeness across active system layers</p>
                 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1.5rem' }}>
+                <div className="flex flex-col gap-5 mt-6">
                   {Object.keys(analytics.coverageByLayer).map(layer => {
                     const score = analytics.coverageByLayer[layer];
                     return (
-                      <div key={layer} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 600 }}>
-                          <span style={{ textTransform: 'capitalize' }}>{layer.replace('_', ' ')}</span>
-                          <span style={{ color: score < 60 ? 'var(--destructive)' : 'var(--success)' }}>{score}%</span>
+                      <div key={layer} className="flex flex-col gap-1.5">
+                        <div className="flex justify-between text-xs font-semibold">
+                          <span className="capitalize">{layer.replace('_', ' ')}</span>
+                          <span className={score < 60 ? 'text-destructive' : 'text-success'}>{score}%</span>
                         </div>
-                        <div style={S.progressTrack}>
+                        <div className="w-full h-1.5 rounded-full bg-foreground/5 overflow-hidden">
                           <motion.div
-                            style={{
-                              ...S.progressFill,
-                              width: `${score}%`,
-                              background: score < 60 ? 'var(--destructive)' : 'var(--success)'
-                            }}
+                            className={`h-full rounded-full ${score < 60 ? 'bg-destructive' : 'bg-success'}`}
+                            style={{ width: `${score}%` }}
                             initial={{ width: 0 }}
                             animate={{ width: `${score}%` }}
                             transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -385,45 +413,45 @@ export default function ObservabilityPage() {
                 </div>
               </div>
 
-              {/* Lowest Coverage list */}
-              <div style={{ ...S.paneCard, gridColumn: 'span 2' }} className="card-glass">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              {/* Application Ranking */}
+              <div className="p-6 rounded-2xl flex flex-col w-full card-glass bg-card/40 border border-border lg:col-span-2">
+                <div className="flex justify-between items-center mb-4">
                   <div>
-                    <h3 style={S.cardTitle}>Application Coverage Ranking</h3>
-                    <p style={S.cardSubTitle}>Completeness score mapped across structural RAG seeds</p>
+                    <h3 className="text-base font-extrabold m-0">Project Blueprint Quality Ranking</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">Completeness scores across active project blueprints</p>
                   </div>
                 </div>
 
-                <div style={S.rankingSplit}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
                   {/* Lowest Column */}
-                  <div style={S.rankingColumn}>
-                    <div style={S.rankingHeaderCol}>
-                      <Flame size={14} style={{ color: 'var(--destructive)' }} />
-                      <span style={{ color: 'var(--destructive)' }}>Lowest Coverage Applications</span>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider pb-1.5 border-b border-border text-destructive">
+                      <Flame size={14} />
+                      <span>Blueprints Requiring Attention</span>
                     </div>
-                    <div style={S.rankingList}>
+                    <div className="flex flex-col gap-2">
                       {analytics.lowestCoverageApps.map((app, idx) => (
-                        <div key={app.id} style={S.rankingItem} className="noise-overlay">
-                          <span style={S.rankingIdx}>{idx + 1}</span>
-                          <span style={S.rankingName}>{app.name}</span>
-                          <span style={{ ...S.rankingScore, color: 'var(--destructive)' }}>{app.coverage_score}%</span>
+                        <div key={app.id} className="flex items-center px-3 py-2 rounded-lg bg-foreground/3 text-xs">
+                          <span className="font-bold opacity-50 mr-3">{idx + 1}</span>
+                          <span className="font-semibold flex-1">{app.name}</span>
+                          <span className="font-extrabold text-destructive">{app.coverage_score}%</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   {/* Highest Column */}
-                  <div style={S.rankingColumn}>
-                    <div style={S.rankingHeaderCol}>
-                      <CheckCircle2 size={14} style={{ color: 'var(--success)' }} />
-                      <span style={{ color: 'var(--success)' }}>Highest Coverage Applications</span>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider pb-1.5 border-b border-border text-success">
+                      <CheckCircle2 size={14} />
+                      <span>Fully Complete Blueprints</span>
                     </div>
-                    <div style={S.rankingList}>
+                    <div className="flex flex-col gap-2">
                       {analytics.highestCoverageApps.map((app, idx) => (
-                        <div key={app.id} style={S.rankingItem}>
-                          <span style={S.rankingIdx}>{idx + 1}</span>
-                          <span style={S.rankingName}>{app.name}</span>
-                          <span style={{ ...S.rankingScore, color: 'var(--success)' }}>{app.coverage_score}%</span>
+                        <div key={app.id} className="flex items-center px-3 py-2 rounded-lg bg-foreground/3 text-xs">
+                          <span className="font-bold opacity-50 mr-3">{idx + 1}</span>
+                          <span className="font-semibold flex-1">{app.name}</span>
+                          <span className="font-extrabold text-success">{app.coverage_score}%</span>
                         </div>
                       ))}
                     </div>
@@ -441,31 +469,31 @@ export default function ObservabilityPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              style={S.gapsTabContainer}
+              className="flex flex-col gap-5 w-full"
             >
               {/* Filter controls */}
-              <div style={S.filtersRow} className="card-glass">
-                <div style={S.filterCol}>
-                  <Filter size={12} style={{ color: 'var(--accent)' }} />
-                  <span style={S.filterLabel}>Filters</span>
+              <div className="flex flex-wrap items-center gap-3 p-3 rounded-xl w-full card-glass bg-muted/10 border border-border">
+                <div className="flex items-center gap-1.5 text-xs font-bold uppercase text-primary mr-2">
+                  <Filter size={12} />
+                  <span>Filters</span>
                 </div>
 
                 <select
                   value={gapTypeFilter}
                   onChange={e => setGapTypeFilter(e.target.value)}
-                  style={S.filterSelect}
+                  className="bg-input text-foreground border border-border rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer outline-none hover:bg-muted/80"
                 >
                   <option value="">All Gap Types</option>
                   <option value="LOW_COVERAGE">Low Coverage</option>
                   <option value="INCOMPLETE_ENTITY">Incomplete Profiles</option>
-                  <option value="INVALID_RELATIONSHIP">Broken Links</option>
+                  <option value="INVALID_RELATIONSHIP">Dangling Links</option>
                   <option value="STALE_ENTITY">Stale Entries</option>
                 </select>
 
                 <select
                   value={priorityFilter}
                   onChange={e => setPriorityFilter(e.target.value)}
-                  style={S.filterSelect}
+                  className="bg-input text-foreground border border-border rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer outline-none hover:bg-muted/80"
                 >
                   <option value="">All Priorities</option>
                   <option value="critical">Critical</option>
@@ -477,7 +505,7 @@ export default function ObservabilityPage() {
                 <select
                   value={statusFilter}
                   onChange={e => setStatusFilter(e.target.value)}
-                  style={S.filterSelect}
+                  className="bg-input text-foreground border border-border rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer outline-none hover:bg-muted/80"
                 >
                   <option value="">All Statuses</option>
                   <option value="backlog">Backlog</option>
@@ -487,51 +515,49 @@ export default function ObservabilityPage() {
               </div>
 
               {/* Table */}
-              <div style={S.paneCard} className="card-glass">
-                <div style={{ overflowX: 'auto', width: '100%' }}>
-                  <table style={S.gapsTable}>
+              <div className="p-6 rounded-2xl flex flex-col w-full card-glass bg-card/40 border border-border">
+                <div className="overflow-x-auto w-full">
+                  <table className="w-full border-collapse text-left">
                     <thead>
-                      <tr style={S.gapsHeaderRow}>
-                        <th style={S.gapsTh}>Entity / Relationship Target</th>
-                        <th style={S.gapsTh}>Gap Type</th>
-                        <th style={S.gapsTh}>Priority</th>
-                        <th style={S.gapsTh}>Source</th>
-                        <th style={S.gapsTh}>First Logged</th>
-                        <th style={S.gapsTh}>Notes</th>
+                      <tr className="border-b border-border">
+                        <th className="px-4 py-3 text-[0.74rem] font-bold text-muted-foreground uppercase tracking-wider">Target Element</th>
+                        <th className="px-4 py-3 text-[0.74rem] font-bold text-muted-foreground uppercase tracking-wider">Gap Type</th>
+                        <th className="px-4 py-3 text-[0.74rem] font-bold text-muted-foreground uppercase tracking-wider">Priority</th>
+                        <th className="px-4 py-3 text-[0.74rem] font-bold text-muted-foreground uppercase tracking-wider">Category</th>
+                        <th className="px-4 py-3 text-[0.74rem] font-bold text-muted-foreground uppercase tracking-wider">First Seen</th>
+                        <th className="px-4 py-3 text-[0.74rem] font-bold text-muted-foreground uppercase tracking-wider">Notes</th>
                       </tr>
                     </thead>
                     <tbody>
                       {gaps.length === 0 ? (
                         <tr>
-                          <td colSpan="6" style={S.tableEmptyCell}>
-                            <CheckCircle2 size={24} style={{ color: 'var(--success)', opacity: 0.7, marginBottom: '0.5rem' }} />
-                            <div>No matching backlog gaps found in active filters!</div>
+                          <td colSpan="6" className="py-12 px-8 text-center text-muted-foreground text-xs">
+                            <CheckCircle2 size={24} className="text-success opacity-75 mx-auto mb-2" />
+                            <div>All design gaps cleared in current filters!</div>
                           </td>
                         </tr>
                       ) : (
                         gaps.map(gap => {
                           const pStyle = getPriorityStyle(gap.priority);
                           return (
-                            <tr key={gap.id} style={S.gapsRow} className="gaps-table-row">
-                              <td style={{ ...S.gapsTd, fontWeight: 700 }}>{gap.entity_name}</td>
-                              <td style={S.gapsTd}>
-                                <span style={S.typeBadge}>
+                            <tr key={gap.id} className="border-b border-border hover:bg-muted/5 transition-colors">
+                              <td className="px-4 py-3.5 text-xs text-foreground font-bold">{gap.entity_name}</td>
+                              <td className="px-4 py-3.5 text-xs">
+                                <span className="text-[0.7rem] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded uppercase tracking-wider">
                                   {getGapTypeLabel(gap.gap_type)}
                                 </span>
                               </td>
-                              <td style={S.gapsTd}>
-                                <span style={{ ...S.priorityBadge, background: pStyle.bg, color: pStyle.color }}>
+                              <td className="px-4 py-3.5 text-xs">
+                                <span className={`text-[0.66rem] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider ${pStyle.bg} ${pStyle.color}`}>
                                   {pStyle.label}
                                 </span>
                               </td>
-                              <td style={S.gapsTd}>
-                                <code style={S.sourceCode}>{gap.source}</code>
-                              </td>
-                              <td style={S.gapsTd}>
+                              <td className="px-4 py-3.5 text-xs font-mono opacity-80">{gap.source}</td>
+                              <td className="px-4 py-3.5 text-xs">
                                 {new Date(gap.first_seen_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                               </td>
-                              <td style={{ ...S.gapsTd, color: 'var(--muted-foreground)', fontSize: '0.74rem' }}>
-                                {gap.resolution_notes || 'No resolution details compiled.'}
+                              <td className="px-4 py-3.5 text-xs text-muted-foreground">
+                                {gap.resolution_notes || 'No notes compiled.'}
                               </td>
                             </tr>
                           );
@@ -552,46 +578,42 @@ export default function ObservabilityPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              style={S.tabPaneGrid}
+              className="grid grid-cols-1 gap-6 w-full"
             >
               {/* Coverage Over Time area chart */}
-              <div style={{ ...S.paneCard, gridColumn: 'span 2' }} className="card-glass">
-                <h3 style={S.cardTitle}>Average Structural Coverage over Time</h3>
-                <p style={S.cardSubTitle}>Timeline tracking completeness metrics across RAG templates</p>
+              <div className="p-6 rounded-2xl flex flex-col w-full card-glass bg-card/40 border border-border">
+                <h3 className="text-base font-extrabold m-0">Average Workspace Health Score over Time</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Timeline tracking aggregate completeness across app definitions</p>
 
                 {trends.insufficient_history ? (
-                  <div style={S.insufficientTrendsWrapper} className="noise-overlay">
-                    <Calendar size={32} style={{ color: 'var(--accent)', opacity: 0.7, marginBottom: '0.75rem' }} />
-                    <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '0.95rem', fontWeight: 700 }}>Collecting Trend History...</h4>
-                    <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--muted-foreground)' }}>
-                      Only **{trends.uniqueDatesCount} day** of snapshots is available in the database cache. 
+                  <div className="flex flex-col items-center justify-center py-16 px-8 rounded-2xl border border-dashed border-border text-center bg-card/10 mt-4">
+                    <Calendar size={32} className="text-primary opacity-70 mb-3" />
+                    <h4 className="margin-0 text-sm font-bold text-foreground">Collecting Trend History...</h4>
+                    <p className="margin-0 text-xs text-muted-foreground max-w-sm mt-1">
+                      Only **{trends.uniqueDatesCount} day** of snapshot data is stored in the database cache.
                     </p>
-                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.72rem', color: 'var(--muted-foreground)', opacity: 0.8 }}>
-                      Snapshots compile nightly. A minimum of 3 dates are required to plot the area timeline.
+                    <p className="text-[0.72rem] text-muted-foreground/80 mt-2">
+                      Workspace metrics compile daily. A minimum of 3 separate dates are required to plot the line chart.
                     </p>
 
-                    <div style={S.insufficientDataPointsGrid}>
-                      <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--accent)' }}>Active Snapshots:</span>
+                    <div className="flex items-center gap-3 mt-6 bg-input px-4 py-2 rounded-lg border border-border">
+                      <span className="text-[0.72rem] font-bold text-primary">Active Snapshots:</span>
                       {trends.points.map(p => (
-                        <div key={p.date} style={S.dataPointBadge}>
+                        <div key={p.date} className="flex items-center gap-1.5 bg-foreground/5 px-2 py-0.5 rounded text-[0.72rem] font-mono">
                           <span>{p.date}</span>
-                          <ChevronRight size={10} style={{ opacity: 0.5 }} />
-                          <span style={{ fontWeight: 700 }}>{p.coverage}%</span>
+                          <ChevronRight size={10} className="opacity-50" />
+                          <span className="font-extrabold">{p.coverage}%</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 ) : (
-                  <div style={S.chartWrapper}>
-                    {/* Render dynamic SVG Line Chart with actual points */}
+                  <div className="flex justify-center items-center mt-6 w-full">
                     <svg width="100%" height="240" viewBox="0 0 600 240" style={{ overflow: 'visible' }}>
-                      {/* Grid Lines */}
                       <line x1="40" y1="200" x2="560" y2="200" stroke="var(--border)" strokeWidth="1" />
                       <line x1="40" y1="50" x2="560" y2="50" stroke="var(--border)" strokeWidth="0.5" strokeDasharray="3 3" opacity="0.3" />
                       <line x1="40" y1="125" x2="560" y2="125" stroke="var(--border)" strokeWidth="0.5" strokeDasharray="3 3" opacity="0.3" />
 
-                      {/* Area polygon & stroke path */}
-                      {/* We will draw the coordinates dynamically based on points length */}
                       {(() => {
                         const width = 520;
                         const height = 150;
@@ -601,7 +623,6 @@ export default function ObservabilityPage() {
 
                         const coordinates = trends.points.map((pt, i) => {
                           const x = 40 + (i * xStep);
-                          // map 0-100 score to 50-200 Y range (inverted)
                           const y = startY - ((pt.coverage / 100) * height);
                           return { x, y, pt };
                         });
@@ -611,21 +632,18 @@ export default function ObservabilityPage() {
 
                         return (
                           <>
-                            {/* Area Gradient */}
-                            <path d={areaStr} fill="url(#areaGrad)" opacity="0.25" />
-                            {/* Line path */}
-                            <path d={pathStr} fill="none" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" className="sparkline-path" />
-                            {/* Coordinates labels */}
+                            <path d={areaStr} fill="url(#areaGrad)" opacity="0.15" />
+                            <path d={pathStr} fill="none" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" />
                             {coordinates.map((c, idx) => (
                               <g key={idx}>
-                                <circle cx={c.x} cy={c.y} r="5" fill="var(--background)" stroke="var(--accent)" strokeWidth="2.5" className="sparkline-dot" />
+                                <circle cx={c.x} cy={c.y} r="5" fill="var(--background)" stroke="var(--accent)" strokeWidth="2.5" />
                                 <text x={c.x} y={c.y - 12} fill="var(--foreground)" fontSize="9" fontWeight="700" textAnchor="middle">{c.pt.coverage}%</text>
                                 <text x={c.x} y="215" fill="var(--muted-foreground)" fontSize="9" textAnchor="middle">{c.pt.date.split('-').slice(1).join('/')}</text>
                               </g>
                             ))}
                             <defs>
                               <linearGradient id="areaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.8" />
+                                <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.6" />
                                 <stop offset="100%" stopColor="var(--accent)" stopOpacity="0.0" />
                               </linearGradient>
                             </defs>
@@ -647,117 +665,122 @@ export default function ObservabilityPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              style={S.tabPaneGrid}
+              className="grid grid-cols-1 gap-6 w-full"
             >
-              {/* Integrity summary blocks */}
-              <div style={{ ...S.paneCard, gridColumn: 'span 2' }} className="card-glass">
-                <h3 style={S.cardTitle}>Graph Integrity Audits</h3>
-                <p style={S.cardSubTitle}>Last aggregation scan run at {new Date(integrity.last_run_at || Date.now()).toLocaleTimeString()}</p>
+              {/* Integrity audits */}
+              <div className="p-6 rounded-2xl flex flex-col w-full card-glass bg-card/40 border border-border">
+                <h3 className="text-base font-extrabold m-0">Workspace Integrity Audits</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Last automated consistency scan run at {new Date(integrity.last_run_at || 1782476684000).toLocaleTimeString()}</p>
 
-                <div style={S.integrityGrid}>
-                  {/* Item 1: Orphans */}
-                  <div style={S.integrityCard} className="noise-overlay">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
-                      <span style={S.integrityLabel}>Orphan Entities</span>
-                      <div style={S.integrityDot(integrity.orphans.filter(o => !o.is_valid).length > 0)} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-6 w-full">
+                  {/* Orphan Entities */}
+                  <div className="bg-foreground/2 px-5 py-4 border border-border rounded-xl flex flex-col gap-2 items-start">
+                    <div className="flex justify-between items-flex-start w-full">
+                      <span className="text-[0.75rem] font-bold text-muted-foreground uppercase tracking-wider">{integrityLabels.orphans}</span>
+                      <div className={`w-2.5 h-2.5 rounded-full ${integrity.orphans.filter(o => !o.is_valid).length > 0 ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-success shadow-[0_0_8px_var(--success)]'}`} />
                     </div>
-                    <div style={S.integrityVal}>{integrity.orphans.length}</div>
+                    <div className="text-2xl font-extrabold text-foreground leading-none mt-1">{integrity.orphans.length}</div>
                     
-                    <button style={S.detailsBtn} onClick={() => setShowOrphansList(!showOrphansList)}>
+                    <button 
+                      className="bg-transparent border-none text-primary text-[0.72rem] font-bold cursor-pointer flex items-center gap-1 p-0 mt-1 hover:opacity-80 transition-opacity outline-none"
+                      onClick={() => setShowOrphansList(!showOrphansList)}
+                    >
                       <Eye size={12} />
-                      <span>{showOrphansList ? 'Hide List' : 'View Details'}</span>
+                      <span>{showOrphansList ? 'Hide List' : 'View Elements'}</span>
                     </button>
                   </div>
 
-                  {/* Item 2: Duplicates */}
-                  <div style={S.integrityCard}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
-                      <span style={S.integrityLabel}>Duplicate Slugs</span>
-                      <div style={S.integrityDot(integrity.duplicate_slugs_count > 0)} />
+                  {/* Duplicate Slugs */}
+                  <div className="bg-foreground/2 px-5 py-4 border border-border rounded-xl flex flex-col gap-2 items-start">
+                    <div className="flex justify-between items-flex-start w-full">
+                      <span className="text-[0.75rem] font-bold text-muted-foreground uppercase tracking-wider">{integrityLabels.duplicate_slugs_count}</span>
+                      <div className={`w-2.5 h-2.5 rounded-full ${integrity.duplicate_slugs_count > 0 ? 'bg-destructive shadow-[0_0_8px_var(--destructive)]' : 'bg-success shadow-[0_0_8px_var(--success)]'}`} />
                     </div>
-                    <div style={S.integrityVal}>{integrity.duplicate_slugs_count}</div>
-                    <span style={S.integrityStatus(integrity.duplicate_slugs_count > 0)}>
+                    <div className="text-2xl font-extrabold text-foreground leading-none mt-1">{integrity.duplicate_slugs_count}</div>
+                    <span className={`text-[0.72rem] font-medium ${integrity.duplicate_slugs_count > 0 ? 'text-destructive' : 'text-success'}`}>
                       {integrity.duplicate_slugs_count > 0 ? 'Duplicate IDs found' : 'Fully Unique'}
                     </span>
                   </div>
 
-                  {/* Item 3: Broken Rels */}
-                  <div style={S.integrityCard}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
-                      <span style={S.integrityLabel}>Broken Links</span>
-                      <div style={S.integrityDot(integrity.broken_relationships_count > 0)} />
+                  {/* Broken Relationships */}
+                  <div className="bg-foreground/2 px-5 py-4 border border-border rounded-xl flex flex-col gap-2 items-start">
+                    <div className="flex justify-between items-flex-start w-full">
+                      <span className="text-[0.75rem] font-bold text-muted-foreground uppercase tracking-wider">{integrityLabels.broken_relationships_count}</span>
+                      <div className={`w-2.5 h-2.5 rounded-full ${integrity.broken_relationships_count > 0 ? 'bg-destructive shadow-[0_0_8px_var(--destructive)]' : 'bg-success shadow-[0_0_8px_var(--success)]'}`} />
                     </div>
-                    <div style={S.integrityVal}>{integrity.broken_relationships_count}</div>
-                    <span style={S.integrityStatus(integrity.broken_relationships_count > 0)}>
+                    <div className="text-2xl font-extrabold text-foreground leading-none mt-1">{integrity.broken_relationships_count}</div>
+                    <span className={`text-[0.72rem] font-medium ${integrity.broken_relationships_count > 0 ? 'text-destructive' : 'text-success'}`}>
                       {integrity.broken_relationships_count > 0 ? 'Dangling references' : 'All Links Valid'}
                     </span>
                   </div>
 
-                  {/* Item 4: Cycles */}
-                  <div style={S.integrityCard}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
-                      <span style={S.integrityLabel}>Circular Relationships</span>
-                      <div style={S.integrityDot(integrity.circular_relationships.length > 0)} />
+                  {/* Circular Relationships */}
+                  <div className="bg-foreground/2 px-5 py-4 border border-border rounded-xl flex flex-col gap-2 items-start">
+                    <div className="flex justify-between items-flex-start w-full">
+                      <span className="text-[0.75rem] font-bold text-muted-foreground uppercase tracking-wider">{integrityLabels.circular_relationships}</span>
+                      <div className={`w-2.5 h-2.5 rounded-full ${integrity.circular_relationships.length > 0 ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-success shadow-[0_0_8px_var(--success)]'}`} />
                     </div>
-                    <div style={S.integrityVal}>{integrity.circular_relationships.length}</div>
+                    <div className="text-2xl font-extrabold text-foreground leading-none mt-1">{integrity.circular_relationships.length}</div>
                     
                     {integrity.circular_relationships.length > 0 ? (
-                      <button style={S.detailsBtn} onClick={() => setShowCyclesList(!showCyclesList)}>
+                      <button 
+                        className="bg-transparent border-none text-primary text-[0.72rem] font-bold cursor-pointer flex items-center gap-1 p-0 mt-1 hover:opacity-80 transition-opacity outline-none"
+                        onClick={() => setShowCyclesList(!showCyclesList)}
+                      >
                         <Eye size={12} />
                         <span>{showCyclesList ? 'Hide List' : 'View Loops'}</span>
                       </button>
                     ) : (
-                      <span style={{ fontSize: '0.74rem', color: 'var(--success)', fontWeight: 500 }}>No Cycles Detected</span>
+                      <span className="text-[0.72rem] font-medium text-success">No Loops Detected</span>
                     )}
                   </div>
                 </div>
 
-                {/* Toggled list: Orphans */}
+                {/* Expanded list: Orphans */}
                 {showOrphansList && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
-                    style={S.collapsedContainer}
+                    className="mt-6 p-4 rounded-lg bg-foreground/3 border border-border w-full"
                   >
-                    <div style={S.collapsedTitle}>Orphan entities breakdown (Degree 0)</div>
-                    <div style={S.orphansBadgeWrapper}>
+                    <div className="text-[0.78rem] font-bold uppercase text-muted-foreground tracking-wider mb-3">Independent Elements Breakdown</div>
+                    <div className="flex flex-wrap gap-2">
                       {integrity.orphans.map(orphan => (
                         <div
                           key={orphan.id}
-                          style={{
-                            ...S.orphanBadgeItem,
-                            background: orphan.is_valid
-                              ? 'color-mix(in srgb, var(--success) 8%, transparent)'
-                              : 'color-mix(in srgb, #f59e0b 8%, transparent)',
-                            color: orphan.is_valid ? 'var(--success)' : '#f59e0b',
-                            border: `1px solid ${orphan.is_valid ? 'color-mix(in srgb, var(--success) 15%, transparent)' : 'color-mix(in srgb, #f59e0b 15%, transparent)'}`
-                          }}
+                          className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-[0.74rem] ${
+                            orphan.is_valid 
+                              ? 'bg-success/5 text-success border border-success/15' 
+                              : 'bg-amber-500/5 text-amber-500 border border-amber-500/15'
+                          }`}
                         >
                           <code>{orphan.id}</code>
-                          <span style={S.orphanTag(orphan.is_valid)}>
-                            {orphan.is_valid ? 'valid_orphan' : 'integrity_leak'}
+                          <span className={`text-[0.58rem] font-extrabold uppercase px-1 rounded ${
+                            orphan.is_valid ? 'bg-success/15 text-success' : 'bg-amber-500/15 text-amber-500'
+                          }`}>
+                            {orphan.is_valid ? 'standalone' : 'unlinked'}
                           </span>
                         </div>
                       ))}
                     </div>
-                    <p style={{ margin: '0.75rem 0 0 0', fontSize: '0.7rem', color: 'var(--muted-foreground)', lineHeight: 1.4 }}>
-                      *Note: `valid_orphan` refers to items like typography files, themes, design token configs, or application wizard steps that are naturally standalone and do not require relationships in the graph.*
+                    <p className="mt-3 mb-0 text-[0.7rem] text-muted-foreground leading-relaxed">
+                      *Note: standalone elements represent naturally independent configuration entities (such as typography variables, global theme choices, or checklist items) that compile correctly without active links.*
                     </p>
                   </motion.div>
                 )}
 
-                {/* Toggled list: Cycles */}
+                {/* Expanded list: Cycles */}
                 {showCyclesList && integrity.circular_relationships.length > 0 && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
-                    style={S.collapsedContainer}
+                    className="mt-6 p-4 rounded-lg bg-foreground/3 border border-border w-full"
                   >
-                    <div style={S.collapsedTitle}>Detected circular references loops</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
+                    <div className="text-[0.78rem] font-bold uppercase text-muted-foreground tracking-wider mb-3">Recursive References List</div>
+                    <div className="flex flex-col gap-2">
                       {integrity.circular_relationships.map((cycle, idx) => (
-                        <div key={idx} style={S.cycleRow}>
-                          <CornerDownRight size={11} style={{ opacity: 0.5 }} />
+                        <div key={idx} className="flex items-center gap-2 text-[0.76rem] text-foreground">
+                          <CornerDownRight size={11} className="opacity-50" />
                           <code>{cycle}</code>
                         </div>
                       ))}
@@ -776,92 +799,92 @@ export default function ObservabilityPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              style={S.tabPaneGrid}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full"
             >
-              {/* Aggregate Comparison Bento Cards */}
-              <div style={{ ...S.paneCard, gridColumn: 'span 2' }} className="card-glass">
-                <h3 style={S.cardTitle}>Performance A/B Comparison</h3>
-                <p style={S.cardSubTitle}>Aggregated outcomes comparing Legacy RAG with Blueprint-Guided Orchestration</p>
+              {/* Performance Comparison Bento Cards */}
+              <div className="p-6 rounded-2xl flex flex-col w-full card-glass bg-card/40 border border-border lg:col-span-2">
+                <h3 className="text-base font-extrabold m-0">Performance A/B Comparison</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Aggregated evaluation outcomes comparing legacy vs. blueprint-guided pipeline</p>
                 
-                <div style={S.abSummaryContainer}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                   {/* Legacy Card */}
-                  <div style={{ ...S.abPipelineCard, borderLeft: '4px solid var(--muted-foreground)' }} className="noise-overlay">
-                    <div style={S.abCardHeader}>
-                      <h4 style={S.abCardTitle}>Legacy RAG Pipeline</h4>
-                      <span style={S.abBadgeLegacy}>Baseline</span>
+                  <div className="bg-foreground/1.5 border border-border rounded-xl p-6 flex flex-col gap-5 border-l-4 border-l-muted-foreground">
+                    <div className="flex justify-between items-center border-b border-border pb-3">
+                      <h4 className="text-[0.95rem] font-bold m-0 text-foreground">Legacy Pipeline</h4>
+                      <span className="text-[0.62rem] font-extrabold uppercase tracking-wider bg-foreground/10 text-muted-foreground px-2 py-0.5 rounded">Baseline</span>
                     </div>
-                    <div style={S.abStatsGrid}>
-                      <div style={S.abStatItem}>
-                        <span style={S.abStatLabel}>LLM Evaluation Score</span>
-                        <span style={S.abStatVal}>{abComparison.aggregates.legacy.avg_quality_score}%</span>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[0.72rem] text-muted-foreground font-medium">Evaluation Score</span>
+                        <span className="text-lg font-extrabold text-foreground">{abComparison.aggregates.legacy.avg_quality_score}%</span>
                       </div>
-                      <div style={S.abStatItem}>
-                        <span style={S.abStatLabel}>Structural Accuracy</span>
-                        <span style={S.abStatVal}>{abComparison.aggregates.legacy.avg_structural_accuracy_score}%</span>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[0.72rem] text-muted-foreground font-medium">Structural Accuracy</span>
+                        <span className="text-lg font-extrabold text-foreground">{abComparison.aggregates.legacy.avg_structural_accuracy_score}%</span>
                       </div>
-                      <div style={S.abStatItem}>
-                        <span style={S.abStatLabel}>Avg Latency</span>
-                        <span style={S.abStatVal}>{abComparison.aggregates.legacy.avg_latency_ms}ms</span>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[0.72rem] text-muted-foreground font-medium">Avg Latency</span>
+                        <span className="text-lg font-extrabold text-foreground">{abComparison.aggregates.legacy.avg_latency_ms}ms</span>
                       </div>
-                      <div style={S.abStatItem}>
-                        <span style={S.abStatLabel}>Healing Patches</span>
-                        <span style={S.abStatVal}>{abComparison.aggregates.legacy.total_patches}</span>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[0.72rem] text-muted-foreground font-medium">Healing Patches</span>
+                        <span className="text-lg font-extrabold text-foreground">{abComparison.aggregates.legacy.total_patches}</span>
                       </div>
-                      <div style={S.abStatItem}>
-                        <span style={S.abStatLabel}>Evaluated Runs</span>
-                        <span style={S.abStatVal}>{abComparison.aggregates.legacy.total_runs}</span>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[0.72rem] text-muted-foreground font-medium">Evaluated Runs</span>
+                        <span className="text-lg font-extrabold text-foreground">{abComparison.aggregates.legacy.total_runs}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Blueprint Card */}
-                  <div style={{ ...S.abPipelineCard, borderLeft: '4px solid var(--accent)' }} className="glow-border">
-                    <div style={S.abCardHeader}>
-                      <h4 style={S.abCardTitle}>Blueprint-Guided Pipeline</h4>
-                      <span style={S.abBadgeBlueprint}>Active</span>
+                  <div className="bg-foreground/1.5 border border-border rounded-xl p-6 flex flex-col gap-5 border-l-4 border-l-primary">
+                    <div className="flex justify-between items-center border-b border-border pb-3">
+                      <h4 className="text-[0.95rem] font-bold m-0 text-foreground">Blueprint-Guided Pipeline</h4>
+                      <span className="text-[0.62rem] font-extrabold uppercase tracking-wider bg-primary/15 text-primary px-2 py-0.5 rounded">Active</span>
                     </div>
-                    <div style={S.abStatsGrid}>
-                      <div style={S.abStatItem}>
-                        <span style={S.abStatLabel}>LLM Evaluation Score</span>
-                        <span style={{ ...S.abStatVal, color: 'var(--success)' }}>{abComparison.aggregates.blueprint.avg_quality_score}%</span>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[0.72rem] text-muted-foreground font-medium">Evaluation Score</span>
+                        <span className="text-lg font-extrabold text-success">{abComparison.aggregates.blueprint.avg_quality_score}%</span>
                       </div>
-                      <div style={S.abStatItem}>
-                        <span style={S.abStatLabel}>Structural Accuracy</span>
-                        <span style={{ ...S.abStatVal, color: abComparison.aggregates.blueprint.avg_structural_accuracy_score > abComparison.aggregates.legacy.avg_structural_accuracy_score ? 'var(--success)' : 'var(--foreground)' }}>{abComparison.aggregates.blueprint.avg_structural_accuracy_score}%</span>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[0.72rem] text-muted-foreground font-medium">Structural Accuracy</span>
+                        <span className="text-lg font-extrabold text-success">{abComparison.aggregates.blueprint.avg_structural_accuracy_score}%</span>
                       </div>
-                      <div style={S.abStatItem}>
-                        <span style={S.abStatLabel}>Avg Latency</span>
-                        <span style={S.abStatVal}>{abComparison.aggregates.blueprint.avg_latency_ms}ms</span>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[0.72rem] text-muted-foreground font-medium">Avg Latency</span>
+                        <span className="text-lg font-extrabold text-foreground">{abComparison.aggregates.blueprint.avg_latency_ms}ms</span>
                       </div>
-                      <div style={S.abStatItem}>
-                        <span style={S.abStatLabel}>Healing Patches</span>
-                        <span style={{ ...S.abStatVal, color: abComparison.aggregates.blueprint.total_patches === 0 ? 'var(--success)' : 'var(--foreground)' }}>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[0.72rem] text-muted-foreground font-medium">Healing Patches</span>
+                        <span className={`text-lg font-extrabold ${abComparison.aggregates.blueprint.total_patches === 0 ? 'text-success' : 'text-foreground'}`}>
                           {abComparison.aggregates.blueprint.total_patches}
                         </span>
                       </div>
-                      <div style={S.abStatItem}>
-                        <span style={S.abStatLabel}>Knowledge Utilization</span>
-                        <span style={S.abStatVal}>{abComparison.aggregates.blueprint.avg_utilization}%</span>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[0.72rem] text-muted-foreground font-medium">Knowledge Utilization</span>
+                        <span className="text-lg font-extrabold text-foreground">{abComparison.aggregates.blueprint.avg_utilization}%</span>
                       </div>
-                      <div style={S.abStatItem}>
-                        <span style={S.abStatLabel}>Node Completion</span>
-                        <span style={S.abStatVal}>{abComparison.aggregates.blueprint.avg_completion}%</span>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[0.72rem] text-muted-foreground font-medium">Node Completion</span>
+                        <span className="text-lg font-extrabold text-foreground">{abComparison.aggregates.blueprint.avg_completion}%</span>
                       </div>
-                      <div style={S.abStatItem}>
-                        <span style={S.abStatLabel}>Evaluated Runs</span>
-                        <span style={S.abStatVal}>{abComparison.aggregates.blueprint.total_runs}</span>
+                      <div className="flex flex-col gap-1 col-span-2">
+                        <span className="text-[0.72rem] text-muted-foreground font-medium">Evaluated Runs</span>
+                        <span className="text-lg font-extrabold text-foreground">{abComparison.aggregates.blueprint.total_runs}</span>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Structural Accuracy Dimensions Comparison */}
-              <div style={S.paneCard} className="card-glass">
-                <h3 style={S.cardTitle}>Structural Accuracy Breakdown</h3>
-                <p style={S.cardSubTitle}>Blueprint entity preservation measured against expected architecture</p>
+              {/* Structural Accuracy Breakdown */}
+              <div className="p-6 rounded-2xl flex flex-col w-full card-glass bg-card/40 border border-border">
+                <h3 className="text-base font-extrabold m-0">Structural Accuracy Breakdown</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Blueprint element preservation measured against expected schema</p>
                 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.25rem' }}>
+                <div className="flex flex-col gap-4 mt-5">
                   {(() => {
                     const structDimensions = [
                       { key: 'feature_accuracy', label: 'Feature Accuracy' },
@@ -891,24 +914,28 @@ export default function ObservabilityPage() {
                       const isImprovement = bpScore > legacyScore;
 
                       return (
-                        <div key={dim.key} style={S.rubricDimRow}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={S.rubricLabel}>{dim.label}</span>
+                        <div key={dim.key} className="flex flex-col gap-1.5">
+                          <div className="flex justify-between items-center text-xs font-semibold text-foreground">
+                            <span>{dim.label}</span>
                             {isImprovement && bpScore - legacyScore > 0 && (
-                              <span style={S.winnerBadge}>+{(bpScore - legacyScore).toFixed(1)}</span>
+                              <span className="text-[0.65rem] font-extrabold bg-success/12 text-success px-1.5 py-0.5 rounded ml-2">
+                                +{(bpScore - legacyScore).toFixed(1)}
+                              </span>
                             )}
                           </div>
-                          <div style={S.rubricComparisonTrack}>
-                            <div style={S.rubricBarGroup}>
-                              <span style={S.rubricValueLabel}>Legacy: {legacyScore}</span>
-                              <div style={S.progressTrack}>
-                                <div style={{ ...S.progressFill, width: `${legacyScore}%`, background: 'var(--muted-foreground)' }} />
+                          <div className="flex flex-col gap-2 bg-foreground/1.5 p-3 rounded-lg border border-border">
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="text-[0.7rem] font-bold text-muted-foreground w-[100px] shrink-0">Legacy: {legacyScore}</span>
+                              <div className="w-full h-1.5 rounded-full bg-foreground/5 overflow-hidden">
+                                <div className="h-full rounded-full bg-muted-foreground" style={{ width: `${legacyScore}%` }} />
                               </div>
                             </div>
-                            <div style={S.rubricBarGroup}>
-                              <span style={{ ...S.rubricValueLabel, color: isImprovement ? 'var(--success)' : 'var(--accent)' }}>Blueprint: {bpScore}</span>
-                              <div style={S.progressTrack}>
-                                <div style={{ ...S.progressFill, width: `${bpScore}%`, background: isImprovement ? 'var(--success)' : 'var(--accent)' }} />
+                            <div className="flex items-center justify-between gap-4">
+                              <span className={`text-[0.7rem] font-bold w-[100px] shrink-0 ${isImprovement ? 'text-success' : 'text-primary'}`}>
+                                Blueprint: {bpScore}
+                              </span>
+                              <div className="w-full h-1.5 rounded-full bg-foreground/5 overflow-hidden">
+                                <div className={`h-full rounded-full ${isImprovement ? 'bg-success' : 'bg-primary'}`} style={{ width: `${bpScore}%` }} />
                               </div>
                             </div>
                           </div>
@@ -919,12 +946,12 @@ export default function ObservabilityPage() {
                 </div>
               </div>
 
-              {/* Structured Rubric Comparison */}
-              <div style={S.paneCard} className="card-glass">
-                <h3 style={S.cardTitle}>LLM Evaluation Rubric Comparison</h3>
-                <p style={S.cardSubTitle}>6-dimensional systems architect evaluation averages</p>
+              {/* Evaluation Rubric */}
+              <div className="p-6 rounded-2xl flex flex-col w-full card-glass bg-card/40 border border-border">
+                <h3 className="text-base font-extrabold m-0">Evaluation Rubric Breakdown</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Multi-dimensional quality metrics audit results</p>
                 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.25rem' }}>
+                <div className="flex flex-col gap-4 mt-5">
                   {(() => {
                     const dimensions = [
                       { key: 'architecture_completeness', label: 'Architecture Completeness' },
@@ -953,19 +980,19 @@ export default function ObservabilityPage() {
                       const bpScore = getDimAverage('blueprint', dim.key);
 
                       return (
-                        <div key={dim.key} style={S.rubricDimRow}>
-                          <span style={S.rubricLabel}>{dim.label}</span>
-                          <div style={S.rubricComparisonTrack}>
-                            <div style={S.rubricBarGroup}>
-                              <span style={S.rubricValueLabel}>Legacy: {legacyScore}</span>
-                              <div style={S.progressTrack}>
-                                <div style={{ ...S.progressFill, width: `${legacyScore}%`, background: 'var(--muted-foreground)' }} />
+                        <div key={dim.key} className="flex flex-col gap-1.5">
+                          <span className="text-xs font-semibold text-foreground">{dim.label}</span>
+                          <div className="flex flex-col gap-2 bg-foreground/1.5 p-3 rounded-lg border border-border">
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="text-[0.7rem] font-bold text-muted-foreground w-[100px] shrink-0">Legacy: {legacyScore}</span>
+                              <div className="w-full h-1.5 rounded-full bg-foreground/5 overflow-hidden">
+                                <div className="h-full rounded-full bg-muted-foreground" style={{ width: `${legacyScore}%` }} />
                               </div>
                             </div>
-                            <div style={S.rubricBarGroup}>
-                              <span style={{ ...S.rubricValueLabel, color: 'var(--accent)' }}>Blueprint: {bpScore}</span>
-                              <div style={S.progressTrack}>
-                                <div style={{ ...S.progressFill, width: `${bpScore}%`, background: 'var(--accent)' }} />
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="text-[0.7rem] font-bold text-primary w-[100px] shrink-0">Blueprint: {bpScore}</span>
+                              <div className="w-full h-1.5 rounded-full bg-foreground/5 overflow-hidden">
+                                <div className="h-full rounded-full bg-primary" style={{ width: `${bpScore}%` }} />
                               </div>
                             </div>
                           </div>
@@ -976,67 +1003,67 @@ export default function ObservabilityPage() {
                 </div>
               </div>
 
-              {/* A/B Insights */}
-              <div style={S.paneCard} className="card-glass">
-                <h3 style={S.cardTitle}>Evidence of Blueprint Superiority</h3>
-                <p style={S.cardSubTitle}>Key architectural findings from benchmark evaluation</p>
-                <div style={S.insightsList}>
-                  <div style={S.insightCard} className="noise-overlay">
-                    <CheckCircle2 size={16} style={{ color: 'var(--success)', flexShrink: 0 }} />
+              {/* Key findings */}
+              <div className="p-6 rounded-2xl flex flex-col w-full card-glass bg-card/40 border border-border lg:col-span-2">
+                <h3 className="text-base font-extrabold m-0">Key Quality Findings</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Evaluation metrics and blueprint pipeline insights</p>
+                <div className="flex flex-col gap-4 mt-5">
+                  <div className="flex gap-3 items-start bg-foreground/2 border border-border rounded-lg p-4">
+                    <CheckCircle2 size={16} className="text-success shrink-0" />
                     <div>
-                      <h4 style={S.insightHeading}>Determinism & Completeness</h4>
-                      <p style={S.insightText}>
-                        Blueprint-Guided prompts enforce schema checks (V104/V105) and resolve dependency relations (V112). 
-                        This increases completion rates of expected assets compared to raw context dumping.
+                      <h4 className="text-xs font-bold m-0 mb-1">Determinism & Schema Validation</h4>
+                      <p className="text-[0.74rem] text-muted-foreground m-0 leading-relaxed">
+                        Blueprint-Guided prompts enforce strict schema checks and automatically resolve dependent components.
+                        This increases completion rates of expected items compared to raw context retrieval.
                       </p>
                     </div>
                   </div>
-                  <div style={S.insightCard} className="noise-overlay">
-                    <CheckCircle2 size={16} style={{ color: 'var(--success)', flexShrink: 0 }} />
+                  <div className="flex gap-3 items-start bg-foreground/2 border border-border rounded-lg p-4">
+                    <CheckCircle2 size={16} className="text-success shrink-0" />
                     <div>
-                      <h4 style={S.insightHeading}>Zero Healing Patches</h4>
-                      <p style={S.insightText}>
-                        Pre-validation of compile outputs prevents LLM failures in code constraints, resulting in a dramatic reduction in patch loops.
+                      <h4 className="text-xs font-bold m-0 mb-1">Zero Healing Patches</h4>
+                      <p className="text-[0.74rem] text-muted-foreground m-0 leading-relaxed">
+                        Pre-validation of compiler outputs prevents AI errors in code constraints, resulting in a dramatic reduction in patch recovery loops.
                       </p>
                     </div>
                   </div>
-                  <div style={S.insightCard} className="noise-overlay">
-                    <CheckCircle2 size={16} style={{ color: 'var(--success)', flexShrink: 0 }} />
+                  <div className="flex gap-3 items-start bg-foreground/2 border border-border rounded-lg p-4">
+                    <CheckCircle2 size={16} className="text-success shrink-0" />
                     <div>
-                      <h4 style={S.insightHeading}>Precision Knowledge Utilization</h4>
-                      <p style={S.insightText}>
-                        By mapping only explicitly required relationships rather than dumping the whole retrieved neighborhood, blueprinting achieves optimal knowledge utilization.
+                      <h4 className="text-xs font-bold m-0 mb-1">Precision Knowledge Mapping</h4>
+                      <p className="text-[0.74rem] text-muted-foreground m-0 leading-relaxed">
+                        By mapping only explicitly related terms rather than retrieving arbitrary neighborhoods, blueprinting achieves optimal knowledge utilization.
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Pairwise Comparison Table */}
-              <div style={{ ...S.paneCard, gridColumn: 'span 2' }} className="card-glass">
-                <h3 style={S.cardTitle}>Pairwise Prompt Comparisons</h3>
-                <p style={S.cardSubTitle}>Side-by-side prompt generation audit logs for each deterministic benchmark ID</p>
+              {/* Pairwise comparisons table */}
+              <div className="p-6 rounded-2xl flex flex-col w-full card-glass bg-card/40 border border-border lg:col-span-2">
+                <h3 className="text-base font-extrabold m-0">Pairwise Prompt Evaluations</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Side-by-side prompt generation audit logs for each deterministic benchmark</p>
                 
-                <div style={{ overflowX: 'auto', width: '100%', marginTop: '1.25rem' }}>
-                  <table style={S.gapsTable}>
+                <div className="overflow-x-auto w-full mt-5">
+                  <table className="w-full border-collapse text-left">
                     <thead>
-                      <tr style={S.gapsHeaderRow}>
-                        <th style={S.gapsTh}>Benchmark ID</th>
-                        <th style={S.gapsTh}>User Query</th>
-                        <th style={S.gapsTh}>Legacy LLM</th>
-                        <th style={S.gapsTh}>Blueprint LLM</th>
-                        <th style={S.gapsTh}>Legacy Struct</th>
-                        <th style={S.gapsTh}>Blueprint Struct</th>
-                        <th style={S.gapsTh}>Latency Δ</th>
-                        <th style={S.gapsTh}>Patches (L / B)</th>
+                      <tr className="border-b border-border">
+                        <th className="px-4 py-3 text-[0.74rem] font-bold text-muted-foreground uppercase tracking-wider">Benchmark ID</th>
+                        <th className="px-4 py-3 text-[0.74rem] font-bold text-muted-foreground uppercase tracking-wider">Query Description</th>
+                        <th className="px-4 py-3 text-[0.74rem] font-bold text-muted-foreground uppercase tracking-wider">Legacy LLM</th>
+                        <th className="px-4 py-3 text-[0.74rem] font-bold text-muted-foreground uppercase tracking-wider">Blueprint LLM</th>
+                        <th className="px-4 py-3 text-[0.74rem] font-bold text-muted-foreground uppercase tracking-wider">Legacy Struct</th>
+                        <th className="px-4 py-3 text-[0.74rem] font-bold text-muted-foreground uppercase tracking-wider">Blueprint Struct</th>
+                        <th className="px-4 py-3 text-[0.74rem] font-bold text-muted-foreground uppercase tracking-wider">Latency Δ</th>
+                        <th className="px-4 py-3 text-[0.74rem] font-bold text-muted-foreground uppercase tracking-wider">Patches (L/B)</th>
                       </tr>
                     </thead>
                     <tbody>
                       {abComparison.pairwise.length === 0 ? (
                         <tr>
-                          <td colSpan="8" style={S.tableEmptyCell}>
-                            <AlertTriangle size={24} style={{ color: '#f59e0b', opacity: 0.7, marginBottom: '0.5rem' }} />
-                            <div>No benchmark run logs found in the database. Run `node scripts/run_ab_benchmark.js` first.</div>
+                          <td colSpan="8" className="py-12 px-8 text-center text-muted-foreground text-xs">
+                            <AlertTriangle size={24} className="text-amber-500 opacity-75 mx-auto mb-2" />
+                            <div>No benchmark run logs found in the database.</div>
                           </td>
                         </tr>
                       ) : (
@@ -1050,42 +1077,50 @@ export default function ObservabilityPage() {
                           const isStructWinner = bpStruct > legacyStruct;
 
                           return (
-                            <tr key={item.benchmark_id} style={S.gapsRow} className="gaps-table-row">
-                              <td style={{ ...S.gapsTd, fontWeight: 700 }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
+                            <tr key={item.benchmark_id} className="border-b border-border hover:bg-muted/5 transition-colors">
+                              <td className="px-4 py-3.5 text-xs text-foreground font-bold">
+                                <div className="flex flex-col items-start gap-1">
                                   <code>{item.benchmark_id}</code>
                                   {item.blueprint?.expected_context?.source && (
-                                    <span style={S.sourceBadge}>
+                                    <span className="text-[0.65rem] font-semibold bg-foreground/6 text-muted-foreground px-1 rounded mt-1 inline-block uppercase tracking-wider">
                                       {item.blueprint.expected_context.source}
                                     </span>
                                   )}
                                 </div>
                               </td>
-                              <td style={{ ...S.gapsTd, maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={item.query}>
+                              <td className="px-4 py-3.5 text-xs maxWidth-[220px] overflow-hidden text-ellipsis whitespace-nowrap" title={item.query}>
                                 {item.query}
                               </td>
-                              <td style={S.gapsTd}>
-                                <span style={{ textDecoration: isBpWinner ? 'line-through' : 'none', opacity: isBpWinner ? 0.6 : 1 }}>
+                              <td className="px-4 py-3.5 text-xs">
+                                <span className={isBpWinner ? 'line-through opacity-60' : ''}>
                                   {legacyScore > 0 ? `${legacyScore}%` : 'N/A'}
                                 </span>
                               </td>
-                              <td style={{ ...S.gapsTd, fontWeight: isBpWinner ? 700 : 500, color: isBpWinner ? 'var(--success)' : 'var(--foreground)' }}>
+                              <td className={`px-4 py-3.5 text-xs ${isBpWinner ? 'font-bold text-success' : 'font-medium'}`}>
                                 <span>{bpScore > 0 ? `${bpScore}%` : 'N/A'}</span>
-                                {isBpWinner && <span style={S.winnerBadge}>+{(bpScore - legacyScore).toFixed(1)}%</span>}
+                                {isBpWinner && (
+                                  <span className="text-[0.65rem] font-extrabold bg-success/12 text-success px-1.5 py-0.5 rounded ml-1.5">
+                                    +{(bpScore - legacyScore).toFixed(1)}%
+                                  </span>
+                                )}
                               </td>
-                              <td style={S.gapsTd}>
-                                <span style={{ textDecoration: isStructWinner ? 'line-through' : 'none', opacity: isStructWinner ? 0.6 : 1 }}>
+                              <td className="px-4 py-3.5 text-xs">
+                                <span className={isStructWinner ? 'line-through opacity-60' : ''}>
                                   {legacyStruct > 0 ? `${legacyStruct}%` : 'N/A'}
                                 </span>
                               </td>
-                              <td style={{ ...S.gapsTd, fontWeight: isStructWinner ? 700 : 500, color: isStructWinner ? 'var(--success)' : 'var(--foreground)' }}>
+                              <td className={`px-4 py-3.5 text-xs ${isStructWinner ? 'font-bold text-success' : 'font-medium'}`}>
                                 <span>{bpStruct > 0 ? `${bpStruct}%` : 'N/A'}</span>
-                                {isStructWinner && <span style={S.winnerBadge}>+{(bpStruct - legacyStruct).toFixed(1)}%</span>}
+                                {isStructWinner && (
+                                  <span className="text-[0.65rem] font-extrabold bg-success/12 text-success px-1.5 py-0.5 rounded ml-1.5">
+                                    +{(bpStruct - legacyStruct).toFixed(1)}%
+                                  </span>
+                                )}
                               </td>
-                              <td style={{ ...S.gapsTd, color: latencyDiff > 0 ? 'var(--muted-foreground)' : 'var(--success)' }}>
+                              <td className={`px-4 py-3.5 text-xs ${latencyDiff > 0 ? 'text-muted-foreground' : 'text-success'}`}>
                                 {latencyDiff > 0 ? `+${latencyDiff}ms` : `${latencyDiff}ms`}
                               </td>
-                              <td style={S.gapsTd}>
+                              <td className="px-4 py-3.5 text-xs">
                                 <code>{item.legacy?.patch_count || 0}</code> / <code>{item.blueprint?.patch_count || 0}</code>
                               </td>
                             </tr>
@@ -1100,756 +1135,6 @@ export default function ObservabilityPage() {
           )}
         </AnimatePresence>
       </div>
-
-      {/* Styled JSX for local animations */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @keyframes rotateCw {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        .spin-animation {
-          animation: rotateCw 1s linear infinite;
-        }
-
-        .gaps-table-row {
-          transition: background 0.15s ease;
-        }
-        .gaps-table-row:hover {
-          background: color-mix(in srgb, var(--foreground) 3%, transparent);
-        }
-
-        @keyframes fillAnimation {
-          from { stroke-dasharray: 100; stroke-dashoffset: 100; }
-          to { stroke-dasharray: 100; stroke-dashoffset: 0; }
-        }
-        .glow-bar-succ:hover {
-          filter: drop-shadow(0 0 8px var(--success));
-          opacity: 1;
-        }
-        .glow-bar-dest:hover {
-          filter: drop-shadow(0 0 8px var(--destructive));
-          opacity: 1;
-        }
-        `
-      }} />
     </div>
   );
 }
-
-// ─── PREMIUM STYLE SYSTEM ──────────────────────────────────────
-const S = {
-  pageContainer: {
-    width: '100%',
-    maxWidth: '1600px',
-    margin: '0 auto',
-    padding: '0 2rem 4rem 2rem',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '2.5rem',
-    fontFamily: 'var(--font-sans)',
-  },
-
-  headerWrapper: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem',
-    marginTop: '1.5rem',
-  },
-
-  headerSplit: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '2rem',
-    width: '100%',
-  },
-
-  breadcrumbs: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.4rem',
-    fontSize: '0.78rem',
-    color: 'var(--muted-foreground)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-    fontWeight: '600',
-    marginBottom: '0.4rem',
-  },
-
-  greetingArea: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.25rem',
-    flex: 1,
-  },
-
-  pageTitle: {
-    fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
-    fontWeight: '800',
-    margin: 0,
-    letterSpacing: '-0.03em',
-    lineHeight: 1.15,
-  },
-
-  titleGradient: {
-    background: 'linear-gradient(135deg, var(--foreground) 30%, var(--accent) 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-  },
-
-  pageSubtitle: {
-    fontSize: 'clamp(0.9rem, 2vw, 1.05rem)',
-    color: 'var(--muted-foreground)',
-    margin: 0,
-    fontWeight: '400',
-  },
-
-  refreshBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    background: 'var(--input)',
-    color: 'var(--foreground)',
-    border: '1px solid var(--border)',
-    borderRadius: '10px',
-    padding: '0.5rem 1rem',
-    fontSize: '0.82rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-
-  // Overview Cards
-  overviewGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-    gap: '1.25rem',
-    width: '100%',
-  },
-
-  statCard: {
-    padding: '1.25rem',
-    borderRadius: '14px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.25rem',
-    position: 'relative',
-  },
-
-  statHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-  },
-
-  statLabel: {
-    fontSize: '0.72rem',
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    color: 'var(--muted-foreground)',
-    letterSpacing: '0.04em',
-  },
-
-  statIconWrap: {
-    width: '26px',
-    height: '26px',
-    borderRadius: '6px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  statValue: {
-    fontSize: '1.6rem',
-    fontWeight: '800',
-    color: 'var(--foreground)',
-    letterSpacing: '-0.02em',
-    lineHeight: 1.1,
-    marginTop: '0.25rem',
-  },
-
-  statSubText: {
-    fontSize: '0.68rem',
-    color: 'var(--muted-foreground)',
-    fontWeight: 500,
-    marginTop: '0.25rem',
-  },
-
-  // Tabs
-  tabsContainer: {
-    display: 'flex',
-    gap: '0.5rem',
-    padding: '0.4rem',
-    borderRadius: '12px',
-    width: 'fit-content',
-  },
-
-  tabBtn: (isActive) => ({
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    padding: '0.45rem 1rem',
-    fontSize: '0.82rem',
-    fontWeight: '600',
-    borderRadius: '8px',
-    border: 'none',
-    cursor: 'pointer',
-    background: isActive ? 'var(--input)' : 'transparent',
-    color: isActive ? 'var(--accent)' : 'var(--muted-foreground)',
-    transition: 'all 0.15s ease',
-  }),
-
-  // Tab Contents
-  tabContentArea: {
-    width: '100%',
-  },
-
-  tabPaneGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '1.5rem',
-    width: '100%',
-  },
-
-  paneCard: {
-    padding: '1.5rem',
-    borderRadius: '16px',
-    display: 'flex',
-    flexDirection: 'column',
-    width: '100%',
-  },
-
-  cardTitle: {
-    fontSize: '1.05rem',
-    fontWeight: '800',
-    margin: 0,
-  },
-
-  cardSubTitle: {
-    fontSize: '0.78rem',
-    color: 'var(--muted-foreground)',
-    margin: '0.15rem 0 0 0',
-  },
-
-  chartWrapper: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: '1.5rem',
-    width: '100%',
-  },
-
-  progressTrack: {
-    width: '100%',
-    height: '6px',
-    borderRadius: '3px',
-    background: 'color-mix(in srgb, var(--foreground) 6%, transparent)',
-    overflow: 'hidden',
-  },
-
-  progressFill: {
-    height: '100%',
-    borderRadius: '3px',
-  },
-
-  rankingSplit: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '2rem',
-    marginTop: '1.5rem',
-  },
-
-  rankingColumn: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.75rem',
-  },
-
-  rankingHeaderCol: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    fontSize: '0.82rem',
-    fontWeight: 700,
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-    paddingBottom: '0.35rem',
-    borderBottom: '1px solid var(--border)',
-  },
-
-  rankingList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem',
-  },
-
-  rankingItem: {
-    display: 'flex',
-    alignItems: 'center',
-    padding: '0.5rem 0.75rem',
-    borderRadius: '8px',
-    background: 'color-mix(in srgb, var(--foreground) 3%, transparent)',
-    fontSize: '0.8rem',
-  },
-
-  rankingIdx: {
-    fontWeight: 700,
-    opacity: 0.5,
-    marginRight: '0.75rem',
-  },
-
-  rankingName: {
-    fontWeight: 600,
-    flex: 1,
-  },
-
-  rankingScore: {
-    fontWeight: 800,
-  },
-
-  // Gaps Tab
-  gapsTabContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1.25rem',
-    width: '100%',
-  },
-
-  filtersRow: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: '0.75rem',
-    padding: '0.75rem 1.25rem',
-    borderRadius: '12px',
-    width: '100%',
-  },
-
-  filterCol: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.4rem',
-    fontSize: '0.82rem',
-    fontWeight: 700,
-    textTransform: 'uppercase',
-    color: 'var(--accent)',
-    marginRight: '0.5rem',
-  },
-
-  filterSelect: {
-    background: 'var(--input)',
-    color: 'var(--foreground)',
-    border: '1px solid var(--border)',
-    borderRadius: '8px',
-    padding: '0.35rem 0.75rem',
-    fontSize: '0.78rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    outline: 'none',
-  },
-
-  gapsTable: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    textAlign: 'left',
-  },
-
-  gapsHeaderRow: {
-    borderBottom: '1.5px solid var(--border)',
-  },
-
-  gapsTh: {
-    padding: '0.75rem 1rem',
-    fontSize: '0.74rem',
-    fontWeight: '700',
-    color: 'var(--muted-foreground)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-  },
-
-  gapsRow: {
-    borderBottom: '1px solid var(--border)',
-    cursor: 'default',
-  },
-
-  gapsTd: {
-    padding: '0.85rem 1rem',
-    fontSize: '0.8rem',
-    color: 'var(--foreground)',
-  },
-
-  typeBadge: {
-    fontSize: '0.7rem',
-    fontWeight: '700',
-    background: 'color-mix(in srgb, var(--accent) 8%, transparent)',
-    color: 'var(--accent)',
-    padding: '2px 8px',
-    borderRadius: '4px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.02em',
-  },
-
-  priorityBadge: {
-    fontSize: '0.66rem',
-    fontWeight: '800',
-    padding: '2px 8px',
-    borderRadius: '4px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-  },
-
-  sourceCode: {
-    fontFamily: 'var(--font-mono)',
-    fontSize: '0.72rem',
-    opacity: 0.8,
-  },
-
-  tableEmptyCell: {
-    padding: '3rem 2rem',
-    textAlign: 'center',
-    color: 'var(--muted-foreground)',
-    fontSize: '0.85rem',
-  },
-
-  // Trends Tab
-  insufficientTrendsWrapper: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '4rem 2rem',
-    borderRadius: '16px',
-    border: '1px dashed var(--border)',
-    textAlign: 'center',
-    background: 'color-mix(in srgb, var(--card) 40%, transparent)',
-    marginTop: '1rem',
-  },
-
-  insufficientDataPointsGrid: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem',
-    marginTop: '1.5rem',
-    background: 'var(--input)',
-    padding: '0.5rem 1rem',
-    borderRadius: '8px',
-    border: '1px solid var(--border)',
-  },
-
-  dataPointBadge: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.35rem',
-    background: 'color-mix(in srgb, var(--foreground) 5%, transparent)',
-    padding: '2px 8px',
-    borderRadius: '4px',
-    fontSize: '0.72rem',
-    fontFamily: 'var(--font-mono)',
-  },
-
-  // Integrity Grid
-  integrityGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '1.25rem',
-    marginTop: '1.5rem',
-    width: '100%',
-  },
-
-  integrityCard: {
-    background: 'color-mix(in srgb, var(--foreground) 2.5%, transparent)',
-    border: '1px solid var(--border)',
-    borderRadius: '12px',
-    padding: '1.25rem',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem',
-    alignItems: 'flex-start',
-  },
-
-  integrityLabel: {
-    fontSize: '0.75rem',
-    fontWeight: '700',
-    color: 'var(--muted-foreground)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-  },
-
-  integrityDot: (hasFailure) => ({
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    background: hasFailure ? 'var(--destructive)' : 'var(--success)',
-    boxShadow: hasFailure ? '0 0 8px var(--destructive)' : '0 0 8px var(--success)',
-  }),
-
-  integrityVal: {
-    fontSize: '1.75rem',
-    fontWeight: '800',
-    color: 'var(--foreground)',
-    lineHeight: 1,
-    marginTop: '0.25rem',
-  },
-
-  integrityStatus: (hasFailure) => ({
-    fontSize: '0.72rem',
-    fontWeight: 500,
-    color: hasFailure ? 'var(--destructive)' : 'var(--success)',
-  }),
-
-  detailsBtn: {
-    background: 'transparent',
-    border: 'none',
-    color: 'var(--accent)',
-    fontSize: '0.72rem',
-    fontWeight: 700,
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.3rem',
-    padding: 0,
-    marginTop: '0.25rem',
-    transition: 'opacity 0.15s ease',
-    outline: 'none',
-  },
-
-  collapsedContainer: {
-    marginTop: '1.5rem',
-    padding: '1rem',
-    borderRadius: '10px',
-    background: 'color-mix(in srgb, var(--foreground) 3%, transparent)',
-    border: '1px solid var(--border)',
-    width: '100%',
-  },
-
-  collapsedTitle: {
-    fontSize: '0.78rem',
-    fontWeight: 700,
-    textTransform: 'uppercase',
-    color: 'var(--muted-foreground)',
-    letterSpacing: '0.04em',
-    marginBottom: '0.75rem',
-  },
-
-  orphansBadgeWrapper: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '0.5rem',
-  },
-
-  orphanBadgeItem: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    padding: '3px 8px',
-    borderRadius: '6px',
-    fontSize: '0.74rem',
-  },
-
-  orphanTag: (isValid) => ({
-    fontSize: '0.58rem',
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    padding: '1px 4px',
-    borderRadius: '3px',
-    background: isValid ? 'color-mix(in srgb, var(--success) 15%, transparent)' : 'color-mix(in srgb, #f59e0b 15%, transparent)',
-  }),
-
-  cycleRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    fontSize: '0.76rem',
-    color: 'var(--foreground)',
-  },
-
-  // Skeletons
-  loadingSkel: {
-    padding: '4rem 2rem',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1.5rem',
-    maxWidth: '1600px',
-    margin: '0 auto',
-    width: '100%',
-  },
-
-  skelLine: (w, h) => ({
-    width: w,
-    height: h,
-    borderRadius: '8px',
-    background: 'color-mix(in srgb, var(--foreground) 5%, transparent)',
-    animation: 'pulse 1.5s ease-in-out infinite',
-  }),
-
-  // A/B tab
-  abSummaryContainer: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-    gap: '1.5rem',
-    marginTop: '1.5rem',
-  },
-
-  abPipelineCard: {
-    background: 'color-mix(in srgb, var(--foreground) 1.5%, transparent)',
-    border: '1px solid var(--border)',
-    borderRadius: '12px',
-    padding: '1.5rem',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1.25rem',
-  },
-
-  abCardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottom: '1px solid var(--border)',
-    paddingBottom: '0.75rem',
-  },
-
-  abCardTitle: {
-    fontSize: '0.95rem',
-    fontWeight: '700',
-    margin: 0,
-  },
-
-  abBadgeLegacy: {
-    fontSize: '0.62rem',
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-    background: 'color-mix(in srgb, var(--foreground) 10%, transparent)',
-    color: 'var(--muted-foreground)',
-    padding: '2px 8px',
-    borderRadius: '4px',
-  },
-
-  abBadgeBlueprint: {
-    fontSize: '0.62rem',
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-    background: 'color-mix(in srgb, var(--accent) 15%, transparent)',
-    color: 'var(--accent)',
-    padding: '2px 8px',
-    borderRadius: '4px',
-    boxShadow: '0 0 6px color-mix(in srgb, var(--accent) 25%, transparent)',
-  },
-
-  abStatsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '1rem',
-  },
-
-  abStatItem: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.25rem',
-  },
-
-  abStatLabel: {
-    fontSize: '0.72rem',
-    color: 'var(--muted-foreground)',
-    fontWeight: 500,
-  },
-
-  abStatVal: {
-    fontSize: '1.25rem',
-    fontWeight: '800',
-    color: 'var(--foreground)',
-  },
-
-  rubricDimRow: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.4rem',
-  },
-
-  rubricLabel: {
-    fontSize: '0.8rem',
-    fontWeight: '600',
-    color: 'var(--foreground)',
-  },
-
-  rubricComparisonTrack: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem',
-    background: 'color-mix(in srgb, var(--foreground) 1.5%, transparent)',
-    padding: '0.6rem 0.8rem',
-    borderRadius: '8px',
-    border: '1px solid var(--border)',
-  },
-
-  rubricBarGroup: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '1rem',
-  },
-
-  rubricValueLabel: {
-    fontSize: '0.7rem',
-    fontWeight: '700',
-    color: 'var(--muted-foreground)',
-    width: '100px',
-    flexShrink: 0,
-  },
-
-  insightsList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem',
-    marginTop: '1.25rem',
-  },
-
-  insightCard: {
-    display: 'flex',
-    gap: '0.85rem',
-    alignItems: 'flex-start',
-    background: 'color-mix(in srgb, var(--foreground) 2%, transparent)',
-    border: '1px solid var(--border)',
-    borderRadius: '10px',
-    padding: '1rem',
-  },
-
-  insightHeading: {
-    fontSize: '0.82rem',
-    fontWeight: '700',
-    margin: '0 0 0.25rem 0',
-  },
-
-  insightText: {
-    fontSize: '0.74rem',
-    color: 'var(--muted-foreground)',
-    margin: 0,
-    lineHeight: 1.45,
-  },
-
-  winnerBadge: {
-    fontSize: '0.65rem',
-    fontWeight: '800',
-    background: 'color-mix(in srgb, var(--success) 12%, transparent)',
-    color: 'var(--success)',
-    padding: '1px 5px',
-    borderRadius: '4px',
-    marginLeft: '0.5rem',
-  },
-  sourceBadge: {
-    fontSize: '0.65rem',
-    fontWeight: '600',
-    background: 'color-mix(in srgb, var(--foreground) 6%, transparent)',
-    color: 'var(--muted-foreground)',
-    padding: '1px 4px',
-    borderRadius: '4px',
-    marginTop: '4px',
-    display: 'inline-block',
-    textTransform: 'uppercase',
-    letterSpacing: '0.02em'
-  },
-};

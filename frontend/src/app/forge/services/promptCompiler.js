@@ -39,7 +39,8 @@ export async function compileForgePrompt({
   additionalFeatures,
   apiKey,
   modelProvider = "gemini",
-  vocabulary = []
+  vocabulary = [],
+  generationMode = "professional"
 }) {
   let finalQuery = "";
   let title = "";
@@ -183,7 +184,8 @@ ${projectSetupDetails}`;
     selectedTypography,
     clarifiedAudience,
     clarifiedDensity,
-    clarifiedViewport
+    clarifiedViewport,
+    generationMode
   };
 
   if (activeMode === "application") {
@@ -209,6 +211,7 @@ ${projectSetupDetails}`;
     title,
     query: finalQuery,
     resolvedPrompt: response.prompt,
+    qualityWarnings: response.qualityWarnings || [],
     ragDetails: {
       ...response.ragDetails,
       compileContext: {

@@ -39,9 +39,13 @@ export function useWizardAutoScroll({
 
   // 2. Scroll the Continue button into view when selections change.
   const isFirstRender = useRef(true);
-  const mountTimeRef = useRef(Date.now());
+  const mountTimeRef = useRef(null);
   const lastStepRef = useRef(step);
   const deps = [...selectionDependencies, step];
+
+  useEffect(() => {
+    mountTimeRef.current = Date.now();
+  }, []);
 
   useEffect(() => {
     // If the step changed, update the tracked step and skip scrolling
@@ -56,7 +60,7 @@ export function useWizardAutoScroll({
     }
 
     // Ignore any selection-change scroll requests within the first 500ms of mounting
-    if (Date.now() - mountTimeRef.current < 500) {
+    if (!mountTimeRef.current || Date.now() - mountTimeRef.current < 500) {
       return;
     }
 
@@ -80,5 +84,6 @@ export function useWizardAutoScroll({
     }, 100);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps); // Stable selection and step dependencies array
 }

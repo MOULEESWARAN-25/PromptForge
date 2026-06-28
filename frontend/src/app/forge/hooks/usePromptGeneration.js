@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { track, EVENTS } from '@/lib/analytics';
 import { compileForgePrompt, analyzePromptAmbiguity } from '../services/promptCompiler';
@@ -8,7 +8,8 @@ export function usePromptGeneration({
   apiKey,
   router,
   forgeState,
-  vocabulary
+  vocabulary,
+  generationMode = 'professional'
 }) {
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -113,7 +114,7 @@ export function usePromptGeneration({
     }, 450);
   };
 
-  const handleForgeSubmit = async (e) => {
+  const handleForgeSubmit = useCallback(async (e) => {
     if (e) e.preventDefault();
     if (isGenerating) return;
 
@@ -155,7 +156,8 @@ export function usePromptGeneration({
         additionalFeatures: forgeState.additionalFeatures,
         apiKey,
         modelProvider: forgeState.selectedModel,
-        vocabulary
+        vocabulary,
+        generationMode
       });
 
       const savedRecord = await savePromptRecord({
@@ -166,6 +168,7 @@ export function usePromptGeneration({
         resolvedPrompt: compilationResult.resolvedPrompt,
         ragDetails: {
           ...compilationResult.ragDetails,
+          qualityWarnings: compilationResult.qualityWarnings || [],
           modelProvider: forgeState.selectedModel || 'gemini'
         },
         category: forgeState.activeMode === 'application' ? (forgeState.appCategory === 'Custom' ? forgeState.customCategory : forgeState.appCategory) : null,
@@ -201,14 +204,14 @@ export function usePromptGeneration({
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [isGenerating, forgeState, apiKey, vocabulary, savePromptRecord, router, generationMode]);
 
   useEffect(() => {
     if (forgeState.autoSubmitPrompt && forgeState.rawDescription) {
       forgeState.setAutoSubmitPrompt(false);
       handleForgeSubmit();
     }
-  }, [forgeState.autoSubmitPrompt, forgeState.rawDescription]);
+  }, [forgeState.autoSubmitPrompt, forgeState.rawDescription, handleForgeSubmit, forgeState]);
 
   return {
     isGenerating,

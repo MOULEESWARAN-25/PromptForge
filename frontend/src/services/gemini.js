@@ -1,7 +1,8 @@
 import { searchVectorVocabulary } from './ragEngine';
 import { themeStyles } from '../config/themeStyles';
 import { resolveAccessibilitySpecs } from './accessibilitySpecs';
-import { API_BASE_URL } from '../config/api';
+import { API_BASE_URL, apiUrl } from '../config/api';
+import { devWarn } from '@/lib/logger';
 
 /**
  * Main service to compile and enhance prompts using either the Google Gemini API (Free Tier)
@@ -50,7 +51,8 @@ export async function generateEnhancedPrompt({
   selectedTypography,
   clarifiedAudience,
   clarifiedDensity,
-  clarifiedViewport
+  clarifiedViewport,
+  generationMode = 'professional'
 }) {
   const startTime = Date.now();
   
@@ -62,8 +64,7 @@ export async function generateEnhancedPrompt({
     const timeout = Number(process.env.NEXT_PUBLIC_API_TIMEOUT_MS || 60000);
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-    const backendUrl = API_BASE_URL;
-    const backendResponse = await fetch(`${backendUrl}/api/forge`, {
+    const backendResponse = await fetch(apiUrl('/forge'), {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -98,22 +99,25 @@ export async function generateEnhancedPrompt({
         selectedTypography,
         clarifiedAudience,
         clarifiedDensity,
-        clarifiedViewport
+        clarifiedViewport,
+        generationMode
       })
     });
 
     clearTimeout(timeoutId);
 
     if (backendResponse.ok) {
-      const data = await backendResponse.json();
+      const responseJson = await backendResponse.json();
+      const data = responseJson?.data ?? responseJson;
       return {
         prompt: data.prompt,
+        qualityWarnings: data.qualityWarnings || [],
         ragDetails: data.ragDetails,
         source: data.source || "Veyntra Cloud Engine"
       };
     }
   } catch (error) {
-    console.warn("Decoupled backend server offline or unavailable. Falling back to local RAG pipeline:", error);
+    devWarn("Decoupled backend server offline or unavailable. Falling back to local RAG pipeline:", error);
   }
   
   // 2. CLIENT-SIDE LOCAL RAG FALLBACK
@@ -159,7 +163,7 @@ export async function generateEnhancedPrompt({
         framework
       });
     } catch (error) {
-      console.warn("Gemini API call failed, falling back to Local Prompt Compiler:", error);
+      devWarn("Gemini API call failed, falling back to Local Prompt Compiler:", error);
       // Fallback to local prompt builder on error
     }
   }
@@ -181,6 +185,7 @@ export async function generateEnhancedPrompt({
 
   return {
     prompt: compiledPrompt,
+    qualityWarnings: [],
     ragDetails,
     source: "Offline Style Engine"
   };
@@ -315,6 +320,7 @@ Stitch in premium effects, UX characteristics, micro-interactions, responsive ta
 
   return {
     prompt: rawModelResponse,
+    qualityWarnings: [],
     ragDetails,
     source: "Google Gemini 2.5 Flash API"
   };

@@ -1,6 +1,26 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { LayoutTemplate, Sparkles, Box, FileText, ShoppingBag, TerminalSquare } from "lucide-react";
+
+const iconMap = {
+  LayoutTemplate,
+  Sparkles,
+  Box,
+  FileText,
+  ShoppingBag,
+  TerminalSquare
+};
+
+const fallbackStarterTemplates = [
+  { id: 'saas',       icon: LayoutTemplate, title: 'SaaS Dashboard',       desc: 'Pre-configured prompt for admin panels',         mode: 'application', prompt: 'Create a comprehensive SaaS admin dashboard with a sidebar navigation, a top header with user profile and search, and a main content area containing data cards, a line chart for revenue, and a recent transactions table. Use a clean, modern aesthetic with a primary blue accent.' },
+  { id: 'ai',         icon: Sparkles,       title: 'AI Chat Interface',     desc: 'Ready-to-compile conversational UI',              mode: 'application', prompt: 'Build an AI chat interface similar to ChatGPT. Include a sidebar for chat history, a main chat area with distinct user and AI message bubbles, and a sticky input area at the bottom with a submit button and attachment icon.' },
+  { id: 'portfolio',  icon: Box,            title: 'Developer Portfolio',   desc: 'Personal site with project galleries',            mode: 'page',        prompt: 'Design a sleek, minimalist developer portfolio. Include a hero section with a brief introduction, a skills grid, a projects gallery with cards, and a contact form. Use a dark theme with neon accents.' },
+  { id: 'docs',       icon: FileText,       title: 'Documentation Hub',     desc: 'Markdown-ready docs with sidebar navigation',     mode: 'page',        prompt: 'Create a documentation hub layout. Include a persistent left sidebar for nested navigation, a top bar with global search, and a main content area with typography optimized for long-form reading and code blocks.' },
+  { id: 'ecommerce',  icon: ShoppingBag,    title: 'E-commerce Storefront', desc: 'Product grid, cart, and filtering',               mode: 'application', prompt: 'Develop an e-commerce storefront. The home page should feature a promotional hero banner, a category sidebar with filters, and a responsive product grid. Include a shopping cart slide-out panel.' },
+  { id: 'admin',      icon: TerminalSquare, title: 'Internal Tool',         desc: 'Data management and CRUD UI',                     mode: 'application', prompt: 'Build an internal CRUD tool for employee management. The interface should have a large data table with sorting and filtering, and a slide-out modal for adding or editing employee records.' }
+];
+
 import {
   testDatabaseConnectivity,
   supabaseFetchHistory,
@@ -9,7 +29,7 @@ import {
 } from "../services/supabase";
 import { track, EVENTS } from "../lib/analytics";
 import { FREE_TIER_LIMITS } from "../styles/tokens";
-import { API_BASE_URL } from "../config/api";
+import { API_BASE_URL, apiUrl } from "../config/api";
 import { toast } from "sonner";
 import { auth, googleProvider } from "../lib/firebase";
 import { designVocabulary } from "../data/designVocabulary";
@@ -21,6 +41,10 @@ import {
   sendEmailVerification,
   onAuthStateChanged
 } from "firebase/auth";
+import { APP_CATEGORIES, CATEGORY_FEATURES, AI_FEATURE_SUGGESTIONS } from "../app/forge/constants/appCategories";
+import { PAGE_TYPES, PAGE_COMPONENTS } from "../app/forge/constants/pageTemplates";
+import { COMPONENT_TYPES } from "../app/forge/constants/components";
+import { devLog, devWarn, devError } from "@/lib/logger";
 
 const AppContext = createContext(null);
 
@@ -54,8 +78,147 @@ export function AppProvider({ children }) {
   const [showFirstBlueprintSuccess, setShowFirstBlueprintSuccess] =
     useState(false);
 
+  // ── State buckets for dynamic wizard config
+  const [categories, setCategories] = useState({
+    APP_CATEGORIES,
+    CATEGORY_FEATURES,
+    AI_FEATURE_SUGGESTIONS
+  });
+  const [templates, setTemplates] = useState({
+    PAGE_TYPES,
+    PAGE_COMPONENTS
+  });
+  const [components, setComponents] = useState({
+    COMPONENT_TYPES
+  });
+  const [generationMode, setGenerationMode] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("promptforge_generation_mode") || "professional";
+    }
+    return "professional";
+  });
+
+  const [drafts, setDrafts] = useState([]);
+  const [starterTemplates, setStarterTemplates] = useState(fallbackStarterTemplates);
+
+  // Load drafts on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const loadDrafts = () => {
+        try {
+          const found = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key === 'promptforge_draft' || key.startsWith('promptforge_draft_'))) {
+              const raw = localStorage.getItem(key);
+              if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed?.mode) {
+                  found.push({
+                    key,
+                    title: parsed.projectName || (
+                      parsed.mode === 'application' ? 'SaaS Application Blueprint' :
+                        parsed.mode === 'page' ? 'Web Page Design Blueprint' :
+                          parsed.mode === 'component' ? 'Single Component Blueprint' : 'Prompt Enhancement'
+                    ),
+                    mode: parsed.mode,
+                    savedAt: parsed.savedAt || Date.now(),
+                    details: parsed,
+                  });
+                }
+              }
+            }
+          }
+          found.sort((a, b) => b.savedAt - a.savedAt);
+          setDrafts(found);
+        } catch (e) {
+          devError("Failed to load drafts in context:", e);
+        }
+      };
+      loadDrafts();
+      // Listen to storage events to keep drafts in sync
+      window.addEventListener('storage', loadDrafts);
+      return () => window.removeEventListener('storage', loadDrafts);
+    }
+  }, []);
+
+  const discardDraft = (key) => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(key);
+      setDrafts(prev => prev.filter(d => d.key !== key));
+    }
+  };
+
+  const workspaceMetrics = useMemo(() => {
+    const promptsCount = history.length;
+    const totalLines = history.reduce((acc, h) => acc + (h.resolvedPrompt ? h.resolvedPrompt.split('\n').length : 0), 0);
+    const formattedLines = totalLines >= 1000 ? `${(totalLines / 1000).toFixed(1)}k` : totalLines.toString();
+
+    const nowMs = Date.now();
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayStartMs = todayStart.getTime();
+
+    const promptsToday = history.filter(h => h.timestamp >= todayStartMs).length;
+    const promptsChangeTodayText = promptsToday > 0 ? `+${promptsToday} today` : 'No compilations today';
+
+    const sevenDaysAgoMs = nowMs - 7 * 24 * 60 * 60 * 1000;
+    const fourteenDaysAgoMs = nowMs - 14 * 24 * 60 * 60 * 1000;
+
+    const linesThisWeek = history.filter(h => h.timestamp >= sevenDaysAgoMs).reduce((acc, h) => acc + (h.resolvedPrompt ? h.resolvedPrompt.split('\n').length : 0), 0);
+    const linesLastWeek = history.filter(h => h.timestamp < sevenDaysAgoMs && h.timestamp >= fourteenDaysAgoMs).reduce((acc, h) => acc + (h.resolvedPrompt ? h.resolvedPrompt.split('\n').length : 0), 0);
+
+    let linesChangePct = 0;
+    if (linesLastWeek > 0) {
+      linesChangePct = Math.round(((linesThisWeek - linesLastWeek) / linesLastWeek) * 100);
+    } else if (linesThisWeek > 0) {
+      linesChangePct = 100;
+    }
+    const linesChangeText = linesChangePct >= 0 ? `+${linesChangePct}% this week` : `${linesChangePct}% this week`;
+
+    // Heatmap data (30 days)
+    const heatmapData = Array.from({ length: 30 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (29 - i));
+      d.setHours(0, 0, 0, 0);
+      const dayStart = d.getTime();
+      const dayEnd = dayStart + 24 * 60 * 60 * 1000;
+      const count = history.filter(h => h.timestamp >= dayStart && h.timestamp < dayEnd).length;
+      let intensity = 0;
+      if (count === 1) intensity = 1;
+      else if (count >= 2 && count <= 3) intensity = 2;
+      else if (count >= 4 && count <= 5) intensity = 3;
+      else if (count >= 6) intensity = 4;
+      return { date: d, count, intensity };
+    });
+
+    const totalIntentsThisMonth = history.filter(h => h.timestamp >= nowMs - 30 * 24 * 60 * 60 * 1000).length;
+
+    // Merge history and drafts for Continue Working
+    const sortedHistory = [...history].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const continueWorkingItems = [
+      ...drafts.map(d => ({ ...d, isDraft: true, timestamp: d.savedAt, id: d.key })),
+      ...sortedHistory.map(h => ({ ...h, isDraft: false, title: h.title || 'Untitled Blueprint' }))
+    ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5);
+
+    return {
+      promptsCount,
+      totalLines,
+      formattedLines,
+      promptsToday,
+      promptsChangeTodayText,
+      linesThisWeek,
+      linesLastWeek,
+      linesChangeText,
+      heatmapData,
+      totalIntentsThisMonth,
+      continueWorkingItems
+    };
+  }, [history, drafts]);
+
+
   // Helper to establish server session via Next.js API Route
-  const establishSession = async (firebaseUser, onboardingDetails = {}) => {
+  const establishSession = useCallback(async (firebaseUser, onboardingDetails = {}) => {
     try {
       // Force token refresh so we get updated claims (e.g. emailVerified)
       const idToken = await firebaseUser.getIdToken(true);
@@ -78,7 +241,52 @@ export function AppProvider({ children }) {
       console.error("establishSession error:", err);
       return { success: false, message: err.message };
     }
-  };
+  }, []);
+
+  const checkVerificationStatus = useCallback(async () => {
+    if (!auth.currentUser) return { success: false, message: "No active user found." };
+    
+    try {
+      await auth.currentUser.reload();
+      const firebaseUser = auth.currentUser;
+
+      if (firebaseUser.emailVerified) {
+        let onboardingDetails = {};
+        try {
+          const cached = localStorage.getItem("pf_onboarding_details");
+          if (cached) onboardingDetails = JSON.parse(cached);
+        } catch {}
+
+        const sessionResult = await establishSession(firebaseUser, onboardingDetails);
+        if (sessionResult.success) {
+          track(EVENTS.VERIFICATION_COMPLETED);
+          localStorage.removeItem("pf_onboarding_details");
+          setUser({
+            uid: firebaseUser.uid,
+            username: sessionResult.user?.name || firebaseUser.displayName || firebaseUser.email.split('@')[0],
+            email: firebaseUser.email,
+            emailVerified: true,
+            role: sessionResult.user?.role,
+            primaryTool: sessionResult.user?.primaryTool || sessionResult.user?.primary_tool
+          });
+          localStorage.setItem("promptforge_session", firebaseUser.email);
+          
+          const isDbLive = await testDatabaseConnectivity();
+          if (isDbLive) {
+            const cloudHistory = await supabaseFetchHistory(firebaseUser.email);
+            if (cloudHistory) syncHistoryState(cloudHistory);
+          }
+          return { success: true };
+        } else {
+          return { success: false, message: sessionResult.message };
+        }
+      }
+      return { success: false, message: "Email is still unverified. Please check your inbox." };
+    } catch (err) {
+      console.error("checkVerificationStatus error:", err);
+      return { success: false, message: err.message };
+    }
+  }, [establishSession]);
 
   // 1. Load persisted states & connect to Supabase database
   useEffect(() => {
@@ -95,23 +303,22 @@ export function AppProvider({ children }) {
       const isDbLive = await testDatabaseConnectivity();
       setDbConnected(isDbLive);
 
-      const backendUrl = API_BASE_URL;
-      
       // Fetch vocabulary dynamically
       try {
         setVocabLoading(true);
-        const res = await fetch(`${backendUrl}/api/vocabulary`);
+        const res = await fetch(apiUrl('/vocabulary'));
         if (res.ok) {
           const data = await res.json();
-          setVocabulary(data);
+          const vocabData = data?.data ?? data;
+          setVocabulary(vocabData);
           setVocabError(false);
         } else {
-          console.warn("Backend vocabulary offline, falling back to static vocabulary.");
+          devWarn("Backend vocabulary offline, falling back to static vocabulary.");
           setVocabulary(designVocabulary);
           setVocabError(false);
         }
       } catch (e) {
-        console.warn("Failed to fetch vocabulary from backend, falling back to static vocabulary. Error:", e.message);
+        devWarn("Failed to fetch vocabulary from backend, falling back to static vocabulary. Error:", e.message);
         setVocabulary(designVocabulary);
         setVocabError(false);
       } finally {
@@ -120,15 +327,97 @@ export function AppProvider({ children }) {
 
       // Fetch global statistics
       try {
-        const res = await fetch(`${backendUrl}/api/vocabulary/stats`);
+        const res = await fetch(apiUrl('/vocabulary/stats'));
         if (res.ok) {
           const data = await res.json();
-          setGlobalStats(data);
+          const statsData = data?.data ?? data;
+          setGlobalStats(statsData);
         }
       } catch (e) {
-        console.warn("Failed to fetch global statistics:", e.message);
+        devWarn("Failed to fetch global statistics:", e.message);
+      }
+
+      // Fetch dynamic categories
+      try {
+        const res = await fetch(apiUrl('/forge/categories'));
+        if (res.ok) {
+          const data = await res.json();
+          const payload = data?.data ?? data;
+          if (payload && payload.APP_CATEGORIES) {
+            setCategories(payload);
+          } else if (Array.isArray(payload)) {
+            setCategories({
+              APP_CATEGORIES: payload,
+              CATEGORY_FEATURES: CATEGORY_FEATURES,
+              AI_FEATURE_SUGGESTIONS: AI_FEATURE_SUGGESTIONS
+            });
+          }
+        }
+      } catch (e) {
+        devWarn("Failed to fetch dynamic categories:", e.message);
+      }
+
+      // Fetch dynamic templates
+      try {
+        const res = await fetch(apiUrl('/forge/templates'));
+        if (res.ok) {
+          const data = await res.json();
+          const payload = data?.data ?? data;
+          if (payload && payload.PAGE_TYPES) {
+            setTemplates(payload);
+          } else if (Array.isArray(payload)) {
+            setTemplates({
+              PAGE_TYPES: payload,
+              PAGE_COMPONENTS: PAGE_COMPONENTS
+            });
+          }
+        }
+      } catch (e) {
+        devWarn("Failed to fetch dynamic templates:", e.message);
+      }
+
+      // Fetch dynamic components
+      try {
+        const res = await fetch(apiUrl('/forge/components'));
+        if (res.ok) {
+          const data = await res.json();
+          const payload = data?.data ?? data;
+          if (payload && payload.COMPONENT_TYPES) {
+            setComponents(payload);
+          } else if (Array.isArray(payload)) {
+            setComponents({
+              COMPONENT_TYPES: payload
+            });
+          }
+        }
+      } catch (e) {
+        devWarn("Failed to fetch dynamic components:", e.message);
+      }
+
+      // Fetch dynamic starter templates
+      try {
+        const res = await fetch(apiUrl('/forge/starter-templates'));
+        if (res.ok) {
+          const data = await res.json();
+          const payload = data?.data ?? data;
+          if (Array.isArray(payload)) {
+            const mapped = payload.map(t => ({
+              ...t,
+              icon: iconMap[t.icon] || Sparkles
+            }));
+            setStarterTemplates(mapped);
+          } else {
+            setStarterTemplates(fallbackStarterTemplates);
+          }
+        } else {
+          setStarterTemplates(fallbackStarterTemplates);
+        }
+      } catch (e) {
+        devWarn("Failed to fetch dynamic starter templates from backend, falling back to static cache:", e.message);
+        setStarterTemplates(fallbackStarterTemplates);
       }
     }
+
     initDb();
 
     // Gemini API Key
@@ -162,7 +451,7 @@ export function AppProvider({ children }) {
             }
           }
         } catch (e) {
-          console.warn("Failed to fetch mock user profile:", e);
+          devWarn("Failed to fetch mock user profile:", e);
         }
         setUser(mockUser);
 
@@ -187,7 +476,7 @@ export function AppProvider({ children }) {
     // Bind Firebase state listener
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (isLoggingOutRef.current) {
-        console.log("Auth state change ignored during sign-out.");
+        devLog("Auth state change ignored during sign-out.");
         return;
       }
       if (firebaseUser) {
@@ -218,12 +507,12 @@ export function AppProvider({ children }) {
               }
             }
           } catch (e) {
-            console.warn("Failed to fetch session profile:", e);
+            devWarn("Failed to fetch session profile:", e);
           }
 
           // If no active session was returned, attempt to establish it automatically
           if (!sessionActive) {
-            console.log("Session not active or expired, establishing session automatically...");
+            devLog("Session not active or expired, establishing session automatically...");
             const sessionResult = await establishSession(firebaseUser);
             if (sessionResult.success) {
               profileUser = {
@@ -236,7 +525,7 @@ export function AppProvider({ children }) {
                 isDemo: false
               };
             } else {
-              console.error("Failed to auto-establish session, signing out:", sessionResult.message);
+              devError("Failed to auto-establish session, signing out:", sessionResult.message);
               await signOut(auth);
               setUser(null);
               setLoading(false);
@@ -297,7 +586,7 @@ export function AppProvider({ children }) {
             }
           }
         } catch (e) {
-          console.warn("Failed to fetch backend demo session:", e);
+          devWarn("Failed to fetch backend demo session:", e);
         }
 
         setUser(null);
@@ -307,7 +596,7 @@ export function AppProvider({ children }) {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [establishSession]);
 
   // Sync verification status automatically when tab becomes active or visibility change occurs
   useEffect(() => {
@@ -316,32 +605,34 @@ export function AppProvider({ children }) {
     let fallbackInterval;
 
     const syncStatus = () => {
-      console.log("Window/Visibility focus change - checking verification status...");
+      devLog("Window/Visibility focus change - checking verification status...");
       checkVerificationStatus();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        syncStatus();
+      }
     };
 
     // 1. Focus listener
     window.addEventListener("focus", syncStatus);
 
     // 2. Visibility change listener
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") {
-        syncStatus();
-      }
-    });
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     // 3. Low-frequency fallback polling (every 45 seconds)
     fallbackInterval = setInterval(() => {
-      console.log("Fallback verification check running...");
+      devLog("Fallback verification check running...");
       checkVerificationStatus();
     }, 45000);
 
     return () => {
       window.removeEventListener("focus", syncStatus);
-      document.removeEventListener("visibilitychange", syncStatus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (fallbackInterval) clearInterval(fallbackInterval);
     };
-  }, [user]);
+  }, [user, checkVerificationStatus]);
 
   const loadLocalHistory = () => {
     const savedHistory = localStorage.getItem("promptforge_history");
@@ -536,51 +827,6 @@ export function AppProvider({ children }) {
       isLoggingOutRef.current = false;
     }
     track(EVENTS.USER_LOGGED_OUT);
-  };
-
-  const checkVerificationStatus = async () => {
-    if (!auth.currentUser) return { success: false, message: "No active user found." };
-    
-    try {
-      await auth.currentUser.reload();
-      const firebaseUser = auth.currentUser;
-
-      if (firebaseUser.emailVerified) {
-        let onboardingDetails = {};
-        try {
-          const cached = localStorage.getItem("pf_onboarding_details");
-          if (cached) onboardingDetails = JSON.parse(cached);
-        } catch {}
-
-        const sessionResult = await establishSession(firebaseUser, onboardingDetails);
-        if (sessionResult.success) {
-          track(EVENTS.VERIFICATION_COMPLETED);
-          localStorage.removeItem("pf_onboarding_details");
-          setUser({
-            uid: firebaseUser.uid,
-            username: sessionResult.user?.name || firebaseUser.displayName || firebaseUser.email.split('@')[0],
-            email: firebaseUser.email,
-            emailVerified: true,
-            role: sessionResult.user?.role,
-            primaryTool: sessionResult.user?.primaryTool || sessionResult.user?.primary_tool
-          });
-          localStorage.setItem("promptforge_session", firebaseUser.email);
-          
-          const isDbLive = await testDatabaseConnectivity();
-          if (isDbLive) {
-            const cloudHistory = await supabaseFetchHistory(firebaseUser.email);
-            if (cloudHistory) syncHistoryState(cloudHistory);
-          }
-          return { success: true };
-        } else {
-          return { success: false, message: sessionResult.message };
-        }
-      }
-      return { success: false, message: "Email is still unverified. Please check your inbox." };
-    } catch (err) {
-      console.error("checkVerificationStatus error:", err);
-      return { success: false, message: err.message };
-    }
   };
 
   const resendVerification = async () => {
@@ -850,21 +1096,22 @@ export function AppProvider({ children }) {
   };
 
   const reloadVocabulary = async () => {
-    const backendUrl = API_BASE_URL;
     try {
       setVocabLoading(true);
       setVocabError(false);
-      const res = await fetch(`${backendUrl}/api/vocabulary`);
+      const res = await fetch(apiUrl('/vocabulary'));
       if (res.ok) {
         const data = await res.json();
-        setVocabulary(data);
+        const vocabData = data?.data ?? data;
+        setVocabulary(vocabData);
         setVocabError(false);
         
         // Also reload global stats
-        const statsRes = await fetch(`${backendUrl}/api/vocabulary/stats`);
+        const statsRes = await fetch(apiUrl('/vocabulary/stats'));
         if (statsRes.ok) {
           const statsData = await statsRes.json();
-          setGlobalStats(statsData);
+          const statsVal = statsData?.data ?? statsData;
+          setGlobalStats(statsVal);
         }
         return true;
       } else {
@@ -921,6 +1168,22 @@ export function AppProvider({ children }) {
         vocabError,
         globalStats,
         reloadVocabulary,
+        // ── Dynamic wizard configs & generation mode
+        categories,
+        templates,
+        components,
+        generationMode,
+        setGenerationMode: (mode) => {
+          setGenerationMode(mode);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("promptforge_generation_mode", mode);
+          }
+        },
+        drafts,
+        discardDraft,
+        starterTemplates,
+        workspaceMetrics,
+
       }}
     >
       {children}

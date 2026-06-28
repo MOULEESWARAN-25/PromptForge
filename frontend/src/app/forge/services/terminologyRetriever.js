@@ -5,7 +5,6 @@ import terminology from '@/data/knowledge/terminology.json';
  * Translates visual layman terms into developer design vocabularies and low-level tokens.
  */
 export async function retrieveTechnicalTerminology(query) {
-  console.log(`[Terminology Retriever] Retrieving keywords matching: "${query}"`);
   
   const normalizedQuery = (query || '').toLowerCase();
   

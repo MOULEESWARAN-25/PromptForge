@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Monitor, Database, Code2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import FeatureDetailClient from '@/components/FeatureDetailClient';
 import { BRAND } from '@/config/brand';
 
@@ -69,10 +69,10 @@ export default async function FeatureDetailPage({ params }) {
 
   if (!feature) {
     return (
-      <div style={errorContainer}>
-        <h2>Feature Not Found</h2>
-        <Link href="/" style={backCta}>
-          <ArrowLeft size={16} /> Return Home
+      <div className="text-center py-16 px-8">
+        <h2 className="text-2xl font-bold text-foreground mb-4">Feature Not Found</h2>
+        <Link href="/" className="inline-flex items-center gap-2 text-[13.5px] text-muted-foreground no-underline font-semibold hover:text-foreground">
+          <ArrowLeft size={16} strokeWidth={1.75} /> Return Home
         </Link>
       </div>
     );
@@ -99,18 +99,3 @@ export default async function FeatureDetailPage({ params }) {
     </div>
   );
 }
-
-const backCta = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '0.5rem',
-  fontSize: '0.85rem',
-  color: 'var(--muted-foreground)',
-  textDecoration: 'none',
-  fontWeight: '600',
-};
-
-const errorContainer = {
-  textAlign: 'center',
-  padding: '4rem 2rem',
-};

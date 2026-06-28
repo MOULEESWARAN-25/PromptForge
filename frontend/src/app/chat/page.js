@@ -10,927 +10,25 @@ import {
   Copy,
   Check,
   ArrowLeft,
-  RefreshCw,
   Sparkles,
   Download,
   Share2,
   RotateCcw,
-  ChevronDown,
-  ChevronUp,
   Loader2,
-  AlertCircle,
-  CheckCircle2,
-  Cloud,
   History,
-  Database,
-  Cpu,
-  Layers,
-  Compass,
-  Activity,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { track, EVENTS } from "@/lib/analytics";
 import FeedbackWidget from "@/components/FeedbackWidget";
 import ShadcnDropdown from "@/components/ShadcnDropdown";
 
-function renderMarkdown(text) {
-  if (!text) return null;
-  const lines = text.split("\n");
-  return lines.map((line, idx) => {
-    if (line.startsWith("### "))
-      return (
-        <h3 key={idx} style={mdH3}>
-          {parseInlineMarkdown(line.slice(4))}
-        </h3>
-      );
-    if (line.startsWith("## "))
-      return (
-        <h2 key={idx} style={mdH2}>
-          {parseInlineMarkdown(line.slice(3))}
-        </h2>
-      );
-    if (line.startsWith("# "))
-      return (
-        <h1 key={idx} style={mdH1}>
-          {parseInlineMarkdown(line.slice(2))}
-        </h1>
-      );
-    if (line.trim().startsWith("- ") || line.trim().startsWith("* ")) {
-      return (
-        <div key={idx} style={mdLi}>
-          <span style={{ color: "var(--accent)" }}>•</span>
-          <span>{parseInlineMarkdown(line.trim().slice(2))}</span>
-        </div>
-      );
-    }
-    if (line.trim() === "---" || line.trim() === "***")
-      return <hr key={idx} style={mdHr} />;
-    if (line.trim() === "")
-      return <div key={idx} style={{ height: "0.4rem" }} />;
-    return (
-      <p key={idx} style={mdP}>
-        {parseInlineMarkdown(line)}
-      </p>
-    );
-  });
-}
-
-function parseInlineMarkdown(text) {
-  const parts = [];
-  let currentIdx = 0;
-  const regex = /(\*\*.*?\*\*|`.*?`)/g;
-  let match;
-  while ((match = regex.exec(text)) !== null) {
-    const matchStr = match[0];
-    const matchIdx = match.index;
-    if (matchIdx > currentIdx) parts.push(text.slice(currentIdx, matchIdx));
-    if (matchStr.startsWith("**")) {
-      parts.push(
-        <strong
-          key={matchIdx}
-          style={{ fontWeight: "700", color: "var(--foreground)" }}
-        >
-          {matchStr.slice(2, -2)}
-        </strong>,
-      );
-    } else if (matchStr.startsWith("`")) {
-      parts.push(
-        <code key={matchIdx} style={mdCode}>
-          {matchStr.slice(1, -1)}
-        </code>,
-      );
-    }
-    currentIdx = regex.lastIndex;
-  }
-  if (currentIdx < text.length) parts.push(text.slice(currentIdx));
-  return parts.length > 0 ? parts : text;
-}
-
-// ─── Save Status Indicator ────────────────────────────────────
-function SaveStatusBadge({ status }) {
-  if (status === "idle") return null;
-  return (
-    <AnimatePresence mode="wait">
-      <motion.span
-        key={status}
-        initial={{ opacity: 0, y: 4 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0 }}
-        className={`save-status-${status}`}
-      >
-        {status === "saving" && (
-          <>
-            <Loader2 size={11} className="animate-spin" /> Saving…
-          </>
-        )}
-        {status === "saved" && (
-          <>
-            <CheckCircle2 size={11} /> Saved
-          </>
-        )}
-        {status === "error" && (
-          <>
-            <AlertCircle size={11} /> Save failed
-          </>
-        )}
-      </motion.span>
-    </AnimatePresence>
-  );
-}
-
-// ─── Vocabulary Learning Drawer ───────────────────────────────────
-// Dynamic knowledge base for educational term explanations queried from context vocabulary
-function TermChip({ term }) {
-  const [expanded, setExpanded] = useState(false);
-  const { vocabulary, vocabLoading } = useApp();
-
-  // Find vocabulary item by name or keywords dynamically
-  const vocabItem = (vocabulary || []).find(item => {
-    const termLower = term.toLowerCase();
-    const itemNameLower = item.name.toLowerCase();
-    
-    // Exact or substring match
-    if (itemNameLower === termLower || termLower.includes(itemNameLower) || itemNameLower.includes(termLower)) {
-      return true;
-    }
-    
-    // Keyword match
-    const termWords = termLower.split(/\s+/);
-    return item.keywords.some(kw => termWords.includes(kw.toLowerCase()));
-  });
-
-  const knowledge = vocabItem ? {
-    explanation: vocabItem.description,
-    visualDescription: vocabItem.examplePrompt || vocabItem.example_prompt || "",
-    designTokens: vocabItem.snippet ? vocabItem.snippet.split('\n') : [],
-    why: vocabItem.description
-  } : null;
-
-  return (
-    <div style={{ width: "100%" }}>
-      <motion.button
-        onClick={() => setExpanded((e) => !e)}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "0.35rem",
-          fontSize: "0.7rem",
-          fontWeight: "600",
-          color: expanded ? "var(--accent-foreground)" : "var(--accent)",
-          background: expanded
-            ? "rgba(104,67,236,0.20)"
-            : "rgba(104,67,236,0.08)",
-          border: `1px solid ${expanded ? "rgba(104,67,236,0.5)" : "rgba(104,67,236,0.2)"}`,
-          borderRadius: "6px",
-          padding: "3px 10px",
-          cursor: "pointer",
-          fontFamily: "var(--font-sans)",
-          transition: "all 0.2s ease",
-        }}
-        whileHover={{ scale: 1.03 }}
-        whileTap={{ scale: 0.97 }}
-        title={vocabLoading ? "Loading definitions..." : knowledge ? "Click to learn what this term means" : term}
-      >
-        <CheckCircle2 size={10} style={{ color: "var(--accent)" }} />
-        {term}
-        {(vocabLoading || knowledge) && (
-          <span style={{ fontSize: "0.6rem", opacity: 0.6, marginLeft: "2px" }}>
-            {expanded ? "▲" : "▼"}
-          </span>
-        )}
-      </motion.button>
-
-      <AnimatePresence>
-        {expanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0, y: -4 }}
-            animate={{ height: "auto", opacity: 1, y: 0 }}
-            exit={{ height: 0, opacity: 0, y: -4 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            style={{ overflow: "hidden", marginTop: "0.4rem" }}
-          >
-            <div
-              style={{
-                background: "rgba(124,58,237,0.05)",
-                border: "1px solid rgba(124,58,237,0.15)",
-                borderRadius: "8px",
-                padding: "0.75rem",
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.5rem",
-              }}
-            >
-              {vocabLoading ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', opacity: 0.5 }}>
-                  <div style={{ width: '50%', height: 10, background: 'var(--accent)', borderRadius: '4px' }} className="animate-pulse" />
-                  <div style={{ width: '90%', height: 8, background: 'var(--border)', borderRadius: '4px' }} className="animate-pulse" />
-                  <div style={{ width: '80%', height: 8, background: 'var(--border)', borderRadius: '4px' }} className="animate-pulse" />
-                </div>
-              ) : !knowledge ? (
-                <div style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontStyle: 'italic' }}>
-                  No database explanation found for styling keyword '{term}'.
-                </div>
-              ) : (
-                <>
-                  {/* What it is */}
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "0.65rem",
-                        fontWeight: "700",
-                        color: "var(--accent)",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.06em",
-                        marginBottom: "0.2rem",
-                      }}
-                    >
-                      What it is
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "0.75rem",
-                        color: "var(--foreground)",
-                        lineHeight: "1.5",
-                      }}
-                    >
-                      {knowledge.explanation}
-                    </div>
-                  </div>
-
-                  {/* What it looks like */}
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "0.65rem",
-                        fontWeight: "700",
-                        color: "var(--accent)",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.06em",
-                        marginBottom: "0.2rem",
-                      }}
-                    >
-                      What it looks like
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "0.72rem",
-                        color: "var(--muted-foreground)",
-                        lineHeight: "1.5",
-                        fontStyle: "italic",
-                      }}
-                    >
-                      {knowledge.visualDescription}
-                    </div>
-                  </div>
-
-                  {/* Why it was used */}
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "0.65rem",
-                        fontWeight: "700",
-                        color: "var(--success)",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.06em",
-                        marginBottom: "0.2rem",
-                      }}
-                    >
-                      Why it was injected
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "0.72rem",
-                        color: "var(--foreground)",
-                        lineHeight: "1.5",
-                      }}
-                    >
-                      {knowledge.why}
-                    </div>
-                  </div>
-
-                  {/* CSS Tokens */}
-                  {knowledge.designTokens.length > 0 && (
-                    <div>
-                      <div
-                        style={{
-                          fontSize: "0.65rem",
-                          fontWeight: "700",
-                          color: "var(--muted-foreground)",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.06em",
-                          marginBottom: "0.35rem",
-                        }}
-                      >
-                        Tailwind CSS tokens
-                      </div>
-                      <div
-                        style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}
-                      >
-                        {knowledge.designTokens.map((token, i) => (
-                          <code
-                            key={i}
-                            style={{
-                              fontSize: "0.62rem",
-                              fontFamily: "var(--font-mono)",
-                              color: "var(--accent)",
-                              background: "var(--muted)",
-                              borderRadius: "4px",
-                              padding: "2px 5px",
-                              border: "1px solid var(--border)",
-                            }}
-                          >
-                            {token}
-                          </code>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-// ─── AI Transparency Panel & Design Tutor Sidebar ─────────────────
-function AITransparencyPanel({ ragDetails, theme, mode }) {
-  const [open, setOpen] = useState(false);
-  const [expandedNode, setExpandedNode] = useState(null);
-
-  if (!ragDetails) return null;
-
-  const results = ragDetails.results || [];
-  const anchor = ragDetails.anchor || {};
-  const expertReviews = ragDetails.expertReviews || [];
-
-  // Extract all entities in the blueprint
-  const blueprintEntities = [];
-  if (anchor.application) blueprintEntities.push({ ...anchor.application, type: 'application' });
-  if (Array.isArray(anchor.features)) {
-    anchor.features.forEach(f => blueprintEntities.push({ ...f, type: 'feature' }));
-  }
-  if (Array.isArray(anchor.pages)) {
-    anchor.pages.forEach(p => blueprintEntities.push({ ...p, type: 'page' }));
-  }
-  if (Array.isArray(anchor.components)) {
-    anchor.components.forEach(c => blueprintEntities.push({ ...c, type: 'component' }));
-  }
-  if (Array.isArray(anchor.backend_modules)) {
-    anchor.backend_modules.forEach(b => blueprintEntities.push({ ...b, type: 'backend_module' }));
-  }
-  if (Array.isArray(anchor.database_entities)) {
-    anchor.database_entities.forEach(d => blueprintEntities.push({ ...d, type: 'database_entity' }));
-  }
-
-  // Group entities for Blueprint Expansion Section
-  const retrievedDirectly = blueprintEntities.filter(e => e.source === 'graph' || e.source === 'user');
-  const closureAdded = blueprintEntities.filter(e => e.source === 'inference');
-  const recommendations = anchor.retrieval_metadata?.recommendations || [];
-  const expertsTriggered = expertReviews;
-
-  const retrievedDirectlyCount = retrievedDirectly.length;
-  const closureAddedCount = closureAdded.length;
-  const recommendedCount = recommendations.length;
-  const expertsTriggeredCount = expertsTriggered.length;
-
-  // Max score for relative similarity display
-  const maxScore = results.length > 0 ? Math.max(...results.map(r => r.score || 0)) : 1.0;
-
-  const getRelativeScore = (score) => {
-    if (!maxScore || maxScore <= 0) return 100;
-    const rel = (score / maxScore) * 100;
-    return Math.min(100, Math.round(rel));
-  };
-
-  // Humanize helper for recommended node names
-  const humanizeName = (id) => {
-    if (!id) return '';
-    return id
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
-
-  return (
-    <div style={ragPanel} className="animate-fade-up">
-      <button
-        style={ragToggleBtn}
-        onClick={() => setOpen(!open)}
-        aria-expanded={open}
-      >
-        <Sparkles
-          size={12}
-          style={{ color: "var(--accent)", marginRight: "0.25rem" }}
-        />
-        <span>RAG Transparency & Technical Design Tutor</span>
-        <span
-          style={{
-            marginLeft: "auto",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-          }}
-        >
-          <span
-            style={{
-              fontSize: "0.65rem",
-              background: "rgba(104,67,236,0.1)",
-              color: "var(--accent)",
-              border: "1px solid rgba(104,67,236,0.2)",
-              borderRadius: "4px",
-              padding: "1px 6px",
-            }}
-          >
-            Purity: {Math.round(ragDetails.telemetry_v2?.retrieval_purity_rate || 100)}%
-          </span>
-          {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-        </span>
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            style={{ overflow: "hidden" }}
-          >
-            <div style={ragContent}>
-              {/* Intent Analysis Summary */}
-              <div
-                style={{
-                  borderBottom: "1px solid rgba(255,255,255,0.04)",
-                  paddingBottom: "0.75rem",
-                  marginBottom: "0.75rem",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "0.72rem",
-                    color: "var(--muted-foreground)",
-                    fontWeight: "500",
-                    marginBottom: "0.2rem",
-                  }}
-                >
-                  INFERRED DEVELOPER INTENT
-                </div>
-                <div
-                  style={{
-                    fontSize: "0.85rem",
-                    color: "var(--foreground)",
-                    fontWeight: "700",
-                  }}
-                >
-                  {ragDetails.anchor?.application?.overview || ragDetails.inferredIntent || "Custom Visual Page Segment"}
-                </div>
-              </div>
-
-              {/* 1. Quick Summary Stats Card */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.4rem', marginBottom: '0.75rem' }}>
-                <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.4rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Retrieved</div>
-                  <div style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--foreground)', marginTop: '0.1rem' }}>{retrievedDirectlyCount}</div>
-                </div>
-                <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.4rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Closure</div>
-                  <div style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--accent)', marginTop: '0.1rem' }}>{closureAddedCount}</div>
-                </div>
-                <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.4rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recommends</div>
-                  <div style={{ fontSize: '0.95rem', fontWeight: '700', color: '#c084fc', marginTop: '0.1rem' }}>{recommendedCount}</div>
-                </div>
-                <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.4rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Experts</div>
-                  <div style={{ fontSize: '0.95rem', fontWeight: '700', color: '#38bdf8', marginTop: '0.1rem' }}>{expertsTriggeredCount}</div>
-                </div>
-              </div>
-
-              {/* 2. Retrieved Knowledge (Direct RAG Hits) */}
-              {results.length > 0 && (
-                <div style={{ marginBottom: "0.75rem", borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: "0.75rem" }}>
-                  <div
-                    style={{
-                      fontSize: "0.72rem",
-                      color: "var(--muted-foreground)",
-                      fontWeight: "500",
-                      marginBottom: "0.5rem",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em"
-                    }}
-                  >
-                    Direct RAG Knowledge Hits & Similarity
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-                    {results.slice(0, 5).map((ent, idx) => {
-                      const relScore = getRelativeScore(ent.score);
-                      const isExpanded = expandedNode === ent.id;
-                      return (
-                        <div
-                          key={idx}
-                          style={{
-                            background: 'rgba(255,255,255,0.01)',
-                            border: '1px solid var(--border)',
-                            borderRadius: '6px',
-                            padding: '0.5rem',
-                            cursor: 'pointer',
-                          }}
-                          onClick={() => setExpandedNode(isExpanded ? null : ent.id)}
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                              <span style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--foreground)' }}>{ent.name}</span>
-                              <span style={{
-                                fontSize: '0.58rem',
-                                color: 'var(--accent)',
-                                background: 'rgba(104,67,236,0.08)',
-                                border: '1px solid rgba(104,67,236,0.15)',
-                                borderRadius: '4px',
-                                padding: '1px 4px'
-                              }}>{ent.category}</span>
-                              {ent.kb_type && (
-                                <span style={{
-                                  fontSize: '0.58rem',
-                                  color: '#38bdf8',
-                                  background: 'rgba(56,189,248,0.08)',
-                                  border: '1px solid rgba(56,189,248,0.15)',
-                                  borderRadius: '4px',
-                                  padding: '1px 4px'
-                                }}>{ent.kb_type}</span>
-                              )}
-                            </div>
-                            <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--muted-foreground)' }}>
-                              Rel Match: {relScore}%
-                            </span>
-                          </div>
-                          {/* Similarity Score bar */}
-                          <div style={{ width: '100%', height: '3px', background: 'rgba(255,255,255,0.04)', borderRadius: '2px', overflow: 'hidden' }}>
-                            <div style={{ width: `${relScore}%`, height: '100%', background: 'linear-gradient(90deg, var(--accent) 0%, #c084fc 100%)' }} />
-                          </div>
-                          {isExpanded && (
-                            <div style={{ marginTop: '0.4rem', fontSize: '0.68rem', color: 'var(--muted-foreground)', lineHeight: '1.4' }} className="animate-fade-in">
-                              {ent.description || 'No overview description available.'}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* 3. Blueprint Expansion (Retrieved Directly, Closure Added, Recommended) */}
-              <div style={{ marginBottom: "0.75rem", borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: "0.75rem" }}>
-                <div
-                  style={{
-                    fontSize: "0.72rem",
-                    color: "var(--muted-foreground)",
-                    fontWeight: "500",
-                    marginBottom: "0.5rem",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em"
-                  }}
-                >
-                  Blueprint Graph Closure Expansion
-                </div>
-                
-                {/* Retrieved Directly */}
-                <div style={{ marginBottom: '0.45rem' }}>
-                  <div style={{ fontSize: '0.65rem', color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.2rem' }}>
-                    <Layers size={10} style={{ color: 'var(--accent)' }} />
-                    <span>Retrieved Directly ({retrievedDirectlyCount})</span>
-                  </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', paddingLeft: '0.75rem' }}>
-                    {retrievedDirectly.slice(0, 8).map((e, idx) => (
-                      <span key={idx} style={{
-                        fontSize: '0.6rem',
-                        color: 'var(--foreground)',
-                        background: 'rgba(255,255,255,0.02)',
-                        border: '1px solid var(--border)',
-                        borderRadius: '4px',
-                        padding: '1px 4px'
-                      }}>{e.name}</span>
-                    ))}
-                    {retrievedDirectlyCount > 8 && (
-                      <span style={{ fontSize: '0.6rem', color: 'var(--muted-foreground)', alignSelf: 'center' }}>+{retrievedDirectlyCount - 8} more</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Closure Added */}
-                {closureAddedCount > 0 && (
-                  <div style={{ marginBottom: '0.45rem' }}>
-                    <div style={{ fontSize: '0.65rem', color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.2rem' }}>
-                      <Cpu size={10} style={{ color: 'var(--accent)' }} />
-                      <span>Closure Added via Dependencies ({closureAddedCount})</span>
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', paddingLeft: '0.75rem' }}>
-                      {closureAdded.slice(0, 8).map((e, idx) => (
-                        <span key={idx} style={{
-                          fontSize: '0.6rem',
-                          color: 'var(--accent)',
-                          background: 'rgba(104,67,236,0.03)',
-                          border: '1px solid rgba(104,67,236,0.12)',
-                          borderRadius: '4px',
-                          padding: '1px 4px'
-                        }}>{e.name}</span>
-                      ))}
-                      {closureAddedCount > 8 && (
-                        <span style={{ fontSize: '0.6rem', color: 'var(--muted-foreground)', alignSelf: 'center' }}>+{closureAddedCount - 8} more</span>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Recommended */}
-                {recommendedCount > 0 && (
-                  <div>
-                    <div style={{ fontSize: '0.65rem', color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.2rem' }}>
-                      <Compass size={10} style={{ color: '#c084fc' }} />
-                      <span>Recommended Modules ({recommendedCount})</span>
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', paddingLeft: '0.75rem' }}>
-                      {recommendations.slice(0, 6).map((rel, idx) => (
-                        <span key={idx} style={{
-                          fontSize: '0.6rem',
-                          color: '#c084fc',
-                          background: 'rgba(192,132,252,0.03)',
-                          border: '1px dashed rgba(192,132,252,0.2)',
-                          borderRadius: '4px',
-                          padding: '1px 4px'
-                        }}>{humanizeName(rel.target_id)}</span>
-                      ))}
-                      {recommendedCount > 6 && (
-                        <span style={{ fontSize: '0.6rem', color: 'var(--muted-foreground)', alignSelf: 'center' }}>+{recommendedCount - 6} more</span>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* 4. Triggered Expert Panel */}
-              {expertsTriggeredCount > 0 && (
-                <div>
-                  <div
-                    style={{
-                      fontSize: "0.72rem",
-                      color: "var(--muted-foreground)",
-                      fontWeight: "500",
-                      marginBottom: "0.5rem",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em"
-                    }}
-                  >
-                    Triggered Expert Panel Audits
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {expertReviews.map((rev, idx) => {
-                      const hasRisks = Array.isArray(rev.risks) && rev.risks.length > 0;
-                      const hasImprov = Array.isArray(rev.improvements) && rev.improvements.length > 0;
-                      const hasMissing = Array.isArray(rev.missing_items) && rev.missing_items.length > 0;
-                      
-                      return (
-                        <div
-                          key={idx}
-                          style={{
-                            background: 'rgba(255,255,255,0.01)',
-                            border: '1px solid var(--border)',
-                            borderRadius: '6px',
-                            padding: '0.5rem'
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.35rem', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '0.2rem' }}>
-                            <Activity size={10} style={{ color: '#38bdf8' }} />
-                            <span style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--foreground)' }}>
-                              {rev.expert_role || 'Expert Reviewer'}
-                            </span>
-                          </div>
-
-                          {/* Risks */}
-                          {hasRisks && (
-                            <div style={{ marginBottom: '0.3rem' }}>
-                              <div style={{ fontSize: '0.6rem', fontWeight: '700', color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.2rem', marginBottom: '0.1rem' }}>
-                                <AlertCircle size={9} />
-                                <span>RISKS</span>
-                              </div>
-                              <ul style={{ margin: 0, paddingLeft: '0.75rem', listStyleType: 'disc' }}>
-                                {rev.risks.map((risk, i) => (
-                                  <li key={i} style={{ fontSize: '0.62rem', color: 'var(--muted-foreground)', lineHeight: '1.3' }}>
-                                    {risk}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {/* Improvements */}
-                          {hasImprov && (
-                            <div style={{ marginBottom: '0.3rem' }}>
-                              <div style={{ fontSize: '0.6rem', fontWeight: '700', color: '#4ade80', display: 'flex', alignItems: 'center', gap: '0.2rem', marginBottom: '0.1rem' }}>
-                                <CheckCircle2 size={9} />
-                                <span>IMPROVEMENTS</span>
-                              </div>
-                              <ul style={{ margin: 0, paddingLeft: '0.75rem', listStyleType: 'disc' }}>
-                                {rev.improvements.map((imp, i) => (
-                                  <li key={i} style={{ fontSize: '0.62rem', color: 'var(--muted-foreground)', lineHeight: '1.3' }}>
-                                    {imp}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {/* Missing Items */}
-                          {hasMissing && (
-                            <div>
-                              <div style={{ fontSize: '0.6rem', fontWeight: '700', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '0.2rem', marginBottom: '0.1rem' }}>
-                                <Sparkles size={9} style={{ color: '#fbbf24' }} />
-                                <span>MISSING DETAILS INJECTED</span>
-                              </div>
-                              <ul style={{ margin: 0, paddingLeft: '0.75rem', listStyleType: 'disc' }}>
-                                {rev.missing_items.map((miss, i) => (
-                                  <li key={i} style={{ fontSize: '0.62rem', color: 'var(--muted-foreground)', lineHeight: '1.3' }}>
-                                    {miss}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {!hasRisks && !hasImprov && !hasMissing && (
-                            <div style={{ fontSize: '0.62rem', color: 'var(--muted-foreground)', fontStyle: 'italic' }}>
-                              All structural integrity and domain requirements validated successfully.
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-function CompilationSummaryPanel({ promptRecord }) {
-  const ragDetails = promptRecord?.ragDetails || {};
-  const compileContext = ragDetails.compileContext || {};
-  const technicalTerms = ragDetails.technicalTerms || [];
-  const designTokens = ragDetails.designTokens || [];
-  const frameworkRules = ragDetails.frameworkRules || [];
-  const promptPatterns = ragDetails.promptPatterns || [];
-
-  const accessibilityRules = promptPatterns.filter((pattern) =>
-    pattern.toLowerCase().includes("accessibility"),
-  );
-  const motionRules = promptPatterns.filter((pattern) =>
-    pattern.toLowerCase().includes("motion settings"),
-  );
-  const layoutRules = promptPatterns.filter((pattern) => {
-    const value = pattern.toLowerCase();
-    return (
-      value.includes("required sections") ||
-      value.includes("grid layout") ||
-      value.includes("ux rule") ||
-      value.includes("structural preset")
-    );
-  });
-
-  const retrievalConfidence = Math.round(
-    (ragDetails.retrievalConfidence || 0.8) * 100,
-  );
-  const confidenceLabel =
-    retrievalConfidence >= 85
-      ? "High"
-      : retrievalConfidence >= 70
-        ? "Medium"
-        : "Review";
-
-  const summaryPill = {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "0.35rem",
-    padding: "0.35rem 0.6rem",
-    borderRadius: "999px",
-    border: "1px solid var(--border)",
-    background: "var(--card)",
-    fontSize: "0.72rem",
-    fontWeight: "700",
-    color: "var(--foreground)",
-  };
-
-  const chipStyle = {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "0.25rem",
-    padding: "0.28rem 0.5rem",
-    borderRadius: "999px",
-    background: "var(--muted)",
-    border: "1px solid var(--border)",
-    fontSize: "0.68rem",
-    color: "var(--foreground)",
-    fontWeight: "600",
-  };
-
-  return (
-    <div style={summaryStrip} className="glass-panel animate-fade-up">
-      <div style={summaryHeaderRow}>
-        <div>
-          <div style={summaryKicker}>Compilation Summary</div>
-          <div style={summaryTitle}>
-            What {BRAND.name} compiled into this blueprint
-          </div>
-        </div>
-        <div style={summaryHeaderMeta}>
-          <span style={summaryConfidencePill(retrievalConfidence)}>
-            Retrieval Confidence: {confidenceLabel} ({retrievalConfidence}%)
-          </span>
-          <span style={summaryPill}>Mode: {promptRecord.mode}</span>
-        </div>
-      </div>
-
-      <div style={summaryGrid}>
-        <div style={summaryCard}>
-          <div style={summaryCardTitle}>Detected Project Context</div>
-          <div style={summaryMetaList}>
-            <span>
-              Framework:{" "}
-              {compileContext.framework ||
-                promptRecord?.ragDetails?.framework ||
-                "Tailwind CSS"}
-            </span>
-            <span>Theme: {compileContext.theme || promptRecord.theme}</span>
-            {compileContext.typography && (
-              <span>Typography: {compileContext.typography}</span>
-            )}
-            <span>
-              Sync:{" "}
-              {compileContext.projectIntegration === "existing"
-                ? "Existing project sync"
-                : "Standalone project"}
-            </span>
-          </div>
-        </div>
-
-        <div style={summaryCard}>
-          <div style={summaryCardTitle}>Prompt Quality Visibility</div>
-          <div style={summaryBadgeRow}>
-            <span style={chipStyle}>{technicalTerms.length} design terms</span>
-            <span style={chipStyle}>{layoutRules.length} layout rules</span>
-            <span style={chipStyle}>
-              {accessibilityRules.length} accessibility rules
-            </span>
-            <span style={chipStyle}>{motionRules.length} motion rules</span>
-            <span style={chipStyle}>
-              {frameworkRules.length} framework rules
-            </span>
-          </div>
-        </div>
-
-        <div style={summaryCard}>
-          <div style={summaryCardTitle}>Today You Learned</div>
-          <div style={summaryBadgeRow}>
-            {(technicalTerms.slice(0, 4).length > 0
-              ? technicalTerms.slice(0, 4)
-              : ["No retrieved vocabulary yet"]
-            ).map((term) => (
-              <span key={term} style={chipStyle}>
-                {term}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div style={summaryCard}>
-          <div style={summaryCardTitle}>Applied Rules</div>
-          <div style={summaryMetaList}>
-            {(accessibilityRules.slice(0, 2).length > 0
-              ? accessibilityRules.slice(0, 2)
-              : ["Accessibility rules are baked into the compiler."]
-            ).map((rule) => (
-              <span key={rule}>{rule}</span>
-            ))}
-            {(motionRules.slice(0, 1).length > 0
-              ? motionRules.slice(0, 1)
-              : ["Motion guidance is derived from retrieval patterns."]
-            ).map((rule) => (
-              <span key={rule}>{rule}</span>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+// Imported extracted subcomponents
+import SaveStatusBadge from "@/components/chat/SaveStatusBadge";
+import GeneratingLoader from "@/components/chat/GeneratingLoader";
+import MarkdownRenderer from "@/components/chat/MarkdownRenderer";
+import { useRelativeTime } from "@/hooks/useRelativeTime";
+import { CONTENT } from "@/config/contentRegistry";
 
 // ─── Smart Suggestions Helper ─────────────────────────────────
 function getSmartSuggestions(record) {
@@ -1051,42 +149,14 @@ function getSmartSuggestions(record) {
   ];
 }
 
-// ─── Generation Status Messages ───────────────────────────────
-const GEN_MESSAGES = [
-  "Retrieving design vocabulary…",
-  "Matching HSL color tokens…",
-  "Injecting motion physics…",
-  "Compiling architectural spec…",
-  "Assembling prompt blueprint…",
-];
-
-function GeneratingLoader() {
-  const [msgIdx, setMsgIdx] = useState(0);
-  useEffect(() => {
-    const t = setInterval(
-      () => setMsgIdx((i) => (i + 1) % GEN_MESSAGES.length),
-      1000,
-    );
-    return () => clearInterval(t);
-  }, []);
+// ─── LastEditedBadge (hydration-safe) ─────────────────────────
+function LastEditedBadge({ timestamp }) {
+  const relativeTime = useRelativeTime(timestamp);
+  if (!timestamp) return null;
   return (
-    <div style={skeletonContainer}>
-      <div style={skeletonHeader}>
-        <Loader2
-          size={14}
-          className="animate-spin"
-          style={{ color: "var(--accent)" }}
-        />
-        <span style={refiningText}>{GEN_MESSAGES[msgIdx]}</span>
-      </div>
-      <div style={skeletonLinesGrid} className="animate-pulse">
-        {["92%", "85%", "40%", "78%", "88%", "60%", "82%", "30%"].map(
-          (w, i) => (
-            <div key={i} style={skeletonLine(w)} />
-          ),
-        )}
-      </div>
-    </div>
+    <span className="text-[11px] text-muted-foreground bg-muted border border-border rounded px-2 py-0.5 font-mono shrink-0">
+      {relativeTime}
+    </span>
   );
 }
 
@@ -1095,6 +165,7 @@ function ChatContent() {
   const { user, history, updatePromptChat, apiKey, saveStatus, vocabulary } = useApp();
   const searchParams = useSearchParams();
   const router = useRouter();
+  // Deterministic relative time via shared hook (resolves hydration warnings)
   const promptId = searchParams.get("id");
 
   const [promptRecord, setPromptRecord] = useState(null);
@@ -1124,21 +195,7 @@ function ChatContent() {
     }
   }, [promptId, history, user, router]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKey = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-        e.preventDefault();
-        if (chatInput.trim() && !isGenerating) {
-          handleSendMessage(e);
-        }
-      }
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [chatInput, isGenerating]);
-
-  const handleSendMessage = async (e) => {
+  const handleSendMessage = useCallback(async (e) => {
     e?.preventDefault();
     if (!chatInput.trim() || isGenerating || !promptRecord) return;
     const userMessage = chatInput;
@@ -1193,7 +250,21 @@ function ChatContent() {
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [chatInput, isGenerating, promptRecord, chatMessages, apiKey, vocabulary, updatePromptChat]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKey = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        if (chatInput.trim() && !isGenerating) {
+          handleSendMessage(e);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [chatInput, isGenerating, handleSendMessage]);
 
   const handleRegenerate = async () => {
     if (!promptRecord || isGenerating) return;
@@ -1272,11 +343,11 @@ function ChatContent() {
 
   if (!promptRecord) {
     return (
-      <div style={loadingContainer}>
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 text-xs md:text-sm text-muted-foreground min-h-[400px]">
         <Loader2
           size={24}
-          className="animate-spin"
-          style={{ color: "var(--accent)" }}
+          strokeWidth={1.75}
+          className="animate-spin text-accent"
         />
         <span>Loading workspace…</span>
       </div>
@@ -1285,8 +356,7 @@ function ChatContent() {
 
   return (
     <div
-      style={singleColumnLayout}
-      className={
+      className={`flex flex-col h-[calc(100dvh-140px)] min-h-[600px] pt-1 pb-3 w-full max-w-[1280px] mx-auto px-6 relative z-10 ${
         promptRecord.theme === "Wes Anderson"
           ? "theme-wes-anderson"
           : promptRecord.theme === "Cyberpunk Neon"
@@ -1296,126 +366,108 @@ function ChatContent() {
               : promptRecord.theme === "Minimalist Typography"
                 ? "theme-minimal"
                 : ""
-      }
+      }`}
     >
-      <div style={workspacePanel} className="glass-panel">
+      <div className="flex-1 bg-card border border-border rounded-xl flex flex-col overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.1)] glass-panel">
         {/* HEADER */}
-        <div style={workspaceHeader}>
-          <div style={headerLeft}>
+        <div className="p-4 md:px-6 border-b border-border flex justify-between items-center flex-wrap gap-4 shrink-0">
+          <div className="flex flex-col gap-1.5">
             <motion.button
-              style={backBtn}
+              className="bg-muted border border-border rounded-[7px] text-foreground text-xs font-semibold cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1.5 font-sans transition-all duration-200 w-fit"
               onClick={() => router.back()}
               whileHover={{ x: -3 }}
               whileTap={{ scale: 0.96 }}
             >
-              <ArrowLeft size={12} /> Back
+              <ArrowLeft size={12} strokeWidth={1.75} /> Back
             </motion.button>
-            <div style={titleBadgeRow}>
-              <h2 style={workspaceTitle}>{promptRecord.title}</h2>
-              <span style={themeBadge}>{promptRecord.theme}</span>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h2 className="text-base font-bold font-display text-foreground tracking-tight m-0">{promptRecord.title}</h2>
+              <span className="text-[11px] font-semibold text-accent bg-accent/8 border border-accent/20 rounded-full px-2 py-0.5">{promptRecord.theme}</span>
               <SaveStatusBadge status={saveStatus} />
-              {/* Last edited indicator — persistence signal */}
-              {promptRecord.timestamp && (
-                <span style={lastEditedBadge}>
-                  {(() => {
-                    const diff = Date.now() - promptRecord.timestamp;
-                    const mins = Math.floor(diff / 60000);
-                    const hrs = Math.floor(diff / 3600000);
-                    const days = Math.floor(diff / 86400000);
-                    if (mins < 1) return "Just now";
-                    if (mins < 60) return `${mins}m ago`;
-                    if (hrs < 24) return `${hrs}h ago`;
-                    return `${days}d ago`;
-                  })()}
-                </span>
-              )}
+              {/* Last edited indicator — persistence signal (hydration-safe) */}
+              <LastEditedBadge timestamp={promptRecord.timestamp} />
             </div>
           </div>
 
           {/* Action buttons */}
-          <div style={headerActions}>
+          <div className="flex items-center gap-2 flex-wrap">
             {/* Regenerate */}
             <motion.button
               onClick={handleRegenerate}
-              style={actionBtn}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer bg-muted border border-border text-foreground text-xs font-semibold font-sans transition-all duration-200 h-[34px] whitespace-nowrap"
               disabled={isGenerating}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               title="Regenerate prompt with same parameters"
             >
-              <RotateCcw size={13} />
-              <span style={actionBtnLabel}>Regenerate</span>
+              <RotateCcw size={13} strokeWidth={1.75} />
+              <span className="text-xs">Regenerate</span>
             </motion.button>
 
             {/* Export MD */}
             <motion.button
               onClick={() => handleExport("md")}
-              style={actionBtn}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer bg-muted border border-border text-foreground text-xs font-semibold font-sans transition-all duration-200 h-[34px] whitespace-nowrap"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               title="Export as Markdown"
             >
-              <Download size={13} />
-              <span style={actionBtnLabel}>.md</span>
+              <Download size={13} strokeWidth={1.75} />
+              <span className="text-xs">.md</span>
             </motion.button>
 
             {/* Export TXT */}
             <motion.button
               onClick={() => handleExport("txt")}
-              style={actionBtn}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer bg-muted border border-border text-foreground text-xs font-semibold font-sans transition-all duration-200 h-[34px] whitespace-nowrap"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               title="Export as plain text"
             >
-              <Download size={13} />
-              <span style={actionBtnLabel}>.txt</span>
+              <Download size={13} strokeWidth={1.75} />
+              <span className="text-xs">.txt</span>
             </motion.button>
 
             {/* Share */}
             <motion.button
               onClick={handleShare}
-              style={actionBtn}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer bg-muted border border-border text-foreground text-xs font-semibold font-sans transition-all duration-200 h-[34px] whitespace-nowrap"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               title="Copy share link"
             >
-              <Share2 size={13} />
-              <span style={actionBtnLabel}>Share</span>
+              <Share2 size={13} strokeWidth={1.75} />
+              <span className="text-xs">Share</span>
             </motion.button>
 
             {/* Copy */}
             <motion.button
               onClick={handleCopy}
-              style={copyBtn}
-              className="btn-accent shine-effect"
+              className="px-4 py-2 text-xs h-[36px] rounded-lg inline-flex items-center justify-center gap-1.5 font-semibold btn-accent shine-effect"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
-              {copied ? <Check size={14} /> : <Copy size={14} />}
+              {copied ? (
+                <Check size={14} strokeWidth={1.75} />
+              ) : (
+                <Copy size={14} strokeWidth={1.75} />
+              )}
               {copied ? "Copied!" : "Copy Prompt"}
             </motion.button>
           </div>
         </div>
 
-        <CompilationSummaryPanel promptRecord={promptRecord} />
-
         {/* PROMPT BODY */}
-        <div style={workspaceBody}>
+        <div className="flex-1 overflow-y-auto p-6 bg-background relative">
           {isGenerating ? (
             <GeneratingLoader />
           ) : (
-            <div
-              style={{
-                fontFamily: "var(--font-sans)",
-                whiteSpace: "normal",
-                width: "100%",
-              }}
-            >
+            <div className="font-sans whitespace-normal w-full">
               {/* Revision History Dropdown */}
               {promptRecord?.revisions && promptRecord.revisions.length > 0 && (
-                <div style={revisionRow}>
-                  <History size={12} style={{ color: "var(--accent)" }} />
-                  <span style={revisionLabel}>Revision History:</span>
+                <div className="flex items-center gap-2 bg-card border border-border rounded-lg px-3 py-1.5 mb-4 w-fit">
+                  <History size={12} strokeWidth={1.75} className="text-accent" />
+                  <span className="text-xs font-bold text-muted-foreground">Revision History:</span>
                   <ShadcnDropdown
                     value={currentPrompt}
                     onChange={(val) => {
@@ -1427,11 +479,11 @@ function ChatContent() {
                     }}
                     options={[
                       {
-                        label: `Prompt v${promptRecord.revisions.length + 1} (Latest)`,
+                        label: `Latest Revision (Revision ${promptRecord.revisions.length + 1})`,
                         value: promptRecord.resolvedPrompt,
                       },
                       ...promptRecord.revisions.map((rev, index) => ({
-                        label: `Prompt v${index + 1} (${new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date(rev.timestamp))})`,
+                        label: `Revision ${index + 1} (${new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(rev.timestamp))})`,
                         value: rev.resolvedPrompt,
                       })),
                     ]}
@@ -1449,66 +501,23 @@ function ChatContent() {
                 </div>
               )}
 
-              {renderMarkdown(currentPrompt)}
-              {/* Variable Reward Insight Badge — shows after prompt renders */}
-              {!isGenerating &&
-                chatMessages.length > 0 &&
-                (() => {
-                  const mode = promptRecord.mode;
-                  const badges = {
-                    application: [
-                      "⚡ Your spec used a 3-tier data architecture pattern",
-                      "🏗️ Multi-page routing structure detected in your blueprint",
-                      "🎨 Design system tokens injected across 4 components",
-                      "⚡ State management patterns compiled for your stack",
-                    ],
-                    page: [
-                      "✨ Glassmorphism depth tokens detected in your theme selection",
-                      "🎯 Layout grid structure optimized for your page type",
-                      "⚡ Spring physics injected into 3 interaction states",
-                      "🏗️ Component hierarchy structured for AI code generation",
-                    ],
-                    component: [
-                      "⚡ Spring physics injected into 4 interaction states",
-                      "🎨 Design tokens applied across all component variants",
-                      "✨ Glassmorphic surface treatment compiled for your theme",
-                      "🎯 Accessibility attributes included in the component spec",
-                    ],
-                    enhance: [
-                      "✨ 3 design vocabulary terms elevated in your prompt",
-                      "⚡ Motion physics terminology injected into the spec",
-                      "🎯 Professional engineering language applied throughout",
-                      "🏗️ Layout patterns restructured for clarity",
-                    ],
-                  };
-                  const pool = badges[mode] || badges.enhance;
-                  // Deterministic selection based on message count (not random — so same badge on re-render)
-                  const badge = pool[chatMessages.length % pool.length];
-                  return (
-                    <div style={insightBadge}>
-                      <span style={insightBadgeText}>{badge}</span>
-                    </div>
-                  );
-                })()}
+              <MarkdownRenderer text={currentPrompt} />
 
               {/* Smart Suggested Next Steps */}
               {!isGenerating && (
-                <div
-                  style={smartSuggestionsBox}
-                  className="glass-panel animate-fade-up"
-                >
-                  <div style={smartSuggestionsHead}>
-                    <Sparkles size={13} style={{ color: "var(--accent)" }} />
-                    <span style={smartSuggestionsTitle}>
+                <div className="mt-6 mb-4 p-5 rounded-xl bg-muted border border-border glass-panel animate-fade-up">
+                  <div className="flex items-center gap-2 mb-3.5">
+                    <Sparkles size={13} strokeWidth={1.75} className="text-accent" />
+                    <span className="text-sm font-bold text-foreground font-display tracking-wide">
                       Suggested Next Steps
                     </span>
                   </div>
-                  <div style={smartSuggestionsGrid}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {getSmartSuggestions(promptRecord).map(
                       (suggestion, idx) => (
                         <motion.button
                           key={idx}
-                          style={smartSuggestionChip}
+                          className="flex items-center justify-between p-2.5 bg-card border border-border rounded-lg text-xs font-semibold text-foreground cursor-pointer text-left transition-all duration-200 hover:border-accent hover:bg-muted"
                           onClick={() => {
                             setChatInput(suggestion.prompt);
                             track("smart_suggestion_clicked", {
@@ -1521,11 +530,7 @@ function ChatContent() {
                               if (btn) btn.click();
                             }, 100);
                           }}
-                          whileHover={{
-                            scale: 1.02,
-                            borderColor: "var(--accent)",
-                            background: "var(--muted)",
-                          }}
+                          whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                         >
                           {suggestion.label} →
@@ -1542,17 +547,17 @@ function ChatContent() {
           )}
         </div>
 
-        {/* AI TRANSPARENCY PANEL */}
-        <AITransparencyPanel
-          ragDetails={promptRecord.ragDetails}
-          theme={promptRecord.theme}
-          mode={promptRecord.mode}
-        />
-
         {/* CHAT INPUT */}
-        <form onSubmit={handleSendMessage} style={bottomInputRow(inputFocused)}>
-          <div style={sparklesIconWrap}>
-            <Sparkles size={16} style={{ color: "var(--accent)" }} />
+        <form
+          onSubmit={handleSendMessage}
+          className={`p-4 md:px-6 border-t flex items-center gap-3 shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] safe-bottom ${
+            inputFocused
+              ? "border-accent shadow-[0_-4px_24px_rgba(104,67,236,0.08)]"
+              : "border-border"
+          }`}
+        >
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-card border border-border shrink-0">
+            <Sparkles size={16} strokeWidth={1.75} className="text-accent" />
           </div>
           <input
             type="text"
@@ -1561,20 +566,18 @@ function ChatContent() {
             onChange={(e) => setChatInput(e.target.value)}
             onFocus={() => setInputFocused(true)}
             onBlur={() => setInputFocused(false)}
-            style={chatField}
-            className="glass-input"
+            className="flex-1 glass-input"
             disabled={isGenerating}
             aria-label="Prompt refinement input"
           />
           <motion.button
             type="submit"
-            style={sendBtn}
-            className="btn-accent shine-effect"
+            className="h-[38px] w-[38px] rounded-lg p-0 shrink-0 inline-flex items-center justify-center btn-accent shine-effect"
             disabled={isGenerating || !chatInput.trim()}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Send size={16} />
+            <Send size={16} strokeWidth={1.75} />
           </motion.button>
         </form>
       </div>
@@ -1586,11 +589,11 @@ export default function ChatPage() {
   return (
     <Suspense
       fallback={
-        <div style={loadingContainer}>
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-xs md:text-sm text-muted-foreground min-h-[400px]">
           <Loader2
             size={24}
-            className="animate-spin"
-            style={{ color: "var(--accent)" }}
+            strokeWidth={1.75}
+            className="animate-spin text-accent"
           />
           <span>Loading workspace…</span>
         </div>
@@ -1600,514 +603,3 @@ export default function ChatPage() {
     </Suspense>
   );
 }
-
-// ─── Styles ───────────────────────────────────────────────────
-const loadingContainer = {
-  flex: 1,
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "1rem",
-  fontSize: "0.85rem",
-  color: "var(--muted-foreground)",
-  minHeight: "400px",
-};
-
-const singleColumnLayout = {
-  display: "flex",
-  flexDirection: "column",
-  height: "calc(100dvh - 140px)",
-  minHeight: "600px",
-  paddingTop: "0.25rem",
-  paddingBottom: "0.75rem",
-  width: "100%",
-  maxWidth: "1280px",
-  margin: "0 auto",
-  paddingLeft: "1.5rem",
-  paddingRight: "1.5rem",
-  position: "relative",
-  zIndex: 2,
-};
-
-const workspacePanel = {
-  flex: 1,
-  background: "var(--card)",
-  border: "1px solid var(--border)",
-  borderRadius: "var(--radius-lg)",
-  display: "flex",
-  flexDirection: "column",
-  overflow: "hidden",
-  boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
-};
-
-const workspaceHeader = {
-  padding: "1rem 1.5rem",
-  borderBottom: "1px solid var(--border)",
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  flexWrap: "wrap",
-  gap: "1rem",
-  flexShrink: 0,
-};
-
-const summaryStrip = {
-  padding: "1rem 1.25rem",
-  borderBottom: "1px solid var(--border)",
-  background: "color-mix(in srgb, var(--accent) 3%, transparent)",
-};
-
-const summaryHeaderRow = {
-  display: "flex",
-  alignItems: "flex-start",
-  justifyContent: "space-between",
-  gap: "1rem",
-  flexWrap: "wrap",
-};
-
-const summaryKicker = {
-  fontSize: "0.68rem",
-  fontWeight: "800",
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-  color: "var(--accent)",
-  marginBottom: "0.2rem",
-};
-
-const summaryTitle = {
-  fontSize: "0.92rem",
-  fontWeight: "800",
-  color: "var(--foreground)",
-};
-
-const summaryHeaderMeta = {
-  display: "flex",
-  flexWrap: "wrap",
-  alignItems: "center",
-  gap: "0.5rem",
-};
-
-const summaryConfidencePill = (confidence) => ({
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "0.35rem",
-  padding: "0.35rem 0.65rem",
-  borderRadius: "999px",
-  fontSize: "0.72rem",
-  fontWeight: "700",
-  color:
-    confidence >= 85
-      ? "var(--success)"
-      : confidence >= 70
-        ? "var(--accent)"
-        : "var(--warning)",
-  border: `1px solid ${confidence >= 85 ? "color-mix(in srgb, var(--success) 30%, transparent)" : confidence >= 70 ? "color-mix(in srgb, var(--accent) 30%, transparent)" : "color-mix(in srgb, var(--warning) 30%, transparent)"}`,
-  background: "var(--card)",
-});
-
-const summaryGrid = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-  gap: "0.75rem",
-  marginTop: "0.85rem",
-};
-
-const summaryCard = {
-  background: "var(--card)",
-  border: "1px solid var(--border)",
-  borderRadius: "14px",
-  padding: "0.85rem 0.95rem",
-  display: "flex",
-  flexDirection: "column",
-  gap: "0.45rem",
-};
-
-const summaryCardTitle = {
-  fontSize: "0.72rem",
-  fontWeight: "800",
-  textTransform: "uppercase",
-  letterSpacing: "0.06em",
-  color: "var(--muted-foreground)",
-};
-
-const summaryMetaList = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "0.28rem",
-  fontSize: "0.78rem",
-  color: "var(--foreground)",
-  lineHeight: "1.5",
-};
-
-const summaryBadgeRow = {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: "0.35rem",
-};
-
-const headerLeft = { display: "flex", flexDirection: "column", gap: "0.4rem" };
-
-const backBtn = {
-  background: "var(--muted)",
-  border: "1px solid var(--border)",
-  borderRadius: "7px",
-  color: "var(--foreground)",
-  fontSize: "0.75rem",
-  fontWeight: "600",
-  cursor: "pointer",
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "0.35rem",
-  padding: "0.3rem 0.65rem",
-  fontFamily: "var(--font-sans)",
-  width: "fit-content",
-  transition: "all 0.25s ease",
-};
-
-const titleBadgeRow = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.65rem",
-  flexWrap: "wrap",
-};
-
-const workspaceTitle = {
-  fontSize: "1.05rem",
-  fontWeight: "700",
-  fontFamily: "var(--font-display)",
-  color: "var(--foreground)",
-  letterSpacing: "-0.02em",
-  margin: 0,
-};
-
-const themeBadge = {
-  fontSize: "0.68rem",
-  fontWeight: "600",
-  color: "var(--accent)",
-  background: "rgba(104,67,236,0.08)",
-  border: "1px solid rgba(104,67,236,0.2)",
-  borderRadius: "999px",
-  padding: "2px 8px",
-};
-
-const headerActions = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.5rem",
-  flexWrap: "wrap",
-};
-
-const actionBtn = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "0.35rem",
-  padding: "0.4rem 0.75rem",
-  borderRadius: "8px",
-  cursor: "pointer",
-  background: "var(--muted)",
-  border: "1px solid var(--border)",
-  color: "var(--foreground)",
-  fontSize: "0.78rem",
-  fontWeight: "600",
-  fontFamily: "var(--font-sans)",
-  transition: "all 0.2s ease",
-  minHeight: "34px",
-  whiteSpace: "nowrap",
-};
-
-const actionBtnLabel = { fontSize: "0.78rem" };
-
-const copyBtn = {
-  padding: "0.45rem 1rem",
-  fontSize: "0.8rem",
-  height: "36px",
-  borderRadius: "8px",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "0.4rem",
-  fontWeight: "600",
-};
-
-const workspaceBody = {
-  flex: 1,
-  overflowY: "auto",
-  padding: "1.5rem",
-  background: "var(--background)",
-  position: "relative",
-};
-
-const skeletonContainer = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "1rem",
-  height: "100%",
-};
-const skeletonHeader = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.65rem",
-  marginBottom: "0.5rem",
-};
-const skeletonLinesGrid = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "0.75rem",
-  flex: 1,
-};
-const skeletonLine = (w) => ({
-  width: w,
-  height: "12px",
-  borderRadius: "6px",
-  background: "var(--card)",
-  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.02)",
-});
-const refiningText = {
-  fontSize: "0.85rem",
-  color: "var(--muted-foreground)",
-  fontWeight: "500",
-};
-
-// RAG / AI Panel styles
-const ragPanel = {
-  borderTop: "1px solid var(--border)",
-  padding: "0.75rem 1.5rem",
-  flexShrink: 0,
-};
-const ragToggleBtn = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.5rem",
-  background: "none",
-  border: "none",
-  cursor: "pointer",
-  color: "var(--muted-foreground)",
-  fontSize: "0.75rem",
-  fontWeight: "600",
-  fontFamily: "var(--font-sans)",
-  padding: 0,
-};
-const ragContent = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "0.5rem",
-  marginTop: "0.75rem",
-  padding: "0.75rem",
-  background: "var(--card)",
-  border: "1px solid var(--border)",
-  borderRadius: "8px",
-};
-const ragRow = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-};
-const ragLabel = {
-  fontSize: "0.72rem",
-  color: "var(--muted-foreground)",
-  fontWeight: "500",
-};
-const ragValue = {
-  fontSize: "0.72rem",
-  color: "var(--foreground)",
-  fontWeight: "600",
-};
-
-const bottomInputRow = (focused) => ({
-  padding: "1.15rem 1.5rem",
-  borderTop: `1px solid ${focused ? "var(--accent)" : "var(--border)"}`,
-  boxShadow: focused ? "0 -4px 24px rgba(104,67,236,0.08)" : "none",
-  display: "flex",
-  alignItems: "center",
-  gap: "0.75rem",
-  flexShrink: 0,
-  transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-  className: "safe-bottom",
-});
-
-const sparklesIconWrap = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: "32px",
-  height: "32px",
-  borderRadius: "8px",
-  background: "var(--card)",
-  border: "1px solid var(--border)",
-  flexShrink: 0,
-};
-
-const chatField = { flex: 1 };
-const sendBtn = {
-  height: "38px",
-  width: "38px",
-  borderRadius: "8px",
-  padding: 0,
-  flexShrink: 0,
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-};
-
-// Markdown styles
-const mdH1 = {
-  fontSize: "1.25rem",
-  fontWeight: "800",
-  color: "var(--foreground)",
-  marginTop: "1.25rem",
-  marginBottom: "0.6rem",
-  fontFamily: "var(--font-display)",
-};
-const mdH2 = {
-  fontSize: "1.1rem",
-  fontWeight: "800",
-  color: "var(--foreground)",
-  marginTop: "1.1rem",
-  marginBottom: "0.5rem",
-  fontFamily: "var(--font-display)",
-};
-const mdH3 = {
-  fontSize: "0.98rem",
-  fontWeight: "800",
-  color: "var(--accent)",
-  marginTop: "0.85rem",
-  marginBottom: "0.4rem",
-  fontFamily: "var(--font-display)",
-};
-const mdP = {
-  margin: "0 0 0.4rem 0",
-  fontSize: "0.8rem",
-  color: "var(--foreground)",
-  lineHeight: "1.55",
-};
-const mdLi = {
-  display: "flex",
-  gap: "0.5rem",
-  paddingLeft: "0.5rem",
-  marginBottom: "0.3rem",
-  fontSize: "0.8rem",
-  color: "var(--foreground)",
-  lineHeight: "1.5",
-};
-const mdHr = {
-  border: "none",
-  borderTop: "1px solid var(--border)",
-  margin: "0.75rem 0",
-};
-const mdCode = {
-  fontFamily: "var(--font-mono)",
-  fontSize: "0.75rem",
-  background: "var(--muted)",
-  padding: "2px 5px",
-  borderRadius: "4px",
-  color: "var(--accent)",
-};
-
-// ─── Revision Styles ──────────────────────────────────────────
-const revisionRow = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.5rem",
-  background: "var(--card)",
-  border: "1px solid var(--border)",
-  borderRadius: "8px",
-  padding: "0.35rem 0.75rem",
-  marginBottom: "1rem",
-  width: "fit-content",
-};
-
-const revisionLabel = {
-  fontSize: "0.75rem",
-  fontWeight: "700",
-  color: "var(--muted-foreground)",
-};
-
-const revisionSelect = {
-  background: "transparent",
-  border: "none",
-  fontSize: "0.75rem",
-  fontWeight: "700",
-  color: "var(--foreground)",
-  outline: "none",
-  cursor: "pointer",
-  fontFamily: "var(--font-sans)",
-};
-
-// ─── Retention Styles ──────────────────────────────────────
-const lastEditedBadge = {
-  fontSize: "0.68rem",
-  color: "var(--muted-foreground)",
-  background: "var(--muted)",
-  border: "1px solid var(--border)",
-  borderRadius: "5px",
-  padding: "2px 8px",
-  fontFamily: "var(--font-mono)",
-  flexShrink: 0,
-};
-
-const insightBadge = {
-  marginTop: "1rem",
-  marginBottom: "0.25rem",
-  padding: "0.5rem 0.85rem",
-  borderRadius: "8px",
-  background: "rgba(104,67,236,0.08)",
-  border: "1px solid rgba(104,67,236,0.18)",
-  display: "inline-flex",
-  alignItems: "center",
-};
-
-const insightBadgeText = {
-  fontSize: "0.75rem",
-  fontWeight: "600",
-  color: "var(--accent)",
-  fontFamily: "var(--font-sans)",
-};
-
-// ─── Smart Suggestions Styles ──────────────────────────────
-const smartSuggestionsBox = {
-  marginTop: "1.5rem",
-  marginBottom: "1rem",
-  padding: "1.25rem",
-  borderRadius: "12px",
-  background: "var(--muted)",
-  border: "1px solid var(--border)",
-};
-
-const smartSuggestionsHead = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.45rem",
-  marginBottom: "0.85rem",
-};
-
-const smartSuggestionsTitle = {
-  fontSize: "0.82rem",
-  fontWeight: "700",
-  color: "var(--foreground)",
-  fontFamily: "var(--font-display)",
-  letterSpacing: "0.01em",
-};
-
-const smartSuggestionsGrid = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-  gap: "0.65rem",
-};
-
-const smartSuggestionChip = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: "0.55rem 0.85rem",
-  background: "var(--card)",
-  border: "1px solid var(--border)",
-  borderRadius: "8px",
-  fontSize: "0.76rem",
-  fontWeight: "600",
-  color: "var(--foreground)",
-  cursor: "pointer",
-  fontFamily: "var(--font-sans)",
-  textAlign: "left",
-  transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
-};

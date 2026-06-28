@@ -54,11 +54,11 @@ async function verifyEdgeJwt(token, secretStr) {
   }
 }
 
-export async function middleware(request) {
+export default async function proxy(request) {
   const { pathname } = request.nextUrl;
 
   // Define private (protected) routes
-  const privatePrefixes = ['/dashboard', '/forge', '/component-forge', '/chat', '/vocabulary'];
+  const privatePrefixes = ['/dashboard', '/forge', '/chat', '/vocabulary'];
   const isPrivateRoute = privatePrefixes.some(prefix => pathname === prefix || pathname.startsWith(prefix + '/'));
 
   // Get auth session cookie
@@ -108,8 +108,6 @@ export const config = {
     '/dashboard/:path*',
     '/forge',
     '/forge/:path*',
-    '/component-forge',
-    '/component-forge/:path*',
     '/chat',
     '/chat/:path*',
     '/vocabulary',

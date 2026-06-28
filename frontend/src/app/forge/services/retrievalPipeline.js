@@ -15,7 +15,6 @@ export const INTENT_CONFIDENCE_THRESHOLD = 0.70;
  * themes, syntax frameworks, webpage patterns, components, and animations.
  */
 export async function runRetrievalPipeline(rawPrompt, options = {}) {
-  console.log(`[Retrieval Pipeline] Orchestrating query matches for prompt...`);
 
   // 1. Analyze user design intent & clarity score
   const intentResult = evaluateIntentClarity(rawPrompt);

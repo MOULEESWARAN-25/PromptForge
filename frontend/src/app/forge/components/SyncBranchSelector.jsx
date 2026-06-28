@@ -6,7 +6,13 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { track } from '@/lib/analytics';
-import { ShadcnSelect } from '@/components/ui/ShadcnElements';
+import { 
+  Select, 
+  SelectTrigger, 
+  SelectValue, 
+  SelectContent, 
+  SelectItem 
+} from '@/components/ui/select';
 
 const FRAMEWORK_OPTIONS = [
   { value: 'Shadcn/UI', label: 'Shadcn/UI' },
@@ -459,12 +465,18 @@ export function SyncBranchSelector({
               <label style={{ fontSize: '0.75rem', fontWeight: '750', color: 'var(--foreground)', display: 'block', marginBottom: '0.35rem' }}>
                 Active UI Framework
               </label>
-              <ShadcnSelect
-                value={framework}
-                onChange={setFramework}
-                options={FRAMEWORK_OPTIONS}
-                placeholder="Select framework..."
-              />
+              <Select value={framework} onValueChange={setFramework}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select framework..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {FRAMEWORK_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>

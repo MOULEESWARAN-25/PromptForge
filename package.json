@@ -2,6 +2,7 @@
   "name": "promptforge-monorepo",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:backend": "npm run dev --prefix backend",
@@ -11,6 +12,6 @@
     "install:all": "npm install --prefix frontend && npm install --prefix backend",
     "seed": "npm run seed --prefix backend",
     "guardrail": "npm run guardrail --prefix backend",
-    "test:regression": "npm run test:regression --prefix backend"
+    "purge": "npm run purge --prefix backend"
   }
 }

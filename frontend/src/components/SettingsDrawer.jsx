@@ -6,77 +6,54 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
   User,
-  Award,
   Settings,
-  ArrowRight,
   Sun,
   Moon,
-  Key,
   LogOut,
   Keyboard,
-  CheckCircle,
-  AlertCircle,
   Wifi,
   WifiOff,
   TrendingUp,
   Shield,
   Mail,
-  Activity,
+  Zap,
 } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { track, EVENTS } from "../lib/analytics";
 import { toast } from "sonner";
 import { BRAND } from "../config/brand";
-import { API_BASE_URL } from "../config/api";
-
-const KEYBOARD_SHORTCUTS = [
-  { keys: ["⌘", "K"], label: "Open command palette" },
-  { keys: ["⌘", "Enter"], label: "Submit refinement in chat" },
-  { keys: ["Esc"], label: "Close modals / palette" },
-];
+import { cn } from "@/lib/cn";
+import { CONTENT } from "../config/contentRegistry";
+import { KEYBOARD_SHORTCUTS } from "@/config/keyboardShortcuts";
 
 export default function SettingsDrawer({ isOpen, onClose }) {
   const {
     user,
     theme,
     toggleTheme,
-    apiKey,
-    updateApiKey,
     dbConnected,
     logout,
-    history,
     getUsageStats,
+    generationMode,
+    setGenerationMode,
   } = useApp();
   const router = useRouter();
-  const [apiKeyInput, setApiKeyInput] = useState(apiKey || "");
-  const [apiKeySaved, setApiKeySaved] = useState(false);
-  const [showApiKey, setShowApiKey] = useState(false);
 
   // Email notifications preferences states
   const [emailWelcome, setEmailWelcome] = useState(true);
   const [emailDraftRecovery, setEmailDraftRecovery] = useState(true);
   const [emailAnalytics, setEmailAnalytics] = useState(false);
 
-  // System status and AI telemetry states
-  const [telemetry, setTelemetry] = useState(null);
-  const [loadingTelemetry, setLoadingTelemetry] = useState(false);
-
   useEffect(() => {
-    if (isOpen) {
-      setLoadingTelemetry(true);
-      fetch(`${API_BASE_URL}/api/telemetry/stats`)
-        .then((res) => res.json())
-        .then((data) => {
-          setTelemetry(data);
-          setLoadingTelemetry(false);
-        })
-        .catch((err) => {
-          console.warn("Failed to fetch backend telemetry stats:", err);
-          setLoadingTelemetry(false);
-        });
-    }
-  }, [isOpen]);
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!user) return null;
 
@@ -84,28 +61,17 @@ export default function SettingsDrawer({ isOpen, onClose }) {
   const isDark = theme === "dark";
   const usage = getUsageStats();
 
-  const handleSaveApiKey = () => {
-    updateApiKey(apiKeyInput);
-    setApiKeySaved(true);
-    setTimeout(() => setApiKeySaved(false), 2000);
-  };
-
   const handleLogout = async () => {
     onClose();
     await logout();
     router.replace("/auth");
   };
 
-  const handleUpgradeClick = () => {
-    track(EVENTS.UPGRADE_CLICKED, { source: "settings_drawer" });
-    onClose();
-  };
-
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          style={overlayStyle}
+          className="fixed inset-0 bg-black/45 backdrop-blur-[6px] z-1000 flex justify-end"
           onClick={onClose}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -116,7 +82,7 @@ export default function SettingsDrawer({ isOpen, onClose }) {
           aria-label="Account Settings"
         >
           <motion.div
-            style={drawerStyle(isDark)}
+            className="w-full max-w-[400px] h-screen bg-card border-l border-border shadow-[-8px_0_32px_rgba(0,0,0,0.4)] flex flex-col font-sans"
             onClick={(e) => e.stopPropagation()}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
@@ -124,35 +90,37 @@ export default function SettingsDrawer({ isOpen, onClose }) {
             transition={{ type: "spring", stiffness: 280, damping: 28 }}
           >
             {/* Drawer Header */}
-            <div style={headerStyle(isDark)}>
-              <div style={titleContainer}>
-                <Settings size={18} style={{ color: "var(--accent)" }} />
-                <h2 style={drawerTitle}>Settings</h2>
+            <div className="p-[1.25rem_1.5rem] border-b border-border flex justify-between items-center">
+              <div className="flex items-center gap-[0.65rem]">
+                <Settings size={18} className="text-accent" strokeWidth={1.75} />
+                <h2 className="text-[1.05rem] font-bold font-display text-foreground tracking-tight m-0">{CONTENT.settings.title}</h2>
               </div>
               <motion.button
-                style={closeBtn}
+                className="bg-transparent border-none text-muted-foreground cursor-pointer p-1 rounded-[6px] flex items-center justify-center min-w-[32px] min-h-[32px] hover:bg-input transition-colors"
                 onClick={onClose}
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
                 aria-label="Close settings"
               >
-                <X size={20} />
+                <X size={20} strokeWidth={1.75} />
               </motion.button>
             </div>
 
             {/* Scrollable Body */}
-            <div style={bodyStyle}>
+            <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-4">
               {/* ── Profile Card ── */}
-              <div style={sectionCard(isDark)}>
-                <div style={cardHeaderRow}>
-                  <User size={15} style={{ color: "var(--accent)" }} />
-                  <span style={sectionTitle}>Profile</span>
+              <div className="bg-card border border-border rounded-[12px] p-[1rem_1.1rem] flex flex-col gap-[0.65rem]">
+                <div className="flex items-center gap-2">
+                  <User size={15} className="text-accent" strokeWidth={1.75} />
+                  <span className="text-[0.84rem] font-bold text-foreground font-display">Profile</span>
                 </div>
-                <div style={profileDetailBox}>
-                  <div style={avatarCircle(isDark)}>{initials}</div>
-                  <div style={profileInfo}>
-                    <span style={profileName}>{user.username || user.email}</span>
-                    <span style={profileEmail}>
+                <div className="flex items-center gap-[0.85rem] py-[0.1rem]">
+                  <div className="w-10 h-10 rounded-full bg-accent text-white text-[0.85rem] font-bold flex items-center justify-center shrink-0">
+                    {initials}
+                  </div>
+                  <div className="flex flex-col gap-[0.15rem]">
+                    <span className="text-[0.92rem] font-bold text-foreground">{user.username || user.email}</span>
+                    <span className="text-[0.76rem] text-muted-foreground">
                       {user.email}
                     </span>
                   </div>
@@ -160,438 +128,182 @@ export default function SettingsDrawer({ isOpen, onClose }) {
               </div>
 
               {/* ── Workspaces Compiled ── */}
-              <div style={sectionCard(isDark)}>
-                <div style={cardHeaderRow}>
-                  <TrendingUp size={15} style={{ color: "var(--accent)" }} />
-                  <span style={sectionTitle}>Workspaces</span>
-                  <span
-                    style={{
-                      marginLeft: "auto",
-                      fontSize: "0.72rem",
-                      color: "var(--muted-foreground)",
-                      fontWeight: 600,
-                    }}
-                  >
+              <div className="bg-card border border-border rounded-[12px] p-[1rem_1.1rem] flex flex-col gap-[0.65rem]">
+                <div className="flex items-center gap-2">
+                  <TrendingUp size={15} className="text-accent" strokeWidth={1.75} />
+                  <span className="text-[0.84rem] font-bold text-foreground font-display">Workspaces</span>
+                  <span className="ml-auto text-[0.72rem] text-muted-foreground font-semibold">
                     {usage.used} active
                   </span>
                 </div>
-                <p style={planDesc}>
+                <p className="text-[0.8rem] text-muted-foreground leading-normal m-0">
                   You have compiled {usage.used} architecture blueprints. {BRAND.name}
                   is completely free, so build as many workspaces as you want!
                 </p>
               </div>
 
               {/* ── Theme ── */}
-              <div style={sectionCard(isDark)}>
-                <div style={cardHeaderRow}>
+              <div className="bg-card border border-border rounded-[12px] p-[1rem_1.1rem] flex flex-col gap-[0.65rem]">
+                <div className="flex items-center gap-2">
                   {isDark ? (
-                    <Moon size={15} style={{ color: "var(--accent)" }} />
+                    <Moon size={15} className="text-accent" strokeWidth={1.75} />
                   ) : (
-                    <Sun size={15} style={{ color: "var(--accent)" }} />
+                    <Sun size={15} className="text-accent" strokeWidth={1.75} />
                   )}
-                  <span style={sectionTitle}>Appearance</span>
+                  <span className="text-[0.84rem] font-bold text-foreground font-display">Appearance</span>
                 </div>
                 <button
-                  style={themeToggleBtn(isDark)}
+                  className="flex items-center justify-between p-[0.6rem_0.8rem] rounded-[10px] cursor-pointer bg-input border border-border w-full font-sans transition-all duration-200"
                   onClick={toggleTheme}
                   aria-label="Toggle theme"
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.6rem",
-                    }}
-                  >
+                  <div className="flex items-center gap-[0.6rem]">
                     {isDark ? (
-                      <Moon size={16} style={{ color: "var(--accent)" }} />
+                      <Moon size={16} className="text-accent" strokeWidth={1.75} />
                     ) : (
-                      <Sun size={16} style={{ color: "var(--accent)" }} />
+                      <Sun size={16} className="text-accent" strokeWidth={1.75} />
                     )}
-                    <span
-                      style={{
-                        fontSize: "0.85rem",
-                        fontWeight: 600,
-                        color: "var(--foreground)",
-                      }}
-                    >
+                    <span className="text-[0.85rem] font-semibold text-foreground">
                       {isDark ? "Dark Mode" : "Light Mode"}
                     </span>
                   </div>
-                  <div style={toggleSwitch(isDark)}>
-                    <div style={toggleKnob(isDark)} />
+                  <div className={cn("w-9 h-5 rounded-full bg-muted relative transition-colors duration-250 shrink-0", isDark ? "bg-accent" : "bg-muted")}>
+                    <div className={cn("w-3.5 h-3.5 rounded-full bg-white absolute top-[3px] left-[3px] transition-transform duration-200 ease-out shadow-[0_1px_3px_rgba(0,0,0,0.3)]", isDark ? "translate-x-[16px]" : "translate-x-0")} />
                   </div>
                 </button>
               </div>
 
-              {/* ── Email Notification Settings (SaaS Retention Loops) ── */}
-              <div style={sectionCard(isDark)}>
-                <div style={cardHeaderRow}>
-                  <Mail size={15} style={{ color: "var(--accent)" }} />
-                  <span style={sectionTitle}>Email Notifications</span>
+              {/* ── Generation Speed ── */}
+              <div className="bg-card border border-border rounded-[12px] p-[1rem_1.1rem] flex flex-col gap-[0.65rem]">
+                <div className="flex items-center gap-2">
+                  <Zap size={15} className="text-accent" strokeWidth={1.75} />
+                  <span className="text-[0.84rem] font-bold text-foreground font-display">Generation Speed</span>
                 </div>
-                <p style={planDesc}>
+                <p className="text-[0.76rem] text-muted-foreground leading-normal m-0 font-sans">
+                  {generationMode === "fast" ? CONTENT.settings.modeFastDesc : CONTENT.settings.modeProDesc}
+                </p>
+                <div className="flex gap-2 mt-1">
+                  <button
+                    className={cn(
+                      "flex-1 py-2 px-3 rounded-[8px] text-[0.8rem] font-semibold transition-all duration-200 border cursor-pointer",
+                      generationMode === "fast"
+                        ? "bg-accent text-accent-foreground border-accent"
+                        : "bg-input text-foreground border-border hover:bg-muted"
+                    )}
+                    onClick={() => {
+                      setGenerationMode("fast");
+                      toast.success(`Generation speed mode set to ${CONTENT.settings.modeFastLabel}`);
+                    }}
+                  >
+                    {CONTENT.settings.modeFastLabel}
+                  </button>
+                  <button
+                    className={cn(
+                      "flex-1 py-2 px-3 rounded-[8px] text-[0.8rem] font-semibold transition-all duration-200 border cursor-pointer",
+                      generationMode === "professional"
+                        ? "bg-accent text-accent-foreground border-accent"
+                        : "bg-input text-foreground border-border hover:bg-muted"
+                    )}
+                    onClick={() => {
+                      setGenerationMode("professional");
+                      toast.success(`Generation speed mode set to ${CONTENT.settings.modeProLabel}`);
+                    }}
+                  >
+                    {CONTENT.settings.modeProLabel}
+                  </button>
+                </div>
+              </div>
+
+              {/* ── Email Notification Settings (SaaS Retention Loops) ── */}
+              <div className="bg-card border border-border rounded-[12px] p-[1rem_1.1rem] flex flex-col gap-[0.65rem]">
+                <div className="flex items-center gap-2">
+                  <Mail size={15} className="text-accent" strokeWidth={1.75} />
+                  <span className="text-[0.84rem] font-bold text-foreground font-display">Email Notifications</span>
+                </div>
+                <p className="text-[0.8rem] text-muted-foreground leading-normal m-0">
                   Customize lifecycle emails, recovery prompts and tips.
                 </p>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "0.6rem",
-                    marginTop: "0.5rem",
-                  }}
-                >
+                <div className="flex flex-col gap-[0.6rem] mt-2">
                   <button
-                    style={toggleBtnStyle(isDark)}
+                    className="flex items-center justify-between w-full bg-transparent border-none py-1.5 cursor-pointer text-left font-sans"
                     onClick={() => {
                       setEmailWelcome(!emailWelcome);
                       toast.success("Preference updated!");
                     }}
                   >
-                    <span style={notificationLabelStyle}>
+                    <span className="text-[0.78rem] text-foreground font-medium">
                       Welcome tips & guides
                     </span>
-                    <div style={toggleSwitch(emailWelcome)}>
-                      <div style={toggleKnob(emailWelcome)} />
+                    <div className={cn("w-9 h-5 rounded-full bg-muted relative transition-colors duration-250 shrink-0", emailWelcome ? "bg-accent" : "bg-muted")}>
+                      <div className={cn("w-3.5 h-3.5 rounded-full bg-white absolute top-[3px] left-[3px] transition-transform duration-200 ease-out shadow-[0_1px_3px_rgba(0,0,0,0.3)]", emailWelcome ? "translate-x-[16px]" : "translate-x-0")} />
                     </div>
                   </button>
                   <button
-                    style={toggleBtnStyle(isDark)}
+                    className="flex items-center justify-between w-full bg-transparent border-none py-1.5 cursor-pointer text-left font-sans"
                     onClick={() => {
                       setEmailDraftRecovery(!emailDraftRecovery);
                       toast.success("Preference updated!");
                     }}
                   >
-                    <span style={notificationLabelStyle}>
+                    <span className="text-[0.78rem] text-foreground font-medium">
                       Draft recovery reminders
                     </span>
-                    <div style={toggleSwitch(emailDraftRecovery)}>
-                      <div style={toggleKnob(emailDraftRecovery)} />
+                    <div className={cn("w-9 h-5 rounded-full bg-muted relative transition-colors duration-250 shrink-0", emailDraftRecovery ? "bg-accent" : "bg-muted")}>
+                      <div className={cn("w-3.5 h-3.5 rounded-full bg-white absolute top-[3px] left-[3px] transition-transform duration-200 ease-out shadow-[0_1px_3px_rgba(0,0,0,0.3)]", emailDraftRecovery ? "translate-x-[16px]" : "translate-x-0")} />
                     </div>
                   </button>
                   <button
-                    style={toggleBtnStyle(isDark)}
+                    className="flex items-center justify-between w-full bg-transparent border-none py-1.5 cursor-pointer text-left font-sans"
                     onClick={() => {
                       setEmailAnalytics(!emailAnalytics);
                       toast.success("Preference updated!");
                     }}
                   >
-                    <span style={notificationLabelStyle}>
+                    <span className="text-[0.78rem] text-foreground font-medium">
                       Weekly prompt summaries
                     </span>
-                    <div style={toggleSwitch(emailAnalytics)}>
-                      <div style={toggleKnob(emailAnalytics)} />
+                    <div className={cn("w-9 h-5 rounded-full bg-muted relative transition-colors duration-250 shrink-0", emailAnalytics ? "bg-accent" : "bg-muted")}>
+                      <div className={cn("w-3.5 h-3.5 rounded-full bg-white absolute top-[3px] left-[3px] transition-transform duration-200 ease-out shadow-[0_1px_3px_rgba(0,0,0,0.3)]", emailAnalytics ? "translate-x-[16px]" : "translate-x-0")} />
                     </div>
                   </button>
                 </div>
               </div>
 
               {/* ── DB Status ── */}
-              <div style={sectionCard(isDark)}>
-                <div style={cardHeaderRow}>
+              <div className="bg-card border border-border rounded-[12px] p-[1rem_1.1rem] flex flex-col gap-[0.65rem]">
+                <div className="flex items-center gap-2">
                   {dbConnected ? (
-                    <Wifi size={15} style={{ color: "var(--success)" }} />
+                    <Wifi size={15} className="text-(--success)" strokeWidth={1.75} />
                   ) : (
-                    <WifiOff
-                      size={15}
-                      style={{ color: "var(--muted-foreground)" }}
-                    />
+                    <WifiOff size={15} className="text-muted-foreground" strokeWidth={1.75} />
                   )}
-                  <span style={sectionTitle}>Sync Status</span>
-                  <span
-                    style={{
-                      marginLeft: "auto",
-                      fontSize: "0.7rem",
-                      fontWeight: 600,
-                      color: dbConnected
-                        ? "var(--success)"
-                        : "var(--muted-foreground)",
-                    }}
-                  >
+                  <span className="text-[0.84rem] font-bold text-foreground font-display">Sync Status</span>
+                  <span className={cn("ml-auto text-[0.7rem] font-semibold", dbConnected ? "text-(--success)" : "text-muted-foreground")}>
                     {dbConnected ? "● Cloud Sync Active" : "○ Local Only"}
                   </span>
                 </div>
-                <p style={planDesc}>
+                <p className="text-[0.8rem] text-muted-foreground leading-normal m-0">
                   {dbConnected
                     ? "Your prompts are synced to the cloud and accessible across devices."
                     : "Cloud unavailable. Prompts are saved locally on this device only."}
                 </p>
               </div>
 
-              {/* ── Developer System Telemetry HUD ── */}
-              <div style={sectionCard(isDark)}>
-                <div style={cardHeaderRow}>
-                  <Activity size={15} style={{ color: "var(--accent)" }} />
-                  <span style={sectionTitle}>
-                    {user.username?.toLowerCase() === "admin" ||
-                    user.role === "admin"
-                      ? "System Telemetry & AI Health"
-                      : "System Status"}
-                  </span>
-                  <span
-                    style={{
-                      marginLeft: "auto",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        display: "inline-block",
-                        width: "6px",
-                        height: "6px",
-                        borderRadius: "50%",
-                        background:
-                          telemetry || !dbConnected ? "#22c55e" : "#f59e0b",
-                        animation: "pulse 2s infinite",
-                      }}
-                    />
-                    <span
-                      style={{
-                        fontSize: "0.68rem",
-                        fontWeight: 700,
-                        color:
-                          telemetry || !dbConnected
-                            ? "var(--success)"
-                            : "var(--muted-foreground)",
-                      }}
-                    >
-                      {telemetry || !dbConnected ? "Active" : "Connecting"}
-                    </span>
-                  </span>
-                </div>
-                {loadingTelemetry ? (
-                  <p style={planDesc}>Retrieving system status...</p>
-                ) : user.username?.toLowerCase() === "admin" ||
-                  user.role === "admin" ? (
-                  telemetry ? (
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.5rem",
-                        marginTop: "0.25rem",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.76rem",
-                        }}
-                      >
-                        <span style={{ color: "var(--muted-foreground)" }}>
-                          Gemini status:
-                        </span>
-                        <span
-                          style={{
-                            fontWeight: 600,
-                            color: telemetry.gemini.status.includes("429")
-                              ? "#f59e0b"
-                              : "var(--success)",
-                          }}
-                        >
-                          {telemetry.gemini.status}{" "}
-                          {telemetry.gemini.avgLatencyMs
-                            ? `(${telemetry.gemini.avgLatencyMs}ms)`
-                            : ""}
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.76rem",
-                        }}
-                      >
-                        <span style={{ color: "var(--muted-foreground)" }}>
-                          Groq status:
-                        </span>
-                        <span
-                          style={{
-                            fontWeight: 600,
-                            color:
-                              telemetry.groq.status === "Operational"
-                                ? "var(--success)"
-                                : "var(--muted-foreground)",
-                          }}
-                        >
-                          {telemetry.groq.status}{" "}
-                          {telemetry.groq.avgLatencyMs
-                            ? `(${telemetry.groq.avgLatencyMs}ms)`
-                            : ""}
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.76rem",
-                        }}
-                      >
-                        <span style={{ color: "var(--muted-foreground)" }}>
-                          pgvector DB Sync:
-                        </span>
-                        <span
-                          style={{
-                            fontWeight: 600,
-                            color:
-                              telemetry.supabase.status === "Operational"
-                                ? "var(--success)"
-                                : "#ef4444",
-                          }}
-                        >
-                          {telemetry.supabase.status === "Operational"
-                            ? "Synced"
-                            : "Offline"}{" "}
-                          {telemetry.supabase.lastLatencyMs
-                            ? `(${telemetry.supabase.lastLatencyMs}ms)`
-                            : ""}
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.76rem",
-                        }}
-                      >
-                        <span style={{ color: "var(--muted-foreground)" }}>
-                          Local RAG Fallback:
-                        </span>
-                        <span
-                          style={{ fontWeight: 600, color: "var(--accent)" }}
-                        >
-                          {telemetry.localRag.status}{" "}
-                          {telemetry.localRag.requests > 0
-                            ? `(${telemetry.localRag.requests} queries)`
-                            : ""}
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
-                          paddingTop: "0.4rem",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.7rem",
-                          color: "var(--muted-foreground)",
-                        }}
-                      >
-                        <span>Uptime: {telemetry.uptimeSeconds}s</span>
-                        <span>
-                          Total Requests:{" "}
-                          {telemetry.gemini.requests + telemetry.groq.requests}
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <p style={planDesc}>
-                      Failed to connect to backend telemetry service. Ensure
-                      backend is running.
-                    </p>
-                  )
-                ) : (
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "0.5rem",
-                      marginTop: "0.25rem",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: "0.76rem",
-                      }}
-                    >
-                      <span style={{ color: "var(--muted-foreground)" }}>
-                        AI Prompt Engine:
-                      </span>
-                      <span
-                        style={{ fontWeight: 600, color: "var(--success)" }}
-                      >
-                        ● Operational
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: "0.76rem",
-                      }}
-                    >
-                      <span style={{ color: "var(--muted-foreground)" }}>
-                        Workspace Sync:
-                      </span>
-                      <span
-                        style={{
-                          fontWeight: 600,
-                          color: dbConnected
-                            ? "var(--success)"
-                            : "var(--muted-foreground)",
-                        }}
-                      >
-                        {dbConnected ? "● Active" : "○ Local Mode"}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: "0.76rem",
-                      }}
-                    >
-                      <span style={{ color: "var(--muted-foreground)" }}>
-                        Local Compiler:
-                      </span>
-                      <span
-                        style={{ fontWeight: 600, color: "var(--success)" }}
-                      >
-                        ● Ready
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
               {/* ── Keyboard Shortcuts ── */}
-              <div style={sectionCard(isDark)}>
-                <div style={cardHeaderRow}>
-                  <Keyboard size={15} style={{ color: "var(--accent)" }} />
-                  <span style={sectionTitle}>Keyboard Shortcuts</span>
+              <div className="bg-card border border-border rounded-[12px] p-[1rem_1.1rem] flex flex-col gap-[0.65rem]">
+                <div className="flex items-center gap-2">
+                  <Keyboard size={15} className="text-accent" strokeWidth={1.75} />
+                  <span className="text-[0.84rem] font-bold text-foreground font-display">Keyboard Shortcuts</span>
                 </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "0.5rem",
-                    marginTop: "0.25rem",
-                  }}
-                >
+                <div className="flex flex-col gap-2 mt-1">
                   {KEYBOARD_SHORTCUTS.map((s, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: "0.8rem",
-                          color: "var(--muted-foreground)",
-                        }}
-                      >
+                    <div key={i} className="flex items-center justify-between">
+                      <span className="text-[0.8rem] text-muted-foreground">
                         {s.label}
                       </span>
-                      <div style={{ display: "flex", gap: "0.25rem" }}>
+                      <div className="flex gap-1">
                         {s.keys.map((k, j) => (
-                          <kbd key={j} style={kbdStyle(isDark)}>
+                          <kbd key={j} className="font-mono text-[0.65rem] padding-[2px_6px] bg-input border border-border rounded-[4px] text-foreground">
                             {k}
                           </kbd>
                         ))}
@@ -602,45 +314,40 @@ export default function SettingsDrawer({ isOpen, onClose }) {
               </div>
 
               {/* ── Security / Device Trust ── */}
-              <div style={sectionCard(isDark)}>
-                <div style={cardHeaderRow}>
-                  <Shield size={15} style={{ color: "var(--accent)" }} />
-                  <span style={sectionTitle}>Security & Sessions</span>
+              <div className="bg-card border border-border rounded-[12px] p-[1rem_1.1rem] flex flex-col gap-[0.65rem]">
+                <div className="flex items-center gap-2">
+                  <Shield size={15} className="text-accent" strokeWidth={1.75} />
+                  <span className="text-[0.84rem] font-bold text-foreground font-display">Security & Sessions</span>
                 </div>
-                <p style={planDesc}>
+                <p className="text-[0.8rem] text-muted-foreground leading-normal m-0">
                   Manage active browser sessions and device authorizations.
                 </p>
-                <div style={sessionBox(isDark)}>
-                  <div style={sessionRowItem}>
-                    <div style={sessionDeviceDot} />
-                    <div style={sessionDeviceInfo}>
-                      <span style={sessionDeviceText}>
+                <div className="flex flex-col gap-2.5 bg-input border border-border rounded-[8px] p-[0.65rem_0.75rem] mt-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-(--success) shrink-0" />
+                    <div className="flex flex-col gap-px">
+                      <span className="text-[0.78rem] font-bold text-foreground">
                         Chrome on Windows (Current)
                       </span>
-                      <span style={sessionIpText}>
+                      <span className="text-[0.68rem] text-muted-foreground">
                         IP: 192.168.1.45 — Active now
                       </span>
                     </div>
                   </div>
-                  <div style={sessionRowItem}>
-                    <div
-                      style={{
-                        ...sessionDeviceDot,
-                        background: "rgba(255,255,255,0.2)",
-                      }}
-                    />
-                    <div style={sessionDeviceInfo}>
-                      <span style={sessionDeviceText}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-white/20 shrink-0" />
+                    <div className="flex flex-col gap-px">
+                      <span className="text-[0.78rem] font-bold text-foreground">
                         Safari on iPhone 16 Pro
                       </span>
-                      <span style={sessionIpText}>
+                      <span className="text-[0.68rem] text-muted-foreground">
                         IP: 172.56.21.90 — 3 hours ago
                       </span>
                     </div>
                   </div>
                 </div>
                 <button
-                  style={terminateSessionsBtn(isDark)}
+                  className="inline-flex items-center justify-center p-[0.45rem_1rem] rounded-[8px] bg-transparent border border-border hover:bg-input text-foreground text-[0.76rem] font-bold cursor-pointer transition-all mt-2 w-full font-sans"
                   onClick={() => {
                     toast.success("Successfully signed out all other devices!");
                     track("other_sessions_terminated");
@@ -651,8 +358,11 @@ export default function SettingsDrawer({ isOpen, onClose }) {
               </div>
 
               {/* ── Sign Out ── */}
-              <button style={signOutBtn} onClick={handleLogout}>
-                <LogOut size={15} />
+              <button 
+                className="flex items-center justify-center gap-2 p-[0.7rem_1rem] rounded-[10px] cursor-pointer bg-red-500/10 dark:bg-red-500/5 border border-red-500/20 text-red-500 text-[0.85rem] font-bold font-sans transition-all duration-200 mt-2 hover:bg-red-500/20"
+                onClick={handleLogout}
+              >
+                <LogOut size={15} strokeWidth={1.75} />
                 <span>Sign Out</span>
               </button>
             </div>
@@ -662,359 +372,3 @@ export default function SettingsDrawer({ isOpen, onClose }) {
     </AnimatePresence>
   );
 }
-
-/* ── Styles ── */
-const overlayStyle = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: "rgba(0,0,0,0.45)",
-  backdropFilter: "blur(6px)",
-  zIndex: 1000,
-  display: "flex",
-  justifyContent: "flex-end",
-};
-
-const drawerStyle = (isDark) => ({
-  width: "100%",
-  maxWidth: "400px",
-  height: "100vh",
-  backgroundColor: "var(--card)",
-  backdropFilter: "blur(30px)",
-  WebkitBackdropFilter: "blur(30px)",
-  borderLeft: "1px solid var(--border)",
-  boxShadow: "-8px 0 32px rgba(0,0,0,0.4)",
-  display: "flex",
-  flexDirection: "column",
-});
-
-const headerStyle = (isDark) => ({
-  padding: "1.25rem 1.5rem",
-  borderBottom: "1px solid var(--border)",
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-});
-
-const titleContainer = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.65rem",
-};
-
-const drawerTitle = {
-  fontSize: "1.05rem",
-  fontWeight: "700",
-  fontFamily: "var(--font-display)",
-  color: "var(--foreground)",
-  letterSpacing: "-0.01em",
-};
-
-const closeBtn = {
-  background: "transparent",
-  border: "none",
-  color: "var(--muted-foreground)",
-  cursor: "pointer",
-  padding: "4px",
-  borderRadius: "6px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  minWidth: "32px",
-  minHeight: "32px",
-};
-
-const bodyStyle = {
-  flex: 1,
-  overflowY: "auto",
-  padding: "1.25rem",
-  display: "flex",
-  flexDirection: "column",
-  gap: "1rem",
-};
-
-const sectionCard = (isDark) => ({
-  background: "var(--card)",
-  border: "1px solid var(--border)",
-  borderRadius: "12px",
-  padding: "1rem 1.1rem",
-  display: "flex",
-  flexDirection: "column",
-  gap: "0.65rem",
-});
-
-const cardHeaderRow = { display: "flex", alignItems: "center", gap: "0.5rem" };
-const sectionTitle = {
-  fontSize: "0.84rem",
-  fontWeight: "700",
-  color: "var(--foreground)",
-  fontFamily: "var(--font-display)",
-};
-const profileDetailBox = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.85rem",
-  padding: "0.1rem 0",
-};
-
-const avatarCircle = (isDark) => ({
-  width: "40px",
-  height: "40px",
-  borderRadius: "50%",
-  background: "var(--accent)",
-  color: "#ffffff",
-  fontSize: "0.85rem",
-  fontWeight: "700",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  flexShrink: 0,
-});
-
-const profileInfo = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "0.15rem",
-};
-const profileName = {
-  fontSize: "0.92rem",
-  fontWeight: "700",
-  color: "var(--foreground)",
-};
-const profileEmail = { fontSize: "0.76rem", color: "var(--muted-foreground)" };
-const planDetailBox = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "0.6rem",
-};
-const planHeader = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-};
-
-const planBadge = {
-  fontSize: "0.7rem",
-  fontWeight: "700",
-  color: "var(--accent)",
-  background: "color-mix(in srgb, var(--accent) 10%, transparent)",
-  border: "1px solid color-mix(in srgb, var(--accent) 20%, transparent)",
-  padding: "2px 8px",
-  borderRadius: "999px",
-};
-
-const planPrice = {
-  fontSize: "0.75rem",
-  fontWeight: "600",
-  color: "var(--muted-foreground)",
-};
-const planDesc = {
-  fontSize: "0.8rem",
-  color: "var(--muted-foreground)",
-  lineHeight: "1.5",
-};
-
-const upgradeBtn = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "0.35rem",
-  background: "linear-gradient(135deg, var(--accent), #D2FF3A)",
-  color: "#000",
-  borderRadius: "8px",
-  padding: "0.55rem 1rem",
-  fontSize: "0.82rem",
-  fontWeight: "700",
-  textDecoration: "none",
-  marginTop: "0.25rem",
-  transition: "opacity 0.2s ease",
-};
-
-const themeToggleBtn = (isDark) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: "0.6rem 0.8rem",
-  borderRadius: "10px",
-  cursor: "pointer",
-  background: "var(--input)",
-  border: "1px solid var(--border)",
-  width: "100%",
-  fontFamily: "var(--font-sans)",
-  transition: "all 0.2s ease",
-});
-
-const toggleSwitch = (active) => ({
-  width: "36px",
-  height: "20px",
-  borderRadius: "999px",
-  background: active ? "var(--accent)" : "var(--muted)",
-  position: "relative",
-  transition: "background 0.25s ease",
-  flexShrink: 0,
-});
-
-const toggleKnob = (active) => ({
-  position: "absolute",
-  top: "2px",
-  left: active ? "calc(100% - 18px)" : "2px",
-  width: "16px",
-  height: "16px",
-  borderRadius: "50%",
-  background: "#fff",
-  transition: "left 0.25s var(--ease-spring)",
-  boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
-});
-
-const apiKeyInput_style = (isDark) => ({
-  flex: 1,
-  background: "var(--input)",
-  border: "1px solid var(--border)",
-  borderRadius: "8px",
-  padding: "0.5rem 0.75rem",
-  fontSize: "0.8rem",
-  color: "var(--foreground)",
-  fontFamily: "var(--font-mono)",
-  outline: "none",
-});
-
-const showBtn = (isDark) => ({
-  padding: "0.5rem 0.75rem",
-  borderRadius: "8px",
-  cursor: "pointer",
-  background: "var(--input)",
-  border: "1px solid var(--border)",
-  fontSize: "0.75rem",
-  fontWeight: 600,
-  color: "var(--muted-foreground)",
-  fontFamily: "var(--font-sans)",
-  whiteSpace: "nowrap",
-});
-
-const saveKeyBtn = (saved) => ({
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "0.3rem",
-  padding: "0.45rem 1rem",
-  borderRadius: "8px",
-  cursor: "pointer",
-  background: saved
-    ? "color-mix(in srgb, var(--success) 12%, transparent)"
-    : "color-mix(in srgb, var(--accent) 12%, transparent)",
-  border: `1px solid ${saved ? "color-mix(in srgb, var(--success) 25%, transparent)" : "color-mix(in srgb, var(--accent) 25%, transparent)"}`,
-  color: saved ? "var(--success)" : "var(--accent)",
-  fontSize: "0.8rem",
-  fontWeight: 700,
-  fontFamily: "var(--font-sans)",
-  transition: "all 0.2s ease",
-  marginTop: "0.25rem",
-});
-
-const kbdStyle = (isDark) => ({
-  fontFamily: "var(--font-mono)",
-  fontSize: "0.65rem",
-  padding: "2px 6px",
-  background: "var(--input)",
-  border: "1px solid var(--border)",
-  borderRadius: "4px",
-  color: "var(--foreground)",
-});
-
-const signOutBtn = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.5rem",
-  padding: "0.7rem 1rem",
-  borderRadius: "10px",
-  cursor: "pointer",
-  background: "rgba(239,68,68,0.06)",
-  border: "1px solid rgba(239,68,68,0.15)",
-  color: "#ef4444",
-  fontSize: "0.85rem",
-  fontWeight: 700,
-  fontFamily: "var(--font-sans)",
-  transition: "all 0.2s ease",
-  marginTop: "0.25rem",
-};
-
-// ─── Security / Session Styles ────────────────────────────────
-const sessionBox = (isDark) => ({
-  display: "flex",
-  flexDirection: "column",
-  gap: "0.65rem",
-  background: "var(--input)",
-  border: "1px solid var(--border)",
-  borderRadius: "8px",
-  padding: "0.65rem 0.75rem",
-  marginTop: "0.5rem",
-});
-
-const sessionRowItem = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.5rem",
-};
-
-const sessionDeviceDot = {
-  width: "6px",
-  height: "6px",
-  borderRadius: "50%",
-  background: "var(--success)",
-  flexShrink: 0,
-};
-
-const sessionDeviceInfo = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "1px",
-};
-
-const sessionDeviceText = {
-  fontSize: "0.78rem",
-  fontWeight: "700",
-  color: "var(--foreground)",
-};
-
-const sessionIpText = {
-  fontSize: "0.68rem",
-  color: "var(--muted-foreground)",
-};
-
-const terminateSessionsBtn = (isDark) => ({
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "0.45rem 1rem",
-  borderRadius: "8px",
-  cursor: "pointer",
-  background: "transparent",
-  border: "1px solid var(--border)",
-  color: "var(--foreground)",
-  fontSize: "0.76rem",
-  fontWeight: "700",
-  fontFamily: "var(--font-sans)",
-  marginTop: "0.5rem",
-  width: "100%",
-  transition: "all 0.2s ease",
-});
-
-const toggleBtnStyle = (isDark) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: "0.5rem 0.65rem",
-  borderRadius: "8px",
-  cursor: "pointer",
-  background: "var(--input)",
-  border: "1px solid var(--border)",
-  width: "100%",
-  fontFamily: "var(--font-sans)",
-});
-
-const notificationLabelStyle = {
-  fontSize: "0.78rem",
-  fontWeight: "600",
-  color: "var(--foreground)",
-};

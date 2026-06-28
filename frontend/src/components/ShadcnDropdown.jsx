@@ -11,7 +11,8 @@ export default function ShadcnDropdown({
   style = {},
   placeholder = "Select option",
   triggerWidth = 'auto',
-  onOpenChange
+  onOpenChange,
+  ariaLabel
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -77,6 +78,9 @@ export default function ShadcnDropdown({
           e.stopPropagation();
         }}
         onClick={toggleDropdown}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-label={ariaLabel || placeholder}
         style={{
           display: 'flex',
           alignItems: 'center',

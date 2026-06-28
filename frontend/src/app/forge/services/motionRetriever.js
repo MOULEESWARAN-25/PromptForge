@@ -6,7 +6,6 @@ import motions from '@/data/knowledge/motions.json';
  * and Framer Motion spring curve configurations.
  */
 export async function retrieveMotionPhysics(promptQuery) {
-  console.log(`[Motion Retriever] Analyzing prompt text for mathematical spring animation parameters...`);
   
   const normalizedQuery = (promptQuery || '').toLowerCase();
   

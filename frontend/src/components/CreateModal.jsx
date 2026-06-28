@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Monitor, Layout, Code2, X } from 'lucide-react';
@@ -34,6 +34,17 @@ const CREATION_TYPES = [
 export default function CreateModal({ isOpen, onClose }) {
   const router = useRouter();
   const { theme } = useApp();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
   
   if (!isOpen) return null;
   const isDark = theme === 'dark';
@@ -161,6 +172,7 @@ export default function CreateModal({ isOpen, onClose }) {
           transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
           role="dialog"
           aria-labelledby="create-modal-title"
+          aria-modal="true"
         >
           <div style={headerStyle}>
             <h3 id="create-modal-title" style={titleStyle}>What would you like to build?</h3>

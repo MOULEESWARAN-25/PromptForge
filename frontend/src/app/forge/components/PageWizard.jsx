@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useWizardAutoScroll } from '../hooks/useWizardAutoScroll';
 
-import { CheckCircle2, Plus, Sliders, Sparkles, Info, ArrowRight, ArrowLeft } from 'lucide-react';
-import { PAGE_TYPES, PAGE_COMPONENTS } from '../constants/pageTemplates';
+import { CheckCircle2, Plus, Sliders, Sparkles, Info, ArrowRight, ArrowLeft, Search } from 'lucide-react';
+import { useApp } from '../../../context/AppContext';
 import { ThemeSelector } from './ThemeSelector';
 import { TypographyPicker } from './TypographyPicker';
 import { SyncBranchSelector } from './SyncBranchSelector';
@@ -73,6 +73,8 @@ const stepTitle = { fontSize: '1.25rem', fontWeight: '800', color: 'var(--foregr
 const stepDesc  = { fontSize: '0.88rem', color: 'var(--muted-foreground)', marginTop: '0.35rem', lineHeight: '1.4' };
 
 export function PageWizard({ forgeState, promptGeneration, apiKey }) {
+  const { templates } = useApp();
+  const { PAGE_TYPES, PAGE_COMPONENTS } = templates;
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');

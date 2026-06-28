@@ -1,11 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { supabase } from './services/supabaseClient.js';
 import { telemetryService } from './services/telemetryService.js';
 import { themeStyles } from './services/themeData.js';
+import { CACHE_CONFIG } from './config/cache.js';
 
 // Import upgraded Prompt Intelligence services
 import { compileDeterministicQuery } from './services/queryCompiler.js';
@@ -65,6 +67,77 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Enforce Secure HTTP Response Headers & Content Security Policy (CSP)
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  // Allow safe inline styles/scripts and connections to model endpoints and Supabase
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https: http: ws: wss:;");
+  next();
+});
+
+// Initialize Express Router for versioned routes
+const apiRouter = express.Router();
+
+// Enveloping & Request ID Middleware
+app.use((req, res, next) => {
+  const requestId = crypto.randomUUID();
+  req.requestId = requestId;
+
+  // Wrap res.json
+  const originalJson = res.json;
+  res.json = function (body) {
+    if (body && typeof body === 'object' && ('requestId' in body)) {
+      return originalJson.call(this, body);
+    }
+
+    const isError = res.statusCode >= 400 || (body && (body.error || body.errors));
+    const status = isError ? 'error' : 'success';
+    
+    const enveloped = {
+      status,
+      message: isError ? (body?.error || body?.message || 'Request failed') : 'Request succeeded',
+      data: isError ? null : body,
+      error: isError ? (body?.error || body?.message || 'Error occurred') : null,
+      errorCode: body?.errorCode || null,
+      timestamp: new Date().toISOString(),
+      requestId
+    };
+
+    if (body?.validationScore !== undefined) {
+      enveloped.validationScore = body.validationScore;
+    }
+    if (body?.errors !== undefined) {
+      enveloped.errors = body.errors;
+    }
+    if (body?.warnings !== undefined) {
+      enveloped.warnings = body.warnings;
+    }
+    if (body?.prompt !== undefined) {
+      enveloped.prompt = body.prompt;
+    }
+    if (body?.ragDetails !== undefined) {
+      enveloped.ragDetails = body.ragDetails;
+    }
+    if (body?.source !== undefined) {
+      enveloped.source = body.source;
+    }
+
+    return originalJson.call(this, enveloped);
+  };
+
+  req.log = (message, level = 'info') => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] [${level.toUpperCase()}] [req:${requestId}] ${message}`);
+  };
+
+  console.log(`[${new Date().toISOString()}] [INFO] [req:${requestId}] ${req.method} ${req.originalUrl || req.url}`);
+
+  next();
+});
+
 // Visual styles catalog for prompt references
 const localThemeStyles = themeStyles || {
   "Sleek Dark Glassmorphic": {
@@ -83,7 +156,8 @@ app.get('/health', (req, res) => {
 // OBSERVABILITY & ANALYTICS DASHBOARD API
 // ==========================================
 
-app.get('/api/observability/summary', async (req, res) => {
+apiRouter.get('/observability/summary', async (req, res) => {
+  res.setHeader('Cache-Control', `public, max-age=${CACHE_CONFIG.ttls.search}`);
   try {
     const summary = await getObservabilitySummary();
     res.json(summary);
@@ -93,7 +167,8 @@ app.get('/api/observability/summary', async (req, res) => {
   }
 });
 
-app.get('/api/observability/analytics', async (req, res) => {
+apiRouter.get('/observability/analytics', async (req, res) => {
+  res.setHeader('Cache-Control', `public, max-age=${CACHE_CONFIG.ttls.search}`);
   try {
     const analytics = await getObservabilityAnalytics();
     res.json(analytics);
@@ -103,7 +178,8 @@ app.get('/api/observability/analytics', async (req, res) => {
   }
 });
 
-app.get('/api/observability/gaps', async (req, res) => {
+apiRouter.get('/observability/gaps', async (req, res) => {
+  res.setHeader('Cache-Control', `public, max-age=${CACHE_CONFIG.ttls.search}`);
   try {
     const filters = {
       status: req.query.status,
@@ -119,7 +195,8 @@ app.get('/api/observability/gaps', async (req, res) => {
   }
 });
 
-app.get('/api/observability/trends', async (req, res) => {
+apiRouter.get('/observability/trends', async (req, res) => {
+  res.setHeader('Cache-Control', `public, max-age=${CACHE_CONFIG.ttls.search}`);
   try {
     const trends = await getObservabilityTrends();
     res.json(trends);
@@ -129,7 +206,8 @@ app.get('/api/observability/trends', async (req, res) => {
   }
 });
 
-app.get('/api/observability/integrity', async (req, res) => {
+apiRouter.get('/observability/integrity', async (req, res) => {
+  res.setHeader('Cache-Control', `public, max-age=${CACHE_CONFIG.ttls.search}`);
   try {
     const integrity = await getObservabilityIntegrity();
     res.json(integrity);
@@ -139,7 +217,8 @@ app.get('/api/observability/integrity', async (req, res) => {
   }
 });
 
-app.get('/api/observability/ab_comparison', async (req, res) => {
+apiRouter.get('/observability/ab_comparison', async (req, res) => {
+  res.setHeader('Cache-Control', `public, max-age=${CACHE_CONFIG.ttls.search}`);
   try {
     const comparison = await getObservabilityAbComparison();
     res.json(comparison);
@@ -150,7 +229,7 @@ app.get('/api/observability/ab_comparison', async (req, res) => {
 });
 
 // System Status & Observability Telemetry Stats
-app.get('/api/telemetry/stats', async (req, res) => {
+apiRouter.get('/telemetry/stats', async (req, res) => {
   try {
     const stats = await telemetryService.getStats();
     res.json(stats);
@@ -208,7 +287,8 @@ function determineOverallStatus(avgPromptScore, patchRate, coverageScore, leakag
 }
 
 // Lightweight metrics health endpoint for automated monitoring & dashboards
-app.get('/api/metrics/health', async (req, res) => {
+apiRouter.get('/metrics/health', async (req, res) => {
+  res.setHeader('Cache-Control', `public, max-age=${CACHE_CONFIG.ttls.search}`);
   try {
     // 1. Try to fetch the latest daily snapshot from knowledge_metrics_daily
     const { data: latestDaily, error: dailyErr } = await supabase
@@ -353,7 +433,8 @@ app.get('/api/metrics/health', async (req, res) => {
 });
 
 // Dynamic Vocabulary List
-app.get('/api/vocabulary', async (req, res) => {
+apiRouter.get('/vocabulary', async (req, res) => {
+  res.setHeader('Cache-Control', `public, max-age=${CACHE_CONFIG.ttls.vocabulary}`);
   try {
     const { data, error } = await supabase
       .from('design_vocabulary')
@@ -367,7 +448,8 @@ app.get('/api/vocabulary', async (req, res) => {
 });
 
 // Vocabulary and History Telemetry Stats
-app.get('/api/vocabulary/stats', async (req, res) => {
+apiRouter.get('/vocabulary/stats', async (req, res) => {
+  res.setHeader('Cache-Control', `public, max-age=${CACHE_CONFIG.ttls.search}`);
   try {
     // Fetch total specifications compiled from prompt_history
     const historyCountPromise = supabase
@@ -392,10 +474,139 @@ app.get('/api/vocabulary/stats', async (req, res) => {
   }
 });
 
+// Local emergency fallback cache definitions
+const emergencyCategories = {
+  APP_CATEGORIES: [
+    { id: 'SaaS Dashboard Admin Panel', label: 'SaaS Dashboard', desc: 'Enterprise management dashboards, metrics widgets, analytics grids.', icon: 'LayoutGrid' },
+    { id: 'E-Commerce Marketplace', label: 'E-Commerce', desc: 'Product grid catalog, cart, checkout checkout, client profiles.', icon: 'ShoppingCart' },
+    { id: 'Student Management Hub', label: 'Student Hub', desc: 'Student databases, gradebooks, schedulers, parental analytics.', icon: 'GraduationCap' },
+    { id: 'Freelancer Billing Platform', label: 'Billing Platform', desc: 'Invoice generators, payment integrations, client lists.', icon: 'Receipt' },
+    { id: 'Digital Creative Portfolio', label: 'Creative Portfolio', desc: 'Grid galleries, lightboxes, timeline resumes, contact forms.', icon: 'Image' },
+    { id: 'Healthcare Tracker', label: 'Healthcare Tracker', desc: 'Patient charts, vitals visualizers, logs, schedules.', icon: 'Activity' },
+    { id: 'Fitness Planner', label: 'Fitness Planner', desc: 'Workout builders, calorie logs, weight progression widgets.', icon: 'Dumbbell' },
+    { id: 'Real Estate Portal', label: 'Real Estate Portal', desc: 'Map search, property highlights, agent panels, pricing lists.', icon: 'Home' },
+    { id: 'Custom', label: 'Custom Application', desc: 'Describe your own custom software structure.', icon: 'Code2' }
+  ],
+  CATEGORY_FEATURES: {
+    'SaaS Dashboard Admin Panel': ['KPI Metric Cards', 'Interactive Charts', 'Data Tables & Filters', 'User Role Permissions', 'Activity Logs', 'Dark Mode Toggle', 'CSV/PDF Data Export', 'Collapsible Sidebar'],
+    'E-Commerce Marketplace': ['Product Search & Filter', 'Shopping Cart & Checkout', 'Product Detail Gallery', 'Customer Reviews', 'Order Tracking Dashboard', 'Stripe Payment Integration', 'Wishlist Page'],
+    'Student Management Hub': ['Student Directory', 'Grades & Performance Analytics', 'Attendance Tracker', 'Course Scheduler', 'Teacher Portal', 'Parent Notifications', 'Assignment Submit Area'],
+    'Freelancer Billing Platform': ['Invoice Generator', 'Client Contact Manager', 'Payment Status Dashboard', 'Time Tracker Widget', 'Recurring Subscriptions', 'Stripe/PayPal Integration', 'Expense Reports'],
+    'Digital Creative Portfolio': ['Filterable Project Grid', 'Image/Video Lightbox', 'About Me Hero Page', 'Contact Form with Validation', 'Interactive Resume Timeline', 'Social Media Integration', 'Testimonial Slider'],
+    'Healthcare Tracker': ['Appointment Scheduler', 'Patient Medical Records', 'Prescription Tracker', 'Vitals Metric Cards', 'Doctor Chat Interface', 'Wearable Sync Dashboard', 'Health Goals Tracker'],
+    'Fitness Planner': ['Workout Builder', 'Calorie Counter Dashboard', 'Weight Progress Graph', 'Exercise Video Library', 'Weekly Routine Planner', 'Achievement Badges', 'Water Intake Tracker'],
+    'Real Estate Portal': ['Interactive Map Search', 'Property Detail Carousel', 'Mortgage Calculator', 'Agent Contact Panel', 'Filter Criteria (Price, Beds)', 'Virtual Tour Link Showcase', 'Saved Searches'],
+    'Custom': ['User Authentication', 'Database API Connect', 'CRUD Action Panel', 'Responsive Grid Layout', 'Dark Mode Toggle', 'Email Notifications', 'Interactive Dashboard Panels', 'Activity Stream Log']
+  },
+  AI_FEATURE_SUGGESTIONS: {
+    'SaaS Dashboard Admin Panel': ['Multi-tenant Architecture', 'Webhook Integrations', 'Audit Logging', 'API Key Management', 'Custom Themes', 'Two-Factor Authentication (2FA)'],
+    'E-Commerce Marketplace': ['Abandoned Cart Recovery', 'AI Product Recommendations', 'Dynamic Pricing', 'Social Proof Popups', 'Multi-currency Support', 'Subscription Orders'],
+    'Student Management Hub': ['Automated Grading', 'Plagiarism Checker Integration', 'Video Classroom', 'Gamified Badges', 'Alumni Network', 'Behavioral Insights'],
+    'Freelancer Billing Platform': ['Automated Tax Calculation', 'Contract E-Signatures', 'Multi-currency Invoicing', 'Client Portal', 'Late Fee Automation'],
+    'Digital Creative Portfolio': ['3D Asset Viewer', 'Password Protected Galleries', 'Notion-like Blog', 'Client Feedback Comments', 'Custom Domain Setup'],
+    'Healthcare Tracker': ['Telemedicine Video Chat', 'HL7/FHIR Integration', 'Symptom Checker AI', 'Medication Reminders', 'Secure Document Vault'],
+    'Fitness Planner': ['Strava/Apple Health Sync', 'AI Workout Generator', 'Meal Plan Builder', 'Macro Calculator', 'Community Challenges'],
+    'Real Estate Portal': ['3D Virtual Tours', 'Neighborhood Crime Stats', 'Automated Valuation Model', 'Agent Lead Routing', 'Rent Payment Portal'],
+    'Custom': ['AI Content Generation', 'Real-time WebSockets', 'OAuth2 Social Login', 'Stripe Subscriptions', 'Analytics Dashboard', 'File Upload AWS S3']
+  }
+};
+
+const emergencyTemplates = {
+  PAGE_TYPES: [
+    { id: 'Dashboard Panel', label: 'Dashboard Panel', desc: 'Sidebar admin dashboard grid, metric widgets, table structures.', image: '/pages/dashboard.webp' },
+    { id: 'Landing Homepage', label: 'Landing Homepage', desc: 'SaaS product presentation, CTA banners, pricing grids, FAQs.', image: '/pages/landing.webp' },
+    { id: 'Login Page', label: 'Login Page', desc: 'Glassmorphic login entry card with transitions.', image: '/pages/login.webp' },
+    { id: 'Signup Page', label: 'Signup Page', desc: 'Form wizards, secure validation checkmarks.', image: '/pages/login.webp' },
+    { id: 'Settings Page', label: 'Settings Page', desc: 'Vertical menu navigation tabs, settings forms.', image: '/pages/settings.webp' },
+    { id: 'Profile Page', label: 'Profile Page', desc: 'User information header grids, feed stream widgets.', image: '/pages/profile.webp' }
+  ],
+  PAGE_COMPONENTS: {
+    'Dashboard Panel': ['Collapsible Sidebar', 'KPI Metric Cards', 'Sortable Data Table', 'Command Palette (Cmd+K)', 'Skeleton Shimmer Loaders', 'Toast Notifications', 'Quick Stats Charts'],
+    'Landing Homepage': ['Hero CTA Section', 'Bento Grid Features', 'Client Logo Marquee Ticker', 'Testimonial Carousel', 'Accordion FAQ Collapsible', 'Floating Bottom Nav', 'Interactive Video Showcase'],
+    'Login Page': ['Glassmorphism Entry Card', 'Floating Input Labels', 'OTP Verification Code Input', 'Spring Scale Checkmark Bounces', 'Switch Mode Toggle', 'Error Validation States'],
+    'Signup Page': ['Multi-step Registration Form', 'Password Strength Estimator', 'Terms of Service Checkbox', 'Oauth Social Logins', 'Success Animation Screen', 'Email Verification Code'],
+    'Settings Page': ['Vertical Tab Navigation', 'Profile Avatar Uploader', 'Toggle Notification Switches', 'API Key Management Board', 'Danger Zone Deactivation Card', 'Preferences Form'],
+    'Profile Page': ['User Profile Header', 'Activity Stream Feed', 'Follower/Connection Stats', 'Editable Contact Details', 'Bio Summary Box', 'Recent Uploads Gallery', 'Social Media Links']
+  }
+};
+
+const emergencyComponents = {
+  COMPONENT_TYPES: [
+    { id: 'Interactive Command Palette', label: 'Command Palette', desc: 'Fuzzy-search command bar with shortcuts, tabs, and action tags.', image: '/components/command.png' },
+    { id: 'Glassmorphic Modal Dialog', label: 'Frosted Modal', desc: 'Beautiful center overlay window with backdrop blur and enter transitions.', image: '/components/modal.png' },
+    { id: 'Collapsible Sidebar Navigation', label: 'Sidebar Menu', desc: 'Sleek dark navigation sidebar with animated collapsible links and tooltips.', image: '/components/sidebar.png' },
+    { id: 'Settings Tab Navigator', label: 'Tab Switcher', desc: 'Vertical or horizontal tabs menu with slide animations and custom panels.', image: '/components/tabs.png' },
+    { id: 'Multi-Step Form Wizard', label: 'Interactive Wizard', desc: 'Structured progress steps, input validation, and successful result celebrations.', image: '/components/form.png' },
+    { id: 'Custom Component', label: 'Custom Control', desc: 'Describe your own customized interactive front-end component.', image: null }
+  ]
+};
+
+const emergencyStarterTemplates = [
+  { id: 'saas', label: 'SaaS Dashboard', desc: 'Pre-configured prompt for admin panels', mode: 'application', prompt: 'Create a comprehensive SaaS admin dashboard with a sidebar navigation, a top header with user profile and search, and a main content area containing data cards, a line chart for revenue, and a recent transactions table. Use a clean, modern aesthetic with a primary blue accent.', image: '/pages/dashboard.webp', icon: 'LayoutTemplate' },
+  { id: 'ai', label: 'AI Chat Interface', desc: 'Ready-to-compile conversational UI', mode: 'application', prompt: 'Build an AI chat interface similar to ChatGPT. Include a sidebar for chat history, a main chat area with distinct user and AI message bubbles, and a sticky input area at the bottom with a submit button and attachment icon.', image: '/pages/login.webp', icon: 'Sparkles' },
+  { id: 'portfolio', label: 'Developer Portfolio', desc: 'Personal site with project galleries', mode: 'page', prompt: 'Design a sleek, minimalist developer portfolio. Include a hero section with a brief introduction, a skills grid, a projects gallery with cards, and a contact form. Use a dark theme with neon accents.', image: '/pages/profile.webp', icon: 'Box' },
+  { id: 'docs', label: 'Documentation Hub', desc: 'Markdown-ready docs with sidebar navigation', mode: 'page', prompt: 'Create a documentation hub layout. Include a persistent left sidebar for nested navigation, a top bar with global search, and a main content area with typography optimized for long-form reading and code blocks.', image: '/pages/settings.webp', icon: 'FileText' },
+  { id: 'ecommerce', label: 'E-commerce Storefront', desc: 'Product grid, cart, and filtering', mode: 'application', prompt: 'Develop an e-commerce storefront. The home page should feature a promotional hero banner, a category sidebar with filters, and a responsive product grid. Include a shopping cart slide-out panel.', image: '/pages/landing.webp', icon: 'ShoppingBag' },
+  { id: 'admin', label: 'Internal Tool', desc: 'Data management and CRUD UI', mode: 'application', prompt: 'Build an internal CRUD tool for employee management. The interface should have a large data table with sorting and filtering, and a slide-out modal for adding or editing employee records.', image: '/pages/dashboard.webp', icon: 'TerminalSquare' }
+];
+
+// Endpoints for Dynamic Metadata
+apiRouter.get('/forge/categories', async (req, res) => {
+  res.setHeader('Cache-Control', `public, max-age=${CACHE_CONFIG.ttls.categories}`);
+  try {
+    const { data, error } = await supabase.from('app_categories').select('*');
+    if (error || !data || data.length === 0) {
+      return res.json(emergencyCategories);
+    }
+    res.json(data);
+  } catch (err) {
+    res.json(emergencyCategories);
+  }
+});
+
+apiRouter.get('/forge/templates', async (req, res) => {
+  res.setHeader('Cache-Control', `public, max-age=${CACHE_CONFIG.ttls.templates}`);
+  try {
+    const { data, error } = await supabase.from('page_templates').select('*');
+    if (error || !data || data.length === 0) {
+      return res.json(emergencyTemplates);
+    }
+    res.json(data);
+  } catch (err) {
+    res.json(emergencyTemplates);
+  }
+});
+
+apiRouter.get('/forge/components', async (req, res) => {
+  res.setHeader('Cache-Control', `public, max-age=${CACHE_CONFIG.ttls.components}`);
+  try {
+    const { data, error } = await supabase.from('components').select('*');
+    if (error || !data || data.length === 0) {
+      return res.json(emergencyComponents);
+    }
+    res.json(data);
+  } catch (err) {
+    res.json(emergencyComponents);
+  }
+});
+
+apiRouter.get('/forge/starter-templates', async (req, res) => {
+  res.setHeader('Cache-Control', `public, max-age=${CACHE_CONFIG.ttls.templates}`);
+  try {
+    const { data, error } = await supabase.from('starter_templates').select('*');
+    if (error || !data || data.length === 0) {
+      return res.json(emergencyStarterTemplates);
+    }
+    res.json(data);
+  } catch (err) {
+    res.json(emergencyStarterTemplates);
+  }
+});
+
 /**
  * Main prompt architect and generator endpoint (grounded by Relational Knowledge Graph)
  */
-app.post('/api/forge', async (req, res) => {
+apiRouter.post('/forge', async (req, res) => {
   const {
     mode,
     query,
@@ -425,6 +636,7 @@ app.post('/api/forge', async (req, res) => {
   }
 
   const startTime = Date.now();
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
 
   try {
     let activeMode = mode;
@@ -469,7 +681,8 @@ app.post('/api/forge', async (req, res) => {
       theme: activeTheme,
       typography: activeTypography,
       features: category ? components : [], // app mode maps features to components field in legacy client
-      components: pageType ? components : []
+      components: pageType ? components : [],
+      generationMode: req.body.generationMode || 'professional'
     };
 
     console.log(`[api/forge] Running Context-Isolated retrieval on Knowledge Graph...`);
@@ -529,12 +742,12 @@ app.post('/api/forge', async (req, res) => {
     // ==========================================
     // STAGE 4: CONTEXT ASSEMBLY (CONTEXT BUILDER)
     // ==========================================
-    const assembledContext = buildPromptContext(retrievedEntities);
+    const assembledContext = await buildPromptContext(retrievedEntities, history, req.requestId, query, activeMode);
 
     // ==========================================
     // STAGE 5: MULTI-AGENT EXPORT ORCHESTRATION
     // ==========================================
-    const { prompt: generatedPrompt, qualityScore, patchTriggered, reviews } = await runPromptEnhancerAgent({
+    const { prompt: generatedPrompt, qualityScore, patchTriggered, reviews, qualityWarnings } = await runPromptEnhancerAgent({
       mode: activeMode,
       query,
       blueprint: compiledBlueprintMarkdown,
@@ -593,6 +806,7 @@ app.post('/api/forge', async (req, res) => {
 
     res.json({
       prompt: generatedPrompt,
+      qualityWarnings: qualityWarnings || [],
       ragDetails: {
         engine_version: 'phase2',
         telemetry_source: req.body.telemetry_source || 'production',
@@ -624,6 +838,35 @@ app.post('/api/forge', async (req, res) => {
     console.error(`[forge] Agent execution error [${new Date().toISOString()}]: ${error.message}`);
     res.status(500).json({ error: `Internal prompt agent execution failed: ${error.message}` });
   }
+});
+
+
+// Mount the versioned apiRouter on both paths
+app.use('/api', apiRouter);
+app.use('/api/v1', apiRouter);
+
+// Global Unhandled Error Handling Middleware (enforces standard 500 responses)
+app.use((err, req, res, next) => {
+  const reqId = req.requestId || 'unknown';
+  console.error(`[${new Date().toISOString()}] [ERROR] [req:${reqId}] Uncaught Exception: ${err.message}`, err.stack);
+  
+  if (res.headersSent) {
+    return next(err);
+  }
+  
+  res.status(500).json({
+    error: 'An unexpected internal server error occurred',
+    errorCode: 'INTERNAL_SERVER_ERROR'
+  });
+});
+
+// Process event logging for unhandled promise rejections and uncaught exceptions
+process.on('unhandledRejection', (reason, promise) => {
+  console.error(`[${new Date().toISOString()}] [FATAL] Unhandled Promise Rejection at:`, promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error(`[${new Date().toISOString()}] [FATAL] Uncaught Exception thrown:`, err.message, err.stack);
 });
 
 app.listen(PORT, () => {

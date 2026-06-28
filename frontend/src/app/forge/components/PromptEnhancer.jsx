@@ -261,7 +261,7 @@ export function PromptEnhancer({
                   value={selectedModel || 'gemini'}
                   onChange={(val) => {
                     setSelectedModel(val);
-                    toast?.success ? toast.success(`Switched model to ${val === 'groq' ? 'Groq Llama 3.3' : 'Gemini 3.1 Pro'}`) : console.log("Switched model");
+                    toast?.success?.(`Switched model to ${val === 'groq' ? 'Groq Llama 3.3' : 'Gemini 3.1 Pro'}`);
                   }}
                   options={[
                     { label: 'Gemini 3.1 Pro (Flagship)', value: 'gemini' },

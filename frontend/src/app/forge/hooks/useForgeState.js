@@ -5,7 +5,7 @@ import { track, EVENTS } from '@/lib/analytics';
 import { CATEGORY_FEATURES } from '../constants/appCategories';
 import { PAGE_COMPONENTS } from '../constants/pageTemplates';
 
-export function useForgeState(user, router) {
+export function useForgeState(user, router, categories = null, templates = null) {
   const searchParams = useSearchParams();
 
   // Active state mode: "application" | "page" | "component" | "enhance" | null
@@ -187,21 +187,24 @@ export function useForgeState(user, router) {
     }
   }, [user, router]);
 
+  const activeCategoryFeatures = categories?.CATEGORY_FEATURES || CATEGORY_FEATURES;
+  const activePageComponents = templates?.PAGE_COMPONENTS || PAGE_COMPONENTS;
+
   // Load default features when category changes
   useEffect(() => {
     if (appCategory) {
-      const defaults = CATEGORY_FEATURES[appCategory] || CATEGORY_FEATURES['Custom'];
+      const defaults = activeCategoryFeatures[appCategory] || activeCategoryFeatures['Custom'] || [];
       setSelectedFeatures([...defaults]);
     }
-  }, [appCategory]);
+  }, [appCategory, activeCategoryFeatures]);
 
   // Load default components when pageType changes
   useEffect(() => {
     if (pageType) {
-      const defaults = PAGE_COMPONENTS[pageType] || [];
+      const defaults = activePageComponents[pageType] || [];
       setSelectedComponents([...defaults]);
     }
-  }, [pageType]);
+  }, [pageType, activePageComponents]);
 
   // Handlers
   const handleCategorySelect = (catId) => {

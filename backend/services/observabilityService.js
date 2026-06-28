@@ -496,7 +496,14 @@ export async function getObservabilityIntegrity() {
     broken_relationships_count: brokenRels.length,
     circular_relationships: cycles,
     invalid_relationship_types_count: invalidTypesCount,
-    last_run_at: new Date().toISOString()
+    last_run_at: new Date().toISOString(),
+    labels: {
+      orphans: "Independent Design Elements",
+      duplicate_slugs_count: "Duplicate Identifiers",
+      broken_relationships_count: "Dangling References",
+      circular_relationships: "Recursive Reference Loops",
+      invalid_relationship_types_count: "Invalid Reference Types"
+    }
   };
 }
 

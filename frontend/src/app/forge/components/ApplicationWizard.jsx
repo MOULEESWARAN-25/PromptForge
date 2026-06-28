@@ -20,7 +20,7 @@ const IconMap = {
   Home,
   Code2
 };
-import { APP_CATEGORIES, CATEGORY_FEATURES, AI_FEATURE_SUGGESTIONS } from '../constants/appCategories';
+import { useApp } from '../../../context/AppContext';
 import { ThemeSelector } from './ThemeSelector';
 import { TypographyPicker } from './TypographyPicker';
 import { SyncBranchSelector } from './SyncBranchSelector';
@@ -48,6 +48,8 @@ const stepTitle = { fontSize: '1.25rem', fontWeight: '800', color: 'var(--foregr
 const stepDesc  = { fontSize: '0.88rem', color: 'var(--muted-foreground)', marginTop: '0.35rem', lineHeight: '1.4' };
 
 export function ApplicationWizard({ forgeState, promptGeneration, apiKey }) {
+  const { categories } = useApp();
+  const { APP_CATEGORIES, CATEGORY_FEATURES, AI_FEATURE_SUGGESTIONS } = categories;
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [appSearch, setAppSearch] = useState('');

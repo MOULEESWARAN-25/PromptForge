@@ -15,7 +15,9 @@ try {
   const blocklistPath = path.resolve(process.cwd(), 'src/config/disposableDomains.json');
   disposableDomains = JSON.parse(fs.readFileSync(blocklistPath, 'utf8'));
 } catch (err) {
-  console.warn('Failed to load disposable domains blocklist from disk', err);
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('Failed to load disposable domains blocklist from disk', err);
+  }
 }
 
 // Initialize Supabase Admin client

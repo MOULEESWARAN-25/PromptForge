@@ -3,7 +3,6 @@
  * Parses semantic properties to determine developer vision alignment and trigger clarifications.
  */
 export function evaluateIntentClarity(rawPrompt) {
-  console.log(`[Intent Analyzer] Analyzing prompt density properties...`);
   
   const text = (rawPrompt || '').trim();
   const normalizedText = text.toLowerCase();
