@@ -22,7 +22,7 @@ const geminiFlashModel = new ChatGoogleGenerativeAI({
   apiKey: process.env.GEMINI_API_KEY,
   model: "gemini-2.5-flash",
   temperature: 0.7,
-  maxOutputTokens: 4096,
+  maxOutputTokens: 8192,
   maxRetries: 0
 });
 
@@ -43,6 +43,7 @@ if (process.env.GROQ_API_KEY) {
       apiKey: process.env.GROQ_API_KEY,
       model: AI_CONFIG.models.groq.name,
       temperature: AI_CONFIG.models.groq.temperature,
+      maxTokens: AI_CONFIG.models.groq.maxOutputTokens || 4096,
       maxRetries: 0
     });
   } catch (err) {
