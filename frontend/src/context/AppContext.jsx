@@ -646,7 +646,7 @@ export function AppProvider({ children }) {
   };
 
   // ── Record a building activity session (call from dashboard on mount)
-  const recordActivity = () => {
+  const recordActivity = useCallback(() => {
     try {
       const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
       const stored = JSON.parse(localStorage.getItem("pf_active_days") || "[]");
@@ -671,7 +671,7 @@ export function AppProvider({ children }) {
         track(EVENTS.ACTIVITY_SESSION_RECORDED, { sessionsThisMonth });
       }
     } catch {}
-  };
+  }, []);
 
   // ── Compute blueprints created this calendar month
   const getBlueprintsThisMonth = (hist = history) => {
